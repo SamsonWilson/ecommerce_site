@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace professionnel — Maison Lián</title>
+<link rel="stylesheet" href="style-ueeshop.css">
+<style>
+  .pro-uee-hero{
+    background:linear-gradient(120deg, var(--navy) 0%, var(--navy-light) 100%);
+    color:#fff;padding:56px 0;
+  }
+  .pro-uee-hero .eyebrow{color:#ffb4ac;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+  .pro-uee-hero h1{font-size:clamp(28px,3.4vw,40px);color:#fff;max-width:680px;margin-top:12px;}
+  .pro-uee-hero p{margin-top:14px;max-width:520px;color:#c3cbdc;font-size:14.5px;line-height:1.6;}
+  .pro-uee-stats{display:flex;gap:36px;margin-top:30px;flex-wrap:wrap;}
+  .pro-uee-stats div{display:flex;flex-direction:column;}
+  .pro-uee-stats .n{font-family:var(--display);font-size:26px;font-weight:800;color:#fff;}
+  .pro-uee-stats .l{font-size:11.5px;color:#aab4c8;text-transform:uppercase;letter-spacing:.04em;}
+  .pro-uee-split{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:start;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="container">
+    <div class="tb-left"><span>Espace réservé aux distributeurs et revendeurs</span></div>
+    <div class="tb-right">
+      <span>FR</span><span>|</span><span>EUR €</span><span>|</span>
+      <a href="index-ueeshop.html">Retour à la boutique</a>
+    </div>
+  </div>
+</div>
+
+<header class="uee">
+  <div class="container uee-head-row">
+    <a href="index-ueeshop.html" class="uee-logo">
+      <span class="mark">ML</span>
+      <span class="word">MAISON <span>LIÁN</span></span>
+    </a>
+    <div class="uee-search">
+      <select><option>Toutes catégories</option></select>
+      <input type="text" placeholder="Rechercher une référence...">
+      <button aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.2" y2="15.2"/></svg></button>
+    </div>
+    <div class="uee-actions">
+      <a class="uee-action" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Connexion</a>
+      <a href="#" class="uee-quote-btn">Créer un compte pro</a>
+    </div>
+  </div>
+</header>
+
+<nav class="uee-nav">
+  <div class="container">
+    <div class="uee-nav-cat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      Toutes les catégories
+    </div>
+    <ul>
+      <li><a href="index-ueeshop.html">Accueil</a></li>
+      <li><a href="categorie-ueeshop.html">Style chinois</a></li>
+      <li><a href="pro-ueeshop.html" class="active">Grossistes</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="pro-uee-hero">
+  <div class="container">
+    <span class="eyebrow">Distributeurs &amp; revendeurs</span>
+    <h1>Vos tarifs de gros, débloqués automatiquement après validation</h1>
+    <p>Créez un compte professionnel : dès sa validation, tous les prix affichés sur le site basculent en tarif préférentiel, sans code promo à saisir.</p>
+    <div class="pro-uee-stats">
+      <div><span class="n">180+</span><span class="l">Boutiques partenaires</span></div>
+      <div><span class="n">27</span><span class="l">Pays livrés</span></div>
+      <div><span class="n">24h</span><span class="l">Délai de devis</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="uee-section" style="background:#fff;">
+  <div class="container">
+    <div class="uee-section-head"><h2>Trois paliers professionnels</h2></div>
+    <div class="cat-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="testi-card" style="text-align:left;">
+        <span style="font-size:11px;font-weight:700;color:var(--brand-red);text-transform:uppercase;">Palier 1</span>
+        <h3 style="font-size:19px;color:var(--navy);margin-top:6px;">Revendeur</h3>
+        <ul style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--text);">
+          <li>— MOQ 12 pièces / référence</li>
+          <li>— Remise de gros standard</li>
+          <li>— Fiches PDF illimitées</li>
+        </ul>
+      </div>
+      <div class="testi-card" style="text-align:left;border:2px solid var(--brand-red);">
+        <span style="font-size:11px;font-weight:700;color:var(--brand-red);text-transform:uppercase;">Palier 2 — Populaire</span>
+        <h3 style="font-size:19px;color:var(--navy);margin-top:6px;">Distributeur</h3>
+        <ul style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--text);">
+          <li>— MOQ 48 pièces / référence</li>
+          <li>— Remise de gros renforcée</li>
+          <li>— Devis prioritaire sous 24h</li>
+        </ul>
+      </div>
+      <div class="testi-card" style="text-align:left;">
+        <span style="font-size:11px;font-weight:700;color:var(--brand-red);text-transform:uppercase;">Palier 3</span>
+        <h3 style="font-size:19px;color:var(--navy);margin-top:6px;">Grand compte</h3>
+        <ul style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--text);">
+          <li>— MOQ négociée sur mesure</li>
+          <li>— Tarifs dégressifs par volume</li>
+          <li>— Interlocuteur commercial dédié</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="uee-section">
+  <div class="container pro-uee-split">
+
+    <!-- FORMULAIRE DE DEVIS -->
+    <div class="uee-quote-card">
+      <div class="qc-head">
+        <span>Devis express</span>
+        <h2>Demander un devis groupé</h2>
+        <p>Décrivez votre besoin, notre équipe commerciale vous répond sous 24h ouvrées avec une offre chiffrée.</p>
+      </div>
+      <div class="qc-body">
+        <form>
+
+          <div class="uee-qf-step"><span class="num">1</span><span class="lbl">Vos coordonnées</span></div>
+          <div class="uee-qf-grid">
+            <div><label for="soc">Société</label><input id="soc" type="text" placeholder="Nom de votre boutique"></div>
+            <div><label for="pays">Pays</label><input id="pays" type="text" placeholder="France, Belgique..."></div>
+            <div><label for="mail">E-mail professionnel</label><input id="mail" type="email" placeholder="vous@boutique.com"></div>
+            <div><label for="tel">Téléphone</label><input id="tel" type="tel" placeholder="+33 ..."></div>
+          </div>
+
+          <div class="uee-qf-step"><span class="num">2</span><span class="lbl">Votre besoin</span></div>
+          <div class="uee-qf-grid">
+            <div class="full"><label for="refs">Références souhaitées</label><input id="refs" type="text" placeholder="Ex. ML-PH-014, ML-CO-002..."></div>
+            <div><label for="qte">Quantité estimée</label><input id="qte" type="number" min="12" placeholder="Ex. 60"></div>
+            <div>
+              <label>Palier professionnel</label>
+              <div class="uee-tier-pick">
+                <input type="radio" name="tier" id="t1" checked><label for="t1"><span class="tn">Revendeur</span><span class="tm">MOQ 12</span></label>
+                <input type="radio" name="tier" id="t2"><label for="t2"><span class="tn">Distributeur</span><span class="tm">MOQ 48</span></label>
+              </div>
+            </div>
+            <div class="full"><label for="details">Détails complémentaires</label><textarea id="details" rows="4" placeholder="Personnalisation, délai souhaité, marché cible..."></textarea></div>
+          </div>
+
+          <div class="uee-qf-foot">
+            <button type="submit" class="btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
+              Envoyer la demande de devis
+            </button>
+            <span class="reassure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12l5 5L20 6"/></svg>Réponse sous 24h ouvrées</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- COLONNE MOQ -->
+    <div class="uee-side-panel">
+      <div class="uee-tier-card">
+        <span class="tc-tag">Quantités minimales</span>
+        <h3>MOQ par famille de produit</h3>
+        <table class="uee-moq-table" style="margin-top:14px;">
+          <thead><tr><th>Famille</th><th>MOQ</th><th>Max</th></tr></thead>
+          <tbody>
+            <tr><td>Épingles &amp; peignes</td><td>12</td><td>500</td></tr>
+            <tr><td>Diadèmes &amp; tiares</td><td>12</td><td>200</td></tr>
+            <tr><td>Boucles d'oreilles</td><td>24 p.</td><td>800 p.</td></tr>
+            <tr><td>Éventails brodés</td><td>12</td><td>300</td></tr>
+            <tr><td>Bracelets</td><td>24</td><td>600</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="uee-tier-card">
+        <span class="tc-tag">Ressource</span>
+        <h3>Catalogue grossiste complet</h3>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12l5 5L20 6"/></svg>Toutes les références &amp; tarifs</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12l5 5L20 6"/></svg>Photos haute définition</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12l5 5L20 6"/></svg>Conditions de gros détaillées</li>
+        </ul>
+        <a href="#" class="btn-outline" style="display:block;text-align:center;margin-top:16px;">Télécharger le PDF</a>
+      </div>
+
+      <div class="uee-tier-card" style="background:#FBEAEA;box-shadow:none;">
+        <span class="tc-tag">Besoin d'aide ?</span>
+        <h3>Parlez à un conseiller</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.6;">Notre équipe répond sur WhatsApp en moins de 15 minutes en journée.</p>
+        <a href="#" class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 19l1.2-3.4A7.5 7.5 0 1 1 10 18.6L6 19Z"/></svg>
+          Discuter sur WhatsApp
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="trust-section">
+  <div class="container trust-flex">
+    <div class="trust-badges">
+      <span class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>Compte pro validé sous 24h</span>
+      <span class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>Export dans 27 pays</span>
+    </div>
+    <div class="pay-icons">
+      <span class="pi">VISA</span><span class="pi">MC</span><span class="pi">PayPal</span><span class="pi">Stripe</span>
+    </div>
+  </div>
+</section>
+
+<footer class="uee">
+  <div class="container">
+    <div class="uee-footer-grid">
+      <div>
+        <span class="word">MAISON <span>LIÁN</span></span>
+        <p class="desc">Accessoires de mariage et pièces d'héritage chinois — vente au détail et en gros, livrés dans plus de 27 pays.</p>
+      </div>
+      <div><h4>Boutique</h4><ul><li><a href="index-ueeshop.html">Accueil</a></li><li><a href="categorie-ueeshop.html">Style chinois</a></li></ul></div>
+      <div><h4>Professionnels</h4><ul><li><a href="pro-ueeshop.html">Espace pro</a></li><li><a href="pro-ueeshop.html">Demander un devis</a></li></ul></div>
+      <div><h4>Aide</h4><ul><li><a href="#">Livraison</a></li><li><a href="#">Retours</a></li></ul></div>
+      <div><h4>Suivez-nous</h4>
+        <div class="footer-social">
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M6 19l1.2-3.4A7.5 7.5 0 1 1 10 18.6L6 19Z"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="uee-footer-bottom">
+      <span>© 2026 Maison Lián — Tous droits réservés</span>
+      <span>FR / EN / 中文 — Site propulsé par UEESHOP</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

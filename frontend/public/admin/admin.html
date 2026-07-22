@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord — Administration Maison Lián</title>
+<link rel="stylesheet" href="style-admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="mark">ML</span>
+      <span class="word">Maison Lián<small>Administration</small></span>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-label">Vue d'ensemble</div>
+      <a href="#" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Tableau de bord
+      </a>
+
+      <div class="nav-label">Boutique</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 7h-3.6a2.5 2.5 0 1 0-4.4-2.4A2.5 2.5 0 1 0 7.6 7H4v4h16Z"/><path d="M4 11v9h16v-9M12 11v9"/></svg>
+        Produits
+        <span class="nav-badge">312</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16l-1.4 11.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 8Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg>
+        Commandes
+        <span class="nav-badge">18</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 12l9 5 9-5M3 17l9 5 9-5"/></svg>
+        Collections &amp; thèmes
+      </a>
+
+      <div class="nav-label">Vente en gros (B2B)</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V7l8-4 8 4v14"/><path d="M9 21v-6h6v6"/></svg>
+        Comptes professionnels
+        <span class="nav-badge">7</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2l6 6M20 2 14 8"/><path d="M4 12l5 5L20 6"/></svg>
+        Demandes de devis
+        <span class="nav-badge">5</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M2 12h20"/></svg>
+        Paliers &amp; MOQ
+      </a>
+
+      <div class="nav-label">Marketing &amp; contenu</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg>
+        Multilingue &amp; SEO
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>
+        Réseaux sociaux
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        Newsletter
+      </a>
+
+      <div class="nav-label">Système</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+        Paramètres
+      </a>
+    </nav>
+
+    <div class="admin-sidebar-foot">
+      <span class="av">A</span>
+      <div>
+        <div class="name">Adèle Fontaine</div>
+        <div class="role">Administratrice</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="admin-main">
+
+    <div class="admin-topbar">
+      <div class="admin-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.2" y2="15.2"/></svg>
+        <input type="text" placeholder="Rechercher une commande, un client, un produit...">
+      </div>
+      <div class="admin-top-actions">
+        <span class="admin-lang">🌐 FR</span>
+        <span class="admin-bell-wrap">
+          <svg class="admin-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M9 20a3 3 0 0 0 6 0"/></svg>
+          <span class="dot"></span>
+        </span>
+        <div class="admin-profile">
+          <span class="av">A</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <div class="admin-page-head">
+        <div>
+          <h1>Tableau de bord</h1>
+          <p class="sub">Aperçu de l'activité — 1 au 20 juillet 2026</p>
+        </div>
+        <div class="admin-page-actions">
+          <button class="btn-admin ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>
+            Exporter
+          </button>
+          <button class="btn-admin primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            Ajouter un produit
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== KPI ========== -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-icon" style="background:#FDE9E8;"><svg viewBox="0 0 24 24" fill="none" stroke="#E1251B" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          </div>
+          <div class="kpi-label">Chiffre d'affaires (20j)</div>
+          <div class="kpi-value">48 260 €</div>
+          <div class="kpi-trend up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15l6-6 4 4 6-8"/></svg>
+            +12,4% <span class="period">vs mois dernier</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-icon" style="background:#E9F0FE;"><svg viewBox="0 0 24 24" fill="none" stroke="#2E6BE0" stroke-width="1.8"><path d="M4 8h16l-1.4 11.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 8Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></span>
+          </div>
+          <div class="kpi-label">Commandes</div>
+          <div class="kpi-value">386</div>
+          <div class="kpi-trend up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15l6-6 4 4 6-8"/></svg>
+            +6,1% <span class="period">vs mois dernier</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-icon" style="background:#F1E9FE;"><svg viewBox="0 0 24 24" fill="none" stroke="#7B3FE4" stroke-width="1.8"><path d="M4 21V7l8-4 8 4v14"/><path d="M9 21v-6h6v6"/></svg></span>
+          </div>
+          <div class="kpi-label">Nouveaux comptes pro</div>
+          <div class="kpi-value">7</div>
+          <div class="kpi-trend up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15l6-6 4 4 6-8"/></svg>
+            +2 <span class="period">cette semaine</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-icon" style="background:#FFF6E3;"><svg viewBox="0 0 24 24" fill="none" stroke="#E8A419" stroke-width="1.8"><path d="M14 2l6 6M20 2 14 8"/><path d="M4 12l5 5L20 6"/></svg></span>
+          </div>
+          <div class="kpi-label">Devis en attente</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-trend down">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9l6 6 4-4 6 8"/></svg>
+            Réponse moy. 18h <span class="period">objectif 24h</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== CHARTS ========== -->
+      <div class="admin-row cols-2-1">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Ventes des 7 derniers jours</h3>
+            <div class="panel-tabs">
+              <button class="active">Semaine</button>
+              <button>Mois</button>
+              <button>Année</button>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar" style="height:52%;"></div><span class="bar-label">Lun</span></div>
+            <div class="bar-col"><div class="bar" style="height:68%;"></div><span class="bar-label">Mar</span></div>
+            <div class="bar-col"><div class="bar" style="height:45%;"></div><span class="bar-label">Mer</span></div>
+            <div class="bar-col"><div class="bar" style="height:80%;"></div><span class="bar-label">Jeu</span></div>
+            <div class="bar-col"><div class="bar hi" style="height:100%;"></div><span class="bar-label">Ven</span></div>
+            <div class="bar-col"><div class="bar" style="height:74%;"></div><span class="bar-label">Sam</span></div>
+            <div class="bar-col"><div class="bar" style="height:38%;"></div><span class="bar-label">Dim</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Répartition B2C / B2B</h3></div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <div class="donut-center"><span class="n">62%</span><span class="l">B2C</span></div>
+            </div>
+            <div class="donut-legend">
+              <div><span class="dot" style="background:var(--red);"></span> Détail (B2C) — 62%</div>
+              <div><span class="dot" style="background:var(--navy);"></span> Gros (B2B) — 38%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== DEVIS EN ATTENTE ========== -->
+      <div class="panel" style="margin-bottom:18px;">
+        <div class="panel-head">
+          <h3>Demandes de devis en attente</h3>
+          <a class="see-all" href="#">Voir toutes →</a>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Société</th><th>Références</th><th>Quantité</th><th>Palier</th><th>Reçu</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cell-main">Boutique Ivoire — Bruxelles</td>
+              <td>ML-PH-014, ML-CO-002</td>
+              <td>60 pièces</td>
+              <td><span class="tag-pill tier-2">Distributeur</span></td>
+              <td class="cell-sub">Il y a 3h</td>
+              <td><div class="row-actions">
+                <span class="icon-btn" title="Répondre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></span>
+                <span class="icon-btn" title="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="cell-main">Mei Wedding Co. — Vancouver</td>
+              <td>ML-EV-021</td>
+              <td>150 pièces</td>
+              <td><span class="tag-pill tier-3">Grand compte</span></td>
+              <td class="cell-sub">Il y a 6h</td>
+              <td><div class="row-actions">
+                <span class="icon-btn" title="Répondre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></span>
+                <span class="icon-btn" title="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="cell-main">Atelier Rouge Cerise — Lyon</td>
+              <td>ML-BR-009</td>
+              <td>24 pièces</td>
+              <td><span class="tag-pill tier-1">Revendeur</span></td>
+              <td class="cell-sub">Il y a 1 jour</td>
+              <td><div class="row-actions">
+                <span class="icon-btn" title="Répondre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></span>
+                <span class="icon-btn" title="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-row cols-2-1">
+        <!-- ========== DERNIÈRES COMMANDES ========== -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Dernières commandes</h3>
+            <a class="see-all" href="#">Voir tout →</a>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>Commande</th><th>Client</th><th>Montant</th><th>Statut</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="cell-main">#ML-10482</td>
+                <td>Camille R. <span class="cell-sub">— Lyon, FR</span></td>
+                <td>128 €</td>
+                <td><span class="status paid">Payée</span></td>
+              </tr>
+              <tr>
+                <td class="cell-main">#ML-10481</td>
+                <td>Sophie M. — Pro <span class="cell-sub">Boutique Ivoire</span></td>
+                <td>1 536 €</td>
+                <td><span class="status pending">En préparation</span></td>
+              </tr>
+              <tr>
+                <td class="cell-main">#ML-10480</td>
+                <td>Mei L. <span class="cell-sub">— Vancouver, CA</span></td>
+                <td>96 €</td>
+                <td><span class="status shipped">Expédiée</span></td>
+              </tr>
+              <tr>
+                <td class="cell-main">#ML-10479</td>
+                <td>Anaïs D. <span class="cell-sub">— Bordeaux, FR</span></td>
+                <td>212 €</td>
+                <td><span class="status new">Nouvelle</span></td>
+              </tr>
+              <tr>
+                <td class="cell-main">#ML-10478</td>
+                <td>Julia K. <span class="cell-sub">— Berlin, DE</span></td>
+                <td>72 €</td>
+                <td><span class="status paid">Payée</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ========== TOP PRODUITS ========== -->
+        <div class="panel">
+          <div class="panel-head"><h3>Produits les plus vendus</h3></div>
+          <table class="admin-table">
+            <tbody>
+              <tr>
+                <td>
+                  <div class="cell-flex">
+                    <span class="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c-3 4-4 8-2 11 2 3 6 3 8 0 2-3 1-7-2-11Z"/></svg></span>
+                    <div><div class="cell-main">Épingle Phénix Cinabre</div><div class="cell-sub">Style chinois</div></div>
+                  </div>
+                </td>
+                <td class="cell-sub" style="text-align:right;">86 ventes</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="cell-flex">
+                    <span class="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8a6 6 0 0 1 12 0"/></svg></span>
+                    <div><div class="cell-main">Diadème Perles Douces</div><div class="cell-sub">Romance occidentale</div></div>
+                  </div>
+                </td>
+                <td class="cell-sub" style="text-align:right;">64 ventes</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="cell-flex">
+                    <span class="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12q7-8 14 0"/></svg></span>
+                    <div><div class="cell-main">Éventail Brodé Pivoine</div><div class="cell-sub">Style chinois</div></div>
+                  </div>
+                </td>
+                <td class="cell-sub" style="text-align:right;">51 ventes</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="cell-flex">
+                    <span class="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></span>
+                    <div><div class="cell-main">Bracelet Jade &amp; Or</div><div class="cell-sub">Style chinois</div></div>
+                  </div>
+                </td>
+                <td class="cell-sub" style="text-align:right;">39 ventes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== COMPTES PRO EN ATTENTE ========== -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Comptes professionnels en attente de validation</h3>
+          <a class="see-all" href="#">Voir tout →</a>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Société</th><th>Pays</th><th>Palier demandé</th><th>Pièces justificatives</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="cell-main">Rose &amp; Pivoine Bridal</td>
+              <td>États-Unis</td>
+              <td><span class="tag-pill tier-2">Distributeur</span></td>
+              <td class="cell-sub">Kbis, TVA intra ✓</td>
+              <td><div class="row-actions">
+                <span class="icon-btn approve" title="Approuver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l5 5L20 6"/></svg></span>
+                <span class="icon-btn reject" title="Refuser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="cell-main">Xǐ Jiā Wedding Studio</td>
+              <td>Singapour</td>
+              <td><span class="tag-pill tier-1">Revendeur</span></td>
+              <td class="cell-sub">Licence commerciale ✓</td>
+              <td><div class="row-actions">
+                <span class="icon-btn approve" title="Approuver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l5 5L20 6"/></svg></span>
+                <span class="icon-btn reject" title="Refuser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

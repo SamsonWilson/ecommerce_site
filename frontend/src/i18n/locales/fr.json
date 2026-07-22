@@ -1,0 +1,94 @@
+{
+  "topbar": { "wholesale": "Espace grossiste" },
+  "header": {
+    "allCategories": "Toutes catégories",
+    "searchPlaceholder": "Rechercher un produit, une référence...",
+    "account": "Compte",
+    "favorites": "Favoris",
+    "cart": "Panier",
+    "requestQuote": "Demander un devis"
+  },
+  "nav": {
+    "allCategories": "Toutes les catégories",
+    "home": "Accueil",
+    "ceremony": "Cérémonie",
+    "reception": "Réception",
+    "chinese": "Style chinois",
+    "new": "Nouveautés",
+    "wholesalers": "Grossistes",
+    "contact": "Contact",
+    "freeShipping": "Livraison gratuite dès 150€"
+  },
+  "footer": {
+    "tagline": "Accessoires de mariage et pièces d'héritage chinois — vente au détail et en gros, livrés dans plus de 27 pays.",
+    "ateliers": "Ateliers Paris & Guangzhou",
+    "shop": "Boutique",
+    "pros": "Professionnels",
+    "help": "Aide",
+    "follow": "Suivez-nous",
+    "chineseStyle": "Style chinois",
+    "new": "Nouveautés",
+    "promotions": "Promotions",
+    "favorites": "Mes favoris",
+    "createPro": "Créer un compte pro",
+    "requestQuote": "Demander un devis",
+    "catalogPdf": "Catalogue PDF",
+    "shippingReturns": "Livraison & retours",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "rights": "© 2026 Maison Lián — Tous droits réservés",
+    "poweredBy": "Site propulsé par UEESHOP"
+  },
+  "home": {
+    "hero": {
+      "badge": "✦ Collection printemps — jusqu'à -20%",
+      "title1": "Accessoires de mariage",
+      "title2": "héritage chinois",
+      "subtitle": "Vente au détail et en gros. Comptes professionnels avec tarifs préférentiels, MOQ dès 12 pièces, devis sous 24h.",
+      "buyNow": "Acheter maintenant",
+      "wholesalePrices": "Tarifs grossiste"
+    },
+    "usp": {
+      "worldwide": "Livraison mondiale", "worldwideSub": "Europe · Amérique · Asie",
+      "secure": "Paiement sécurisé", "secureSub": "PayPal · Stripe · CB",
+      "wholesale": "Tarifs grossiste", "wholesaleSub": "MOQ dès 12 pièces",
+      "support": "Support 24/7", "supportSub": "WhatsApp & e-mail"
+    },
+    "moments": {
+      "heading": "Acheter par moment",
+      "ceremony": "Cérémonie", "reception": "Réception", "dinner": "Dîner",
+      "photoshoot": "Séance photo", "chinese": "Style chinois", "promotions": "Promotions"
+    },
+    "bestSellers": {
+      "heading": "Meilleures ventes",
+      "all": "Tout", "ceremony": "Cérémonie", "chinese": "Style chinois", "promo": "Promo"
+    },
+    "promo": {
+      "title": "Programme grossiste — jusqu'à -30%",
+      "text": "Créez votre compte professionnel et débloquez vos tarifs préférentiels sur toute la boutique.",
+      "days": "Jours", "hours": "Heures", "min": "Min",
+      "createPro": "Créer un compte pro"
+    },
+    "testimonials": {
+      "heading": "Ce que disent nos clientes",
+      "t1": "Livraison rapide même vers le Canada, et l'épingle était encore plus belle qu'en photo.",
+      "t2": "En tant que boutique, le devis est arrivé en moins de 24h et les MOQ sont raisonnables.",
+      "t3": "Le service client répond très vite sur WhatsApp, super pratique pour ajuster ma commande."
+    },
+    "trust": {
+      "secure": "Paiement 100% sécurisé",
+      "shipping": "Expédition sous 72h",
+      "returns": "Retours sous 30 jours"
+    },
+    "newsletter": {
+      "title": "Recevez -10% sur votre première commande",
+      "text": "Nouveautés, offres grossiste et guides mariage, une fois par mois.",
+      "placeholder": "Votre adresse e-mail",
+      "subscribe": "S'inscrire"
+    }
+  },
+  "common": {
+    "addToCart": "+ Ajouter au panier",
+    "addToWishlist": "Ajouter aux favoris"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "topbar": { "wholesale": "Wholesale area" },
+  "header": {
+    "allCategories": "All categories",
+    "searchPlaceholder": "Search a product, a reference...",
+    "account": "Account",
+    "favorites": "Wishlist",
+    "cart": "Cart",
+    "requestQuote": "Request a quote"
+  },
+  "nav": {
+    "allCategories": "All categories",
+    "home": "Home",
+    "ceremony": "Ceremony",
+    "reception": "Reception",
+    "chinese": "Chinese style",
+    "new": "New arrivals",
+    "wholesalers": "Wholesalers",
+    "contact": "Contact",
+    "freeShipping": "Free shipping from €150"
+  },
+  "footer": {
+    "tagline": "Wedding accessories and Chinese heritage pieces — retail and wholesale, shipped to over 27 countries.",
+    "ateliers": "Ateliers in Paris & Guangzhou",
+    "shop": "Shop",
+    "pros": "Professionals",
+    "help": "Help",
+    "follow": "Follow us",
+    "chineseStyle": "Chinese style",
+    "new": "New arrivals",
+    "promotions": "Sales",
+    "favorites": "My wishlist",
+    "createPro": "Create a pro account",
+    "requestQuote": "Request a quote",
+    "catalogPdf": "PDF catalog",
+    "shippingReturns": "Shipping & returns",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "rights": "© 2026 Maison Lián — All rights reserved",
+    "poweredBy": "Powered by UEESHOP"
+  },
+  "home": {
+    "hero": {
+      "badge": "✦ Spring collection — up to -20%",
+      "title1": "Wedding accessories",
+      "title2": "Chinese heritage",
+      "subtitle": "Retail and wholesale. Professional accounts with preferential pricing, MOQ from 12 pieces, quotes within 24h.",
+      "buyNow": "Buy now",
+      "wholesalePrices": "Wholesale prices"
+    },
+    "usp": {
+      "worldwide": "Worldwide shipping", "worldwideSub": "Europe · Americas · Asia",
+      "secure": "Secure payment", "secureSub": "PayPal · Stripe · Card",
+      "wholesale": "Wholesale pricing", "wholesaleSub": "MOQ from 12 pieces",
+      "support": "24/7 support", "supportSub": "WhatsApp & email"
+    },
+    "moments": {
+      "heading": "Shop by moment",
+      "ceremony": "Ceremony", "reception": "Reception", "dinner": "Dinner",
+      "photoshoot": "Photoshoot", "chinese": "Chinese style", "promotions": "Sales"
+    },
+    "bestSellers": {
+      "heading": "Best sellers",
+      "all": "All", "ceremony": "Ceremony", "chinese": "Chinese style", "promo": "Sale"
+    },
+    "promo": {
+      "title": "Wholesale program — up to -30%",
+      "text": "Create your professional account and unlock preferential pricing across the shop.",
+      "days": "Days", "hours": "Hours", "min": "Min",
+      "createPro": "Create a pro account"
+    },
+    "testimonials": {
+      "heading": "What our customers say",
+      "t1": "Fast delivery even to Canada, and the hairpin was even more beautiful than in the photos.",
+      "t2": "As a boutique, the quote arrived in under 24h and the MOQs are reasonable.",
+      "t3": "Customer service replies very quickly on WhatsApp, super convenient to adjust my order."
+    },
+    "trust": {
+      "secure": "100% secure payment",
+      "shipping": "Shipped within 72h",
+      "returns": "30-day returns"
+    },
+    "newsletter": {
+      "title": "Get -10% on your first order",
+      "text": "New arrivals, wholesale offers and wedding guides, once a month.",
+      "placeholder": "Your email address",
+      "subscribe": "Subscribe"
+    }
+  },
+  "common": {
+    "addToCart": "+ Add to cart",
+    "addToWishlist": "Add to wishlist"
+  }
+}

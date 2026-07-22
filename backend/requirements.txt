@@ -1,0 +1,18 @@
+# Cœur
+django~=5.1
+djangorestframework
+djangorestframework-simplejwt        # JWT
+django-cors-headers                  # autoriser le domaine du frontend
+django-environ                       # config par variables d'environnement
+django-filter                        # filtres API (catégorie, couleur, prix)
+
+# Base de données
+psycopg[binary]                      # driver PostgreSQL
+
+# Authentification Google (vérification de l'ID token)
+google-auth
+requests                             # transport HTTP requis par google-auth
+
+# Production
+gunicorn                             # serveur WSGI
+whitenoise                           # fichiers statiques en prod

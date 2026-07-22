@@ -1,0 +1,94 @@
+{
+  "topbar": { "wholesale": "批发专区" },
+  "header": {
+    "allCategories": "所有分类",
+    "searchPlaceholder": "搜索商品或货号…",
+    "account": "账户",
+    "favorites": "收藏",
+    "cart": "购物车",
+    "requestQuote": "索取报价"
+  },
+  "nav": {
+    "allCategories": "全部分类",
+    "home": "首页",
+    "ceremony": "婚礼仪式",
+    "reception": "宴会",
+    "chinese": "中式风格",
+    "new": "新品",
+    "wholesalers": "批发商",
+    "contact": "联系我们",
+    "freeShipping": "满150€免运费"
+  },
+  "footer": {
+    "tagline": "婚礼配饰与中式传承单品——零售与批发，配送至27个以上国家。",
+    "ateliers": "巴黎与广州工作室",
+    "shop": "商店",
+    "pros": "专业客户",
+    "help": "帮助",
+    "follow": "关注我们",
+    "chineseStyle": "中式风格",
+    "new": "新品",
+    "promotions": "促销",
+    "favorites": "我的收藏",
+    "createPro": "注册专业账户",
+    "requestQuote": "索取报价",
+    "catalogPdf": "PDF 目录",
+    "shippingReturns": "配送与退货",
+    "contact": "联系我们",
+    "faq": "常见问题",
+    "rights": "© 2026 Maison Lián — 版权所有",
+    "poweredBy": "由 UEESHOP 提供技术支持"
+  },
+  "home": {
+    "hero": {
+      "badge": "✦ 春季系列——低至8折",
+      "title1": "婚礼配饰",
+      "title2": "中式传承",
+      "subtitle": "零售与批发。专业账户享优惠价，起订量12件起，24小时内提供报价。",
+      "buyNow": "立即购买",
+      "wholesalePrices": "批发价格"
+    },
+    "usp": {
+      "worldwide": "全球配送", "worldwideSub": "欧洲 · 美洲 · 亚洲",
+      "secure": "安全支付", "secureSub": "PayPal · Stripe · 银行卡",
+      "wholesale": "批发价格", "wholesaleSub": "起订量12件起",
+      "support": "全天候客服", "supportSub": "WhatsApp 与邮件"
+    },
+    "moments": {
+      "heading": "按场合选购",
+      "ceremony": "婚礼仪式", "reception": "宴会", "dinner": "晚宴",
+      "photoshoot": "婚纱摄影", "chinese": "中式风格", "promotions": "促销"
+    },
+    "bestSellers": {
+      "heading": "畅销榜",
+      "all": "全部", "ceremony": "婚礼仪式", "chinese": "中式风格", "promo": "促销"
+    },
+    "promo": {
+      "title": "批发计划——低至7折",
+      "text": "注册专业账户，即可在全店解锁优惠价。",
+      "days": "天", "hours": "小时", "min": "分",
+      "createPro": "注册专业账户"
+    },
+    "testimonials": {
+      "heading": "客户评价",
+      "t1": "即使寄往加拿大也很快，发簪比照片还要漂亮。",
+      "t2": "作为一家精品店，报价在24小时内就到了，起订量也合理。",
+      "t3": "客服在 WhatsApp 上回复很快，调整订单非常方便。"
+    },
+    "trust": {
+      "secure": "100% 安全支付",
+      "shipping": "72小时内发货",
+      "returns": "30天退货"
+    },
+    "newsletter": {
+      "title": "首单立减 10%",
+      "text": "新品、批发优惠与婚礼指南，每月一次。",
+      "placeholder": "您的邮箱地址",
+      "subscribe": "订阅"
+    }
+  },
+  "common": {
+    "addToCart": "+ 加入购物车",
+    "addToWishlist": "加入收藏"
+  }
+}
