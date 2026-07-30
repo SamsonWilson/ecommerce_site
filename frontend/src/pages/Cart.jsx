@@ -61,7 +61,7 @@ export default function Cart() {
                 <button type="button">Appliquer</button>
               </div>
               <div className="stotal"><span>Total</span><span className="amt">{eur(total)}</span></div>
-              <Link to="/checkout" className="btn-primary">Passer la commande</Link>
+              <Link to="/compte/checkout" className="btn-primary">Passer la commande</Link>
               <div className="reassure"><IconCheck />Paiement sécurisé · Retours sous 30 jours</div>
             </div>
           </div>

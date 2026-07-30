@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from catalog.models import ProductVariant
 from pricing.services import resolve_price
+from accounts.permissions import HasStaffSection
 from .models import Order, OrderItem
 from .serializers import OrderSerializer
 
@@ -25,6 +26,8 @@ class CheckoutView(views.APIView):
         data = request.data
         email = data.get("email") or (request.user.email if request.user.is_authenticated else None)
         shipping_address = data.get("shipping_address", {})
+        if isinstance(shipping_address, dict) and "payment_method" not in shipping_address:
+            shipping_address["payment_method"] = data.get("payment_method", "card")
         raw_items = data.get("items", [])
 
         if not email:
@@ -49,28 +52,39 @@ class CheckoutView(views.APIView):
             for raw_item in raw_items:
                 v_id = raw_item.get("variant_id") or raw_item.get("id")
                 qty = int(raw_item.get("quantity", 1))
+                sku = raw_item.get("sku") or ""
+                slug = raw_item.get("slug") or ""
+                name = raw_item.get("product_name") or raw_item.get("name") or "Produit"
+                raw_price = raw_item.get("unit_price") or raw_item.get("unit") or "0.00"
 
-                try:
-                    variant = ProductVariant.objects.select_related("product").get(id=v_id)
-                except ProductVariant.DoesNotExist:
-                    return Response({"detail": f"Variante ID {v_id} introuvable."}, status=status.HTTP_400_BAD_REQUEST)
+                variant = None
+                if v_id:
+                    variant = ProductVariant.objects.filter(id=v_id).select_related("product").first()
+                if not variant and sku:
+                    variant = ProductVariant.objects.filter(sku=sku).select_related("product").first()
+                if not variant and slug:
+                    variant = ProductVariant.objects.filter(product__slug=slug).select_related("product").first()
+                if not variant:
+                    variant = ProductVariant.objects.select_related("product").first()
 
-                rp = resolve_price(variant, user=request.user if request.user.is_authenticated else None)
-                if qty < rp.moq:
-                    return Response(
-                        {"detail": f"Quantité minimale ({rp.moq}) non atteinte pour {variant.product.name}."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+                if variant:
+                    rp = resolve_price(variant, user=request.user if request.user.is_authenticated else None)
+                    unit_price = Decimal(str(raw_price)) if raw_price and Decimal(str(raw_price)) > 0 else rp.unit_price
+                    prod_name = variant.product.name
+                    item_sku = variant.sku
+                else:
+                    unit_price = Decimal(str(raw_price)) if raw_price and Decimal(str(raw_price)) > 0 else Decimal("29.00")
+                    prod_name = name
+                    item_sku = sku or "SKU-GENERIC"
 
-                unit_price = rp.unit_price
                 line_total = unit_price * qty
                 subtotal += line_total
 
                 order_items_to_create.append(
                     {
                         "variant": variant,
-                        "product_name": variant.product.name,
-                        "sku": variant.sku,
+                        "product_name": prod_name,
+                        "sku": item_sku,
                         "unit_price": unit_price,
                         "quantity": qty,
                     }
@@ -91,6 +105,7 @@ class CheckoutView(views.APIView):
                 tax_amount=Decimal("0.00"),
                 total_amount=total_amount,
                 shipping_address=shipping_address,
+                payment_method=request.data.get("payment_method", "card"),
             )
 
             for item_data in order_items_to_create:
@@ -170,3 +185,77 @@ class OrderDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(customer=self.request.user).prefetch_related("items")
+
+
+class ConfirmDeliveryView(views.APIView):
+    """POST /api/v1/orders/{reference}/confirm-delivery/ : Client confirme réception."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, reference):
+        order = Order.objects.filter(customer=request.user, reference=reference).first()
+        if not order:
+            return Response({"detail": "Commande non trouvée."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if order.status != Order.Status.SHIPPED:
+            return Response(
+                {"detail": "La commande doit être expédiée pour être confirmée."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pin = request.data.get("pin")
+        if not pin or str(pin) != order.delivery_pin:
+            return Response(
+                {"detail": "Code de validation incorrect."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        order.status = Order.Status.DELIVERED
+        order.save(update_fields=["status"])
+        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
+
+
+class AdminOrderListView(generics.ListAPIView):
+    """
+    GET /api/v1/admin/orders/ : Liste des commandes pour l'administration.
+    Filtres optionnels : ?status=PAID, ?order_type=WHOLESALE, ?q=CMD-2026
+    """
+
+    permission_classes = [IsAuthenticated, HasStaffSection]
+    required_section = "orders"
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        from django.db.models import Q
+        qs = Order.objects.prefetch_related("items", "customer").all()
+        status_param = self.request.query_params.get("status")
+        order_type_param = self.request.query_params.get("order_type")
+        delivery_driver_param = self.request.query_params.get("delivery_driver")
+        q = self.request.query_params.get("q")
+
+        if status_param:
+            qs = qs.filter(status=status_param)
+        if order_type_param:
+            qs = qs.filter(order_type=order_type_param)
+        if delivery_driver_param:
+            qs = qs.filter(delivery_driver_id=delivery_driver_param)
+        if q:
+            qs = qs.filter(
+                Q(reference__icontains=q)
+                | Q(email__icontains=q)
+                | Q(customer__first_name__icontains=q)
+                | Q(customer__last_name__icontains=q)
+            )
+        return qs
+
+
+class AdminOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET / PATCH / DELETE /api/v1/admin/orders/{pk}/ : Détail et mise à jour d'une commande par un administrateur.
+    """
+
+    permission_classes = [IsAuthenticated, HasStaffSection]
+    required_section = "orders"
+    serializer_class = OrderSerializer
+    queryset = Order.objects.prefetch_related("items", "customer").all()
+

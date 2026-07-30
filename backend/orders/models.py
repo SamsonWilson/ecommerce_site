@@ -25,6 +25,14 @@ class Order(models.Model):
         blank=True,
         related_name="orders",
     )
+    delivery_driver = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deliveries",
+    )
+    delivery_pin = models.CharField(max_length=6, blank=True)
     email = models.EmailField()
     order_type = models.CharField(max_length=10, choices=OrderType.choices, default=OrderType.RETAIL)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING)
@@ -37,6 +45,7 @@ class Order(models.Model):
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
+    payment_method = models.CharField(max_length=20, default="card")
     shipping_address = models.JSONField(default=dict)
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True)
 
@@ -45,6 +54,13 @@ class Order(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+    def save(self, *args, **kwargs):
+        if not self.delivery_pin:
+            import random
+            import string
+            self.delivery_pin = ''.join(random.choices(string.digits, k=6))
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.reference} ({self.total_amount} {self.currency})"

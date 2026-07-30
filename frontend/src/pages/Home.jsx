@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SEOHead from '../components/SEOHead.jsx';
@@ -32,6 +32,34 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
 
+  // Compte à rebours promotionnel réactif (heures / minutes / secondes)
+  const [timeLeft, setTimeLeft] = useState({ days: 3, hours: 14, min: 52, sec: 0 });
+
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    // Décompte de la promotion
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.sec > 0) return { ...prev, sec: prev.sec - 1 };
+        if (prev.min > 0) return { ...prev, min: 59, sec: 59 };
+        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, min: 59, sec: 59 };
+        if (prev.days > 0) return { ...prev, days: prev.days - 1, hours: 23, min: 59, sec: 59 };
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  // Défilement automatique du carrousel Hero toutes les 6 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlide((s) => (s + 1) % HERO_SLIDES);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     api.categories()
       .then((d) => setCats(d.results || d))
@@ -59,8 +87,10 @@ export default function Home() {
     return () => { alive = false; };
   }, [tab]);
 
-  const tabs = [{ slug: '', name: t('home.bestSellers.all') },
-    ...cats.slice(0, 3).map((c) => ({ slug: c.slug, name: c.name }))];
+  const tabs = [
+    { slug: '', name: t('home.bestSellers.all') },
+    ...cats.slice(0, 3).map((c) => ({ slug: c.slug, name: c.name })),
+  ];
 
   const slides = heroProducts.slice(0, HERO_SLIDES);
   const featured = slides[slide] || slides[0];
@@ -88,23 +118,24 @@ export default function Home() {
   const testimonials = [
     { av: 'C', text: t('home.testimonials.t1'), name: 'Camille R.', loc: 'Lyon, France', rating: 5 },
     { av: 'S', text: t('home.testimonials.t2'), name: 'Sophie M. — Boutique Ivoire', loc: 'Bruxelles, Belgique', rating: 5 },
-    { av: 'M', text: t('home.testimonials.t3'), name: 'Mei L.', loc: 'Vancouver, Canada', rating: 4.5 },
+    { av: 'M', text: t('home.testimonials.t3'), name: 'Mei L.', loc: 'Vancouver, Canada', rating: 5 },
   ];
 
   return (
     <>
       <SEOHead
-        title="Accessoires de Mariage & Haute Coiffure Chinoise"
+        title="Accessoires de Mariage & Haute Coiffure Chinoise | Maison Lián"
         description="Collection exclusive d'accessoires de mariage d'inspiration traditionnelle chinoise et occidentale. Vente au détail et tarifs professionnels B2B."
         schema={{
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "Maison Lian",
+          "name": "Maison Lián",
           "url": "https://maisonlian.com",
           "logo": "https://maisonlian.com/assets/hero.png"
         }}
       />
-      {/* HERO */}
+
+      {/* HERO SECTION SLIDER */}
       <section className="uee-hero">
         <button type="button" className="slider-arrow left" aria-label={t('home.hero.previous')}
           onClick={() => step(-1)}>
@@ -114,6 +145,7 @@ export default function Home() {
           onClick={() => step(1)}>
           <IconChevronRight />
         </button>
+
         <div className="container">
           <div>
             <span className="sale-tag">{t('home.hero.badge')}</span>
@@ -123,11 +155,12 @@ export default function Home() {
               <Link to={featured ? `/produit/${featured.slug}` : '/boutique'} className="btn-primary">
                 {t('home.hero.buyNow')}
               </Link>
-              <Link to="/pro" className="btn-outline">{t('home.hero.wholesalePrices')}</Link>
+              <Link to="/compte/pro" className="btn-outline">{t('home.hero.wholesalePrices')}</Link>
             </div>
           </div>
+
           <div className="uee-hero-art">
-            <div className="disc">
+            <div className="disc pg-fade" key={featured?.slug || slide}>
               {featured?.image ? (
                 <img className="hero-photo" src={featured.image} alt={featured.name} />
               ) : featured?.figure || (
@@ -147,15 +180,16 @@ export default function Home() {
             </div>
           </div>
         </div>
+
         <div className="slider-dots">
           {slides.map((s, i) => (
             <button key={s?.slug || i} type="button" className={i === slide ? 'active' : undefined}
-              aria-label={`${i + 1}`} onClick={() => setSlide(i)} />
+              aria-label={`Slide ${i + 1}`} onClick={() => setSlide(i)} />
           ))}
         </div>
       </section>
 
-      {/* USP */}
+      {/* USP / REASSURANCE BAR */}
       <section className="usp-row">
         <div className="container usp-grid">
           {usps.map((u) => (
@@ -170,10 +204,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MOMENTS */}
+      {/* MOMENTS & CATÉGORIES */}
       <section className="uee-section">
         <div className="container">
-          <div className="uee-section-head"><h2>{t('home.moments.heading')}</h2></div>
+          <div className="uee-section-head">
+            <h2>{t('home.moments.heading')}</h2>
+            <Link to="/boutique" className="see-all">
+              {t('nav.allCategories')} <IconChevronRight />
+            </Link>
+          </div>
           <div className="cat-grid">
             {shelves.map((m) => (
               <Link
@@ -189,7 +228,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MEILLEURES VENTES */}
+      {/* MEILLEURES VENTES & PRODUCT GRID */}
       <section className="uee-section" style={{ background: '#fff' }}>
         <div className="container">
           <div className="uee-section-head">
@@ -221,7 +260,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PROMO BANNER */}
+      {/* BANNIÈRE PROMO B2B AVEC COMPTE À REBOURS EN DIRECT */}
       <section className="uee-section">
         <div className="container">
           <div className="promo-banner">
@@ -229,25 +268,40 @@ export default function Home() {
               <h3>{t('home.promo.title')}</h3>
               <p>{t('home.promo.text')}</p>
               <div className="promo-countdown">
-                <div><div className="cd-num">03</div><div className="cd-label">{t('home.promo.days')}</div></div>
-                <div><div className="cd-num">14</div><div className="cd-label">{t('home.promo.hours')}</div></div>
-                <div><div className="cd-num">52</div><div className="cd-label">{t('home.promo.min')}</div></div>
+                <div>
+                  <div className="cd-num">{String(timeLeft.days).padStart(2, '0')}</div>
+                  <div className="cd-label">{t('home.promo.days')}</div>
+                </div>
+                <div>
+                  <div className="cd-num">{String(timeLeft.hours).padStart(2, '0')}</div>
+                  <div className="cd-label">{t('home.promo.hours')}</div>
+                </div>
+                <div>
+                  <div className="cd-num">{String(timeLeft.min).padStart(2, '0')}</div>
+                  <div className="cd-label">{t('home.promo.min')}</div>
+                </div>
+                <div>
+                  <div className="cd-num">{String(timeLeft.sec).padStart(2, '0')}</div>
+                  <div className="cd-label">Sec</div>
+                </div>
               </div>
             </div>
-            <Link to="/pro" className="btn-primary">{t('home.promo.createPro')}</Link>
+            <Link to="/compte/inscription?type=pro" className="btn-primary">{t('home.promo.createPro')}</Link>
           </div>
         </div>
       </section>
 
-      {/* TÉMOIGNAGES */}
+      {/* TÉMOIGNAGES CLIENTS */}
       <section className="uee-section" style={{ background: '#fff' }}>
         <div className="container">
-          <div className="uee-section-head"><h2>{t('home.testimonials.heading')}</h2></div>
+          <div className="uee-section-head">
+            <h2>{t('home.testimonials.heading')}</h2>
+          </div>
           <div className="testi-grid">
             {testimonials.map((tm) => (
               <div className="testi-card" key={tm.name}>
                 <Stars value={tm.rating} />
-                <p className="t-text">{tm.text}</p>
+                <p className="t-text">« {tm.text} »</p>
                 <div className="t-who">
                   <span className="t-avatar">{tm.av}</span>
                   <div>
@@ -261,7 +315,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRUST / PAYMENTS */}
+      {/* REASSURANCE ET LOGOS PAIEMENTS */}
       <section className="trust-section">
         <div className="container trust-flex">
           <div className="trust-badges">

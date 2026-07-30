@@ -48,7 +48,7 @@ export default function App() {
 
           {/* Tunnel d'achat */}
           <Route path="/panier" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={<Navigate to="/compte/checkout" replace />} />
           <Route path="/commande/confirmee" element={<OrderConfirmation />} />
 
           {/* Contenu / aide */}
@@ -71,6 +71,7 @@ export default function App() {
           <Route path="/compte" element={<AccountLayout />}>
             <Route index element={<Overview />} />
             <Route path="boutique" element={<Shop />} />
+            <Route path="checkout" element={<Checkout />} />
             <Route path="commandes" element={<MyOrders />} />
             <Route path="devis" element={<MyQuotes />} />
             <Route path="favoris" element={<Wishlist />} />

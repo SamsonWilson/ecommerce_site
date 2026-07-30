@@ -74,7 +74,7 @@ export default function AccountCart() {
             <div className="stotal" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: 20, marginBottom: 32, fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>
               <span>Total</span><span className="amt">{eur(total)}</span>
             </div>
-            <Link to="/checkout" className="btn-premium" style={{ width: '100%', display: 'flex' }}>
+            <Link to="/compte/checkout" className="btn-premium" style={{ width: '100%', display: 'flex' }}>
               Passer la commande
             </Link>
             <div className="reassure" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, fontSize: 12, color: 'var(--muted)' }}>

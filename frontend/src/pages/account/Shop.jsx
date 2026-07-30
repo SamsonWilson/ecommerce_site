@@ -286,7 +286,7 @@ export default function Shop() {
                 <span>Total</span>
                 <strong>{eur(total)}</strong>
               </div>
-              <Link to="/checkout" className="btn-premium" style={{ width: '100%' }}>
+              <Link to="/compte/checkout" className="btn-premium" style={{ width: '100%' }}>
                 Commander
               </Link>
             </div>

@@ -150,4 +150,10 @@ export const api = {
   checkout: (d) => request('/checkout/', { method: 'POST', body: d, auth: true }),
   myOrders: () => request('/orders/', { auth: true }),
   orderDetail: (ref) => request(`/orders/${ref}/`, { auth: true }),
+  confirmOrderDelivery: (ref, pin) => request(`/orders/${ref}/confirm-delivery/`, { method: 'POST', body: { pin }, auth: true }),
+
+  // Administration des Commandes
+  adminOrders: (params) => request(`/admin/orders/${qs(params)}`, { auth: true }),
+  adminOrderDetail: (id) => request(`/admin/orders/${id}/`, { auth: true }),
+  adminUpdateOrder: (id, d) => request(`/admin/orders/${id}/`, { method: 'PATCH', body: d, auth: true }),
 };
