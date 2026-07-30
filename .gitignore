@@ -1,0 +1,11 @@
+# Fichiers téléversés depuis le back-office (photos produits) : ils
+# appartiennent au stockage, pas au dépôt.
+backend/media/
+
+# Artefacts Python
+__pycache__/
+*.py[cod]
+backend/staticfiles/
+
+# Secrets
+.env

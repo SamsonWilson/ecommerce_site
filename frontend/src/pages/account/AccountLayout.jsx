@@ -1,7 +1,8 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth.js';
+import { useCart } from '../../store/cart.js';
 import {
-  IconPackage, IconUser, IconHeart, IconStore, IconArrowLeft, IconPdf, IconLock,
+  IconPackage, IconUser, IconHeart, IconStore, IconArrowLeft, IconPdf, IconLock, IconCart, IconBag,
 } from '../../components/icons.jsx';
 
 // Coquille autonome de l'espace client : en-tête et navigation propres,
@@ -10,6 +11,7 @@ export default function AccountLayout() {
   const navigate = useNavigate();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
+  const cartCount = useCart((s) => s.items.reduce((n, i) => n + i.qty, 0));
 
   const name = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
@@ -48,17 +50,27 @@ export default function AccountLayout() {
         </div>
       </header>
 
-      <div className="acc-body">
-        <nav className="acc-nav">
+      <nav className="acc-nav-bar">
+        <div className="acc-nav-inner">
           <NavLink to="/compte" end className={link}><IconUser />Vue d'ensemble</NavLink>
+          <NavLink to="/compte/boutique" className={link}>
+            <IconStore />Boutique
+            {cartCount > 0 && (
+              <span style={{ background: 'var(--brand-red)', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px', marginLeft: 4 }}>
+                {cartCount}
+              </span>
+            )}
+          </NavLink>
           <NavLink to="/compte/commandes" className={link}><IconPackage />Mes commandes</NavLink>
           <NavLink to="/compte/devis" className={link}><IconPdf />Mes devis</NavLink>
           <NavLink to="/compte/favoris" className={link}><IconHeart />Mes favoris</NavLink>
           <div className="sep" />
           <NavLink to="/compte/profil" className={link}><IconUser />Mon profil</NavLink>
           <NavLink to="/compte/pro" className={link}><IconStore />Accès grossiste</NavLink>
-        </nav>
+        </div>
+      </nav>
 
+      <div className="acc-body">
         <main><Outlet /></main>
       </div>
     </div>

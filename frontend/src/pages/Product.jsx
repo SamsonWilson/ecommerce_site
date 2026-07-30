@@ -1,21 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
+import ProductGallery from '../components/ProductGallery.jsx';
 import { api } from '../lib/api.js';
 import { useCart, parseEuro } from '../store/cart.js';
+import { useWishlist } from '../store/wishlist.js';
 import {
   catalogProducts, bestSellers, relatedProducts,
   figureBySlug, defaultFigure,
 } from '../data/products.jsx';
 import { IconHeart, IconPdf, IconShield, IconTruck, IconCheck, IconStore, Stars } from '../components/icons.jsx';
 
-const thumbs = [
-  <svg viewBox="0 0 60 60" fill="none" stroke="#7C1F2C" strokeWidth="1" key="1"><path d="M30 10 C 20 25, 20 40, 30 50 C 40 40, 40 25, 30 10Z"/></svg>,
-  <svg viewBox="0 0 60 60" fill="none" stroke="#7C1F2C" strokeWidth="1" key="2"><circle cx="30" cy="24" r="7"/><path d="M30 31 v 20"/></svg>,
-  <svg viewBox="0 0 60 60" fill="none" stroke="#B08A34" strokeWidth="1" key="3"><path d="M15 30 q 15 -20 30 0 q -15 20 -30 0Z"/></svg>,
-  <svg viewBox="0 0 60 60" fill="none" stroke="#A5293B" strokeWidth="1" key="4"><rect x="18" y="18" width="24" height="24"/></svg>,
-  <svg viewBox="0 0 60 60" fill="none" stroke="#435C4E" strokeWidth="1" key="5"><circle cx="30" cy="30" r="12"/></svg>,
-];
+import SEOHead from '../components/SEOHead.jsx';
+
 const tabs = ['Description', 'Caractéristiques', 'Livraison', 'Avis'];
 
 // Repli local (API indisponible) : reconstruit une fiche depuis le mock.
@@ -40,16 +37,18 @@ function apiView(d) {
     description: d.description, culturalStory: d.cultural_story,
     priceCur: fmt(v.price), priceOld: fmt(v.original_price),
     ref: v.sku, moq: v.moq ?? 12, stock: v.stock ?? 0,
+    media: (d.media || []).map((m) => ({ src: m.file, kind: m.media_type })),
   };
 }
 
 export default function Product() {
   const { slug } = useParams();
   const add = useCart((s) => s.add);
+  const toggleWish = useWishlist((s) => s.toggle);
+  const wished = useWishlist((s) => s.items.some((x) => x.slug === slug));
 
   const [view, setView] = useState(() => localView(slug));
   const [notFound, setNotFound] = useState(false);
-  const [activeThumb, setActiveThumb] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -65,6 +64,10 @@ export default function Product() {
   }, [slug]);
 
   const figure = useMemo(() => figureBySlug[slug] || defaultFigure, [slug]);
+  // À défaut de média téléversé, la galerie retombe sur le tracé de la maquette.
+  const gallery = view?.media?.length
+    ? view.media
+    : [{ kind: 'IMAGE', figure }];
 
   const addToCart = () => {
     if (!view) return;
@@ -86,6 +89,23 @@ export default function Product() {
 
   return (
     <>
+      <SEOHead
+        title={view.name}
+        description={view.description || `Achetez ${view.name} chez Maison Lian. Accessoires de mariage d'exception.`}
+        url={`https://maisonlian.com/produit/${view.slug}`}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": view.name,
+          "description": view.description,
+          "offers": {
+            "@type": "Offer",
+            "price": parseEuro(view.priceCur),
+            "priceCurrency": "EUR",
+            "availability": view.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+          }
+        }}
+      />
       <div className="uee-breadcrumb">
         <div className="container">
           <Link to="/">Accueil</Link><span className="sep">/</span>
@@ -98,16 +118,22 @@ export default function Product() {
         <div className="uee-pdp">
           {/* GALERIE */}
           <div>
-            <div className="uee-gallery-main">
-              {view.priceOld && <span className="uee-badge">Promo</span>}
-              <span className="uee-wish" style={{ top: 14, right: 14 }}><IconHeart /></span>
-              {figure}
-            </div>
-            <div className="uee-gallery-thumbs">
-              {thumbs.map((tb, i) => (
-                <div key={i} className={i === activeThumb ? 'active' : undefined} onClick={() => setActiveThumb(i)}>{tb}</div>
-              ))}
-            </div>
+            <ProductGallery
+              items={gallery}
+              title={view.name}
+              badge={view.priceOld ? 'Promo' : undefined}
+            >
+              <button
+                type="button"
+                className={`uee-wish${wished ? ' on' : ''}`}
+                style={{ top: 14, right: 14, zIndex: 4 }}
+                aria-pressed={wished}
+                aria-label={wished ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                onClick={() => toggleWish({ slug: view.slug, name: view.name, cat: view.cat, priceNew: view.priceCur, priceOld: view.priceOld })}
+              >
+                <IconHeart />
+              </button>
+            </ProductGallery>
             <div className="uee-trust-mini">
               <span><IconShield />Paiement sécurisé</span>
               <span><IconTruck />Expédition sous 72h</span>

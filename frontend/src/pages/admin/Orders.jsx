@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { I } from './icons.jsx';
 import { PageHead, Panel, Toolbar, Pagination } from './ui.jsx';
 
@@ -11,11 +12,18 @@ const ORDERS = [
   { ref: 'CMD-2026-00037', client: 'Julia K.', loc: 'Berlin, DE', type: 'B2C', date: '12 juil. 2026', total: '72 €', status: ['shipped', 'Expédiée'] },
 ];
 
-const STATUSES = ['Tous', 'Nouvelle', 'Payée', 'En préparation', 'Expédiée'];
-
 export default function Orders() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState('Tous');
   const [query, setQuery] = useState('');
+
+  const STATUSES = [
+    { value: 'Tous', label: t('admin.orders.statusAll', 'Tous') },
+    { value: 'Nouvelle', label: t('admin.orders.statusNew', 'Nouvelle') },
+    { value: 'Payée', label: t('admin.orders.statusPaid', 'Payée') },
+    { value: 'En préparation', label: t('admin.orders.statusPending', 'En préparation') },
+    { value: 'Expédiée', label: t('admin.orders.statusShipped', 'Expédiée') },
+  ];
 
   const rows = ORDERS.filter(
     (o) => (status === 'Tous' || o.status[1] === status)
@@ -24,25 +32,33 @@ export default function Orders() {
 
   return (
     <>
-      <PageHead title="Gestion des commandes" subtitle={`${ORDERS.length} commandes sur la période`}>
-        <button className="btn-admin ghost">{I.pdf}Exporter</button>
+      <PageHead title={t('admin.orders.title', 'Gestion des commandes')} subtitle={`${ORDERS.length} ${t('admin.orders.subtitle', 'commandes sur la période')}`}>
+        <button className="btn-admin ghost">{I.pdf}{t('admin.orders.export', 'Exporter')}</button>
       </PageHead>
 
       <Panel>
         <Toolbar>
           <div className="admin-field">
             {I.search}
-            <input placeholder="Référence ou client…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input placeholder={t('admin.orders.searchPlaceholder', 'Référence ou client…')} value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
           <select className="admin-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {STATUSES.map((s) => <option key={s}>{s}</option>)}
+            {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-          <span className="admin-count">{rows.length} résultat(s)</span>
+          <span className="admin-count">{rows.length} {t('admin.orders.results', 'résultat(s)')}</span>
         </Toolbar>
 
         <table className="admin-table">
           <thead>
-            <tr><th>Référence</th><th>Client</th><th>Type</th><th>Date</th><th>Total</th><th>Statut</th><th>Actions</th></tr>
+            <tr>
+              <th>{t('admin.orders.tableRef', 'Référence')}</th>
+              <th>{t('admin.orders.tableClient', 'Client')}</th>
+              <th>{t('admin.orders.tableType', 'Type')}</th>
+              <th>{t('admin.orders.tableDate', 'Date')}</th>
+              <th>{t('admin.orders.tableTotal', 'Total')}</th>
+              <th>{t('admin.orders.tableStatus', 'Statut')}</th>
+              <th>{t('admin.orders.tableActions', 'Actions')}</th>
+            </tr>
           </thead>
           <tbody>
             {rows.map((o) => (
@@ -55,15 +71,15 @@ export default function Orders() {
                 <td><span className={`status ${o.status[0]}`}>{o.status[1]}</span></td>
                 <td>
                   <div className="row-actions">
-                    <span className="icon-btn" title="Voir le détail">{I.eye}</span>
-                    <span className="icon-btn" title="Facture PDF">{I.pdf}</span>
-                    <span className="icon-btn approve" title="Marquer expédiée">{I.truck}</span>
+                    <span className="icon-btn" title={t('admin.orders.viewDetail', 'Voir le détail')}>{I.eye}</span>
+                    <span className="icon-btn" title={t('admin.orders.invoicePdf', 'Facture PDF')}>{I.pdf}</span>
+                    <span className="icon-btn approve" title={t('admin.orders.markShipped', 'Marquer expédiée')}>{I.truck}</span>
                   </div>
                 </td>
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan="7" className="admin-empty">Aucune commande pour ce filtre.</td></tr>
+              <tr><td colSpan="7" className="admin-empty">{t('admin.orders.empty', 'Aucune commande pour ce filtre.')}</td></tr>
             )}
           </tbody>
         </table>

@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     "pricing",
     "catalog",
     "quotes",
+    "cart",
+    "orders",
 ]
 
 MIDDLEWARE = [
@@ -116,10 +118,62 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Médias téléversés depuis le back-office (photos produits).
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Taille maximale d'un fichier téléversé (photo produit). Une photo prise au
+# téléphone pèse couramment 4 à 8 Mo : en dessous de 10, on refuse des photos
+# parfaitement légitimes. nginx accepte jusqu'à 20 Mo (client_max_body_size).
+MAX_UPLOAD_SIZE_MB = env.int("MAX_UPLOAD_SIZE_MB", default=10)
+
+# Vidéo de présentation d'un produit : bien plus lourde qu'une photo. Penser à
+# aligner `client_max_body_size` dans nginx si vous relevez cette valeur.
+MAX_VIDEO_SIZE_MB = env.int("MAX_VIDEO_SIZE_MB", default=50)
+
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+
+# --- Stockage objet des médias (S3 / Cloudflare R2) ------------------------
+# Le disque local ne convient qu'à un seul processus : avec plusieurs réplicas
+# backend, chacun n'aurait que les photos qu'il a lui-même reçues. Dès que
+# USE_S3=True, les téléversements partent vers le bucket et les URL rendues par
+# l'API pointent dessus — le reste du code est inchangé (cf. ARCHITECTURE §3).
+USE_S3 = env.bool("USE_S3", default=False)
+
+if USE_S3:
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    # R2 et les S3 compatibles exigent une URL d'endpoint ; AWS s3 la déduit
+    # de la région, on laisse donc la valeur vide dans ce cas.
+    AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="") or None
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default="auto")
+    # Domaine public servant les fichiers (CDN R2, CloudFront…). Sans lui,
+    # django-storages génère des URL signées qui expirent.
+    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default="") or None
+
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "region_name": AWS_S3_REGION_NAME,
+            "custom_domain": AWS_S3_CUSTOM_DOMAIN,
+            "location": env("AWS_LOCATION", default="media"),
+            # Les photos produits sont publiques : pas de signature d'URL, et
+            # un cache long puisque les noms de fichiers ne sont pas réutilisés.
+            "querystring_auth": False,
+            "default_acl": None,     # R2 n'implémente pas les ACL S3
+            "file_overwrite": False,
+            "object_parameters": {"CacheControl": "public, max-age=31536000"},
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -139,7 +193,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.StandardPagination",
     "PAGE_SIZE": 12,
 }
 

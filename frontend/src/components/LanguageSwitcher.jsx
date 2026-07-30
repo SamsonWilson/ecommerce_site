@@ -1,14 +1,31 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../i18n/config.js';
 
-// Sélecteur de langue compact (FR | EN | 中文) pour la barre supérieure.
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const current = i18n.resolvedLanguage;
+  const current = i18n.resolvedLanguage || 'fr';
+
+  const [published, setPublished] = useState(() => {
+    const saved = localStorage.getItem('published_langs');
+    return saved ? JSON.parse(saved) : ['fr', 'en', 'zh'];
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      const saved = localStorage.getItem('published_langs');
+      if (saved) setPublished(JSON.parse(saved));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const activeLangs = LANGUAGES.filter((l) => published.includes(l.code));
+  const listToDisplay = activeLangs.length ? activeLangs : LANGUAGES;
 
   return (
     <nav className="langs" aria-label="Langue">
-      {LANGUAGES.map((l, i) => (
+      {listToDisplay.map((l, i) => (
         <span key={l.code}>
           {i > 0 && <span aria-hidden="true">|</span>}
           <button

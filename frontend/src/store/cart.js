@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { catalogProducts } from '../data/products.jsx';
 
 // Convertit un prix ("128 €", "156,00 €", 104) en nombre.
 export const parseEuro = (s) =>
@@ -8,20 +7,11 @@ export const parseEuro = (s) =>
 
 // Le store ne conserve QUE des primitives (sérialisable dans localStorage) :
 // le visuel SVG est ré-résolu à l'affichage via figureBySlug[slug].
-const seedItem = (p, qty) => ({
-  slug: p.slug, name: p.name, cat: p.cat, moq: p.moq, unit: parseEuro(p.priceNew), qty,
-});
-
-const seed = [
-  seedItem(catalogProducts[0], 2),
-  seedItem(catalogProducts[2], 1),
-  seedItem(catalogProducts[3], 1),
-];
 
 export const useCart = create(
   persist(
     (set) => ({
-      items: seed,
+      items: [],   // un visiteur arrive avec un panier vide
 
       add: (p, qty = 1) =>
         set((state) => {

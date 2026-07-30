@@ -1,55 +1,100 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import ProductCard from '../components/ProductCard.jsx';
-import { catalogProducts, figureBySlug, defaultFigure } from '../data/products.jsx';
+import { catalogProducts } from '../data/products.jsx';
 import { api } from '../lib/api.js';
+import { productsFromApi } from '../lib/catalog.js';
 
-// Formate "128.00" -> "128 €"
-const price = (p) => (p == null ? undefined : `${parseFloat(p)} €`);
+const PRICE_MIN = 0;
+const PRICE_MAX = 300;
 
-// Convertit un produit de l'API vers la forme attendue par ProductCard,
-// en réutilisant le visuel SVG associé au slug.
-const fromApi = (p) => ({
-  slug: p.slug,
-  name: p.name,
-  cat: p.category,
-  priceNew: price(p.price),
-  priceOld: price(p.original_price),
-  figure: figureBySlug[p.slug] || defaultFigure,
-});
-
-const categories = [
-  { name: 'Épingles & peignes', count: 24, checked: true },
-  { name: 'Diadèmes & tiares', count: 12 },
-  { name: 'Éventails brodés', count: 9 },
-  { name: 'Bracelets', count: 15 },
-  { name: "Boucles d'oreilles", count: 18 },
+// Le MOQ est la quantité minimale de commande en gros : plus il est bas,
+// plus la pièce est accessible à une petite boutique.
+const MOQ_OPTIONS = [
+  { value: '', label: 'Tous les paliers' },
+  { value: '12', label: 'MOQ ≤ 12 pièces' },
+  { value: '24', label: 'MOQ ≤ 24 pièces' },
+  { value: '50', label: 'MOQ ≤ 50 pièces' },
 ];
-const colors = ['#A5293B', '#B08A34', '#ECE3D1', '#435C4E', '#1A2942'];
 
-export default function Category({ title = 'Style chinois', count = 78 }) {
-  // Affiche le mock immédiatement, puis remplace par les données de l'API si
-  // celle-ci répond (elle passe par le proxy nginx — pas d'URL backend en clair).
+const SORTS = [
+  { value: '-created_at', label: 'Trier par : Nouveautés' },
+  { value: 'name', label: 'Nom (A → Z)' },
+  { value: 'min_price', label: 'Prix croissant' },
+  { value: '-min_price', label: 'Prix décroissant' },
+];
+
+export default function Category({ title = 'Boutique' }) {
+  // Les filtres vivent dans l'URL : un lien « /boutique?category=epingles »
+  // depuis l'accueil arrive donc déjà filtré, et la page reste partageable.
+  const [params, setParams] = useSearchParams();
+  const category = params.get('category') || '';
+  const color = params.get('color') || '';
+  const ordering = params.get('sort') || '-created_at';
+  const maxPrice = params.get('max_price') || '';
+  const maxMoq = params.get('max_moq') || '';
+
   const [products, setProducts] = useState(catalogProducts);
+  const [cats, setCats] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [count, setCount] = useState(null);
+  const [loading, setLoading] = useState(true);
+  // Position du curseur pendant le glissement (l'URL, elle, ne bouge qu'au relâchement).
+  const [priceCursor, setPriceCursor] = useState(Number(maxPrice) || PRICE_MAX);
+
+  // Remplace un filtre dans l'URL (valeur vide = on l'enlève).
+  const setFilter = (key, value) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value); else next.delete(key);
+    setParams(next, { replace: true });
+  };
+
+  // Le curseur suit l'URL : retour arrière du navigateur, lien partagé, etc.
+  useEffect(() => { setPriceCursor(Number(maxPrice) || PRICE_MAX); }, [maxPrice]);
+
+  useEffect(() => {
+    api.categories().then((d) => setCats(d.results || d)).catch(() => {});
+    api.colors().then((d) => setColors(d.results || d)).catch(() => {});
+  }, []);
+
+  // Au maximum, le filtre n'a plus de sens : on le retire de l'URL.
+  const commitPrice = (value) => setFilter('max_price', value >= PRICE_MAX ? '' : String(value));
 
   useEffect(() => {
     let alive = true;
-    api.products({ page_size: 50 })
+    setLoading(true);
+    api.products({
+      page_size: 50,
+      category: category || undefined,
+      color: color || undefined,
+      max_price: maxPrice || undefined,
+      max_moq: maxMoq || undefined,
+      ordering,
+    })
       .then((data) => {
-        const items = (data.results || data).map(fromApi);
-        if (alive && items.length) setProducts(items);
+        if (!alive) return;
+        setProducts(productsFromApi(data));
+        setCount(data.count ?? null);
       })
-      .catch(() => { /* API indisponible : on garde le mock */ });
+      .catch(() => { /* API indisponible : on garde ce qui est affiché */ })
+      .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [category, color, maxPrice, maxMoq, ordering]);
+
+  const heading = cats.find((c) => c.slug === category)?.name || title;
 
   return (
     <>
       <div className="uee-breadcrumb">
         <div className="container">
           <Link to="/">Accueil</Link><span className="sep">/</span>
-          <span>{title}</span>
+          {category ? (
+            <>
+              <Link to="/boutique">{title}</Link><span className="sep">/</span>
+              <span>{heading}</span>
+            </>
+          ) : <span>{title}</span>}
         </div>
       </div>
 
@@ -59,34 +104,45 @@ export default function Category({ title = 'Style chinois', count = 78 }) {
           <aside className="uee-sidebar">
             <div className="uee-filter-block">
               <h4>Catégories</h4>
-              {categories.map((c) => (
-                <label className="uee-checkline" key={c.name}>
-                  <span><input type="checkbox" defaultChecked={c.checked} /> {c.name}</span>
-                  <span className="count">{c.count}</span>
+              <label className="uee-checkline">
+                <span>
+                  <input type="radio" name="cat" checked={category === ''}
+                    onChange={() => setFilter('category', '')} /> Toutes
+                </span>
+              </label>
+              {cats.map((c) => (
+                <label className="uee-checkline" key={c.slug}>
+                  <span>
+                    <input type="radio" name="cat" checked={category === c.slug}
+                      onChange={() => setFilter('category', c.slug)} /> {c.name}
+                  </span>
                 </label>
               ))}
+              {cats.length === 0 && <p className="filter-note">Aucune catégorie enregistrée.</p>}
             </div>
 
             <div className="uee-filter-block">
               <h4>Couleur</h4>
               <div className="uee-swatches">
-                {colors.map((c, i) => (
-                  <span key={c} style={{ background: c }} className={i === 0 ? 'sel' : undefined} />
+                {colors.map((c) => (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    style={{ background: c.hex_code }}
+                    className={color === c.slug ? 'sel' : undefined}
+                    aria-pressed={color === c.slug}
+                    title={c.name}
+                    /* Recliquer sur la pastille active retire le filtre. */
+                    onClick={() => setFilter('color', color === c.slug ? '' : c.slug)}
+                  />
                 ))}
               </div>
-            </div>
-
-            <div className="uee-filter-block">
-              <h4>Prix</h4>
-              <input className="uee-price-range" type="range" min="0" max="300" defaultValue="150" />
-              <div className="uee-price-range"><span>0 €</span><span style={{ marginLeft: 'auto' }}>300 €+</span></div>
-            </div>
-
-            <div className="uee-filter-block">
-              <h4>Palier professionnel</h4>
-              <label className="uee-checkline"><span><input type="checkbox" /> MOQ ≤ 12</span></label>
-              <label className="uee-checkline"><span><input type="checkbox" /> MOQ ≤ 24</span></label>
-              <label className="uee-checkline"><span><input type="checkbox" /> Sur devis uniquement</span></label>
+              {colors.length === 0 && <p className="filter-note">Aucun coloris enregistré.</p>}
+              {color && (
+                <button type="button" className="filter-clear" onClick={() => setFilter('color', '')}>
+                  Retirer le filtre couleur
+                </button>
+              )}
             </div>
 
             <div className="uee-filter-block" style={{ background: '#FBEAEA', boxShadow: 'none' }}>
@@ -103,13 +159,12 @@ export default function Category({ title = 'Style chinois', count = 78 }) {
           {/* GRILLE */}
           <div>
             <div className="uee-shop-toolbar">
-              <span className="count-label">{count} produits — <strong>{title}</strong></span>
+              <span className="count-label">
+                {count ?? products.length} produit(s) — <strong>{heading}</strong>
+              </span>
               <div className="uee-sort">
-                <select defaultValue="Trier par : Popularité">
-                  <option>Trier par : Popularité</option>
-                  <option>Prix croissant</option>
-                  <option>Prix décroissant</option>
-                  <option>Nouveautés</option>
+                <select value={ordering} onChange={(e) => setFilter('sort', e.target.value)}>
+                  {SORTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
             </div>
@@ -120,13 +175,10 @@ export default function Category({ title = 'Style chinois', count = 78 }) {
               ))}
             </div>
 
-            <div className="uee-pagination">
-              <a href="#" className="active">1</a>
-              <a href="#">2</a>
-              <a href="#">3</a>
-              <a href="#">…</a>
-              <a href="#">10</a>
-            </div>
+            {loading && products.length === 0 && <p className="uee-grid-note">Chargement…</p>}
+            {!loading && products.length === 0 && (
+              <p className="uee-grid-note">Aucun produit ne correspond à ces filtres.</p>
+            )}
           </div>
         </div>
       </div>
@@ -136,5 +188,4 @@ export default function Category({ title = 'Style chinois', count = 78 }) {
 
 Category.propTypes = {
   title: PropTypes.string,
-  count: PropTypes.number,
 };

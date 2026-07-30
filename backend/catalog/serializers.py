@@ -74,11 +74,27 @@ class ProductListSerializer(serializers.ModelSerializer):
     original_price = serializers.SerializerMethodField()
     sku = serializers.SerializerMethodField()
     stock = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ("id", "name", "slug", "category", "colors", "price",
-                  "original_price", "sku", "stock", "is_active")
+                  "original_price", "sku", "stock", "image", "is_active")
+
+    def get_image(self, product):
+        """
+        Vignette de la grille : la première PHOTO du produit. On saute les
+        vidéos — une balise <img> ne sait pas les afficher.
+        """
+        photo = next(
+            (m for m in product.media.all() if m.media_type == ProductMedia.MediaType.IMAGE),
+            None,
+        )
+        if photo is None:
+            return None
+        url = photo.file.url
+        request = self.context.get("request")
+        return request.build_absolute_uri(url) if request else url
 
     def get_sku(self, product):
         v = self._default_variant(product)

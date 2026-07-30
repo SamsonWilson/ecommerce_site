@@ -138,7 +138,8 @@ header.uee{background:var(--white);border-bottom:1px solid var(--line);position:
   width:340px;height:340px;border-radius:50%;background:#fff;box-shadow:var(--shadow-md);
   display:flex;align-items:center;justify-content:center;position:relative;
 }
-.uee-hero-art svg.figure{width:56%;}
+.uee-hero-art .disc svg{width:56%;}
+.uee-hero-art .hero-photo{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .uee-hero-art .price-float{
   position:absolute;bottom:14px;right:-6px;background:var(--navy);color:#fff;
   padding:12px 18px;border-radius:var(--radius);box-shadow:var(--shadow-md);text-align:center;
@@ -146,8 +147,8 @@ header.uee{background:var(--white);border-bottom:1px solid var(--line);position:
 .uee-hero-art .price-float .pf-old{font-size:11px;color:#9aa7bd;text-decoration:line-through;}
 .uee-hero-art .price-float .pf-new{font-family:var(--display);font-size:19px;color:#fff;font-weight:700;}
 .slider-dots{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
-.slider-dots span{width:8px;height:8px;border-radius:50%;background:#c9c3c3;}
-.slider-dots span.active{background:var(--brand-red);width:22px;border-radius:5px;}
+.slider-dots span,.slider-dots button{width:8px;height:8px;border-radius:50%;background:#c9c3c3;padding:0;}
+.slider-dots span.active,.slider-dots button.active{background:var(--brand-red);width:22px;border-radius:5px;}
 .slider-arrow{
   position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;
   background:#fff;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;z-index:5;
@@ -205,6 +206,10 @@ header.uee{background:var(--white);border-bottom:1px solid var(--line);position:
   aspect-ratio:1;background:#F7F1EA;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
 .uee-card-media svg{width:58%;}
+/* Photo produit : elle occupe toute la vignette, le SVG n'est qu'un repli. */
+.uee-card-photo{width:100%;height:100%;object-fit:cover;display:block;}
+.uee-gallery-photo{width:100%;height:100%;object-fit:cover;display:block;}
+.uee-gallery-thumbs img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;}
 .uee-badge{
   position:absolute;top:10px;left:10px;background:var(--sale);color:#fff;font-size:11px;font-weight:700;
   padding:4px 9px;border-radius:4px;
@@ -214,6 +219,9 @@ header.uee{background:var(--white);border-bottom:1px solid var(--line);position:
   display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);
 }
 .uee-wish svg{width:15px;height:15px;stroke:var(--navy);}
+/* Favori actif : le cœur se remplit aux couleurs de la marque. */
+.uee-wish.on{background:var(--brand-red);}
+.uee-wish.on svg{stroke:#fff;fill:#fff;}
 .uee-quickadd{
   position:absolute;left:0;right:0;bottom:0;background:var(--navy);color:#fff;
   text-align:center;padding:11px 0;font-size:12.5px;font-weight:600;
@@ -276,6 +284,10 @@ header.uee{background:var(--white);border-bottom:1px solid var(--line);position:
 .uee-nl-form input{flex:1;border:none;padding:13px 16px;font-family:var(--sans);font-size:13.5px;}
 .uee-nl-form input:focus{outline:none;}
 .uee-nl-form button{background:var(--brand-red);color:#fff;padding:0 22px;font-size:13px;font-weight:600;}
+.nl-thanks{color:#fff;font-size:14px;font-weight:600;min-width:340px;}
+
+/* Message d'état d'une grille produits (chargement, catalogue vide). */
+.uee-grid-note{text-align:center;color:var(--muted);font-size:13.5px;padding:28px 0;}
 
 /* ---------- Footer ---------- */
 footer.uee{background:#151E2E;color:#9aa7bd;padding:56px 0 0;font-size:13px;}
@@ -322,6 +334,82 @@ footer.uee{background:#151E2E;color:#9aa7bd;padding:56px 0 0;font-size:13px;}
 }
 .uee-gallery-thumbs div.active{border-color:var(--brand-red);}
 .uee-gallery-thumbs svg{width:60%;}
+.uee-gallery-thumbs div{transition:border-color .18s,transform .18s;}
+.uee-gallery-thumbs div:hover{transform:translateY(-2px);border-color:var(--brand-gold,#B08A34);}
+.pg-thumb-video{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:var(--navy);border-radius:2px;
+}
+.pg-thumb-video svg{width:34%;fill:#fff;}
+
+/* ---------- Galerie produit : loupe et panneau de zoom ---------- */
+.pg{position:relative;}
+.uee-gallery-main.zoomable{cursor:crosshair;}
+.pg-video{width:100%;height:100%;object-fit:cover;display:block;background:#000;}
+
+/* Fondu quand on change de visuel — la galerie ne « saute » pas. */
+@keyframes pg-in{from{opacity:0;transform:scale(1.015);}to{opacity:1;transform:none;}}
+.pg-fade{animation:pg-in .28s ease-out;}
+
+/* Carré clair qui suit le pointeur : montre la zone agrandie à côté. */
+.pg-lens{
+  position:absolute;width:38%;height:38%;transform:translate(-50%,-50%);
+  border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.28);
+  box-shadow:0 0 0 9999px rgba(15,24,38,.18);pointer-events:none;z-index:3;
+}
+.pg-hint{
+  position:absolute;bottom:12px;left:12px;display:flex;align-items:center;gap:6px;
+  background:rgba(15,24,38,.72);color:#fff;font-size:11.5px;font-weight:600;
+  padding:6px 10px;border-radius:20px;pointer-events:none;z-index:3;
+  animation:pg-in .3s ease-out;
+}
+.pg-hint svg{width:13px;height:13px;}
+
+/* Panneau agrandi : il déborde sur la colonne d'infos, comme sur Amazon. */
+.pg-zoom{
+  position:absolute;top:0;left:calc(100% + 18px);width:118%;aspect-ratio:1;
+  background-repeat:no-repeat;background-color:#fff;border-radius:var(--radius);
+  box-shadow:var(--shadow-md);z-index:20;pointer-events:none;
+  animation:pg-in .18s ease-out;
+}
+
+/* Pas de survol au doigt : sur tactile et petit écran, on garde la photo seule. */
+@media (hover:none),(max-width:900px){
+  .pg-zoom,.pg-lens,.pg-hint{display:none;}
+  .uee-gallery-main.zoomable{cursor:default;}
+}
+
+/* ---------- Animations d'entrée ---------- */
+/* Les cartes d'une grille apparaissent en cascade légère. Le décalage est
+   plafonné : au-delà de la douzième, tout arrive en même temps, sinon le bas
+   de page se ferait attendre. */
+@keyframes card-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.uee-product-grid .uee-card{animation:card-in .34s ease-out both;}
+.uee-product-grid .uee-card:nth-child(1){animation-delay:.02s;}
+.uee-product-grid .uee-card:nth-child(2){animation-delay:.05s;}
+.uee-product-grid .uee-card:nth-child(3){animation-delay:.08s;}
+.uee-product-grid .uee-card:nth-child(4){animation-delay:.11s;}
+.uee-product-grid .uee-card:nth-child(5){animation-delay:.14s;}
+.uee-product-grid .uee-card:nth-child(6){animation-delay:.17s;}
+.uee-product-grid .uee-card:nth-child(n+7){animation-delay:.2s;}
+
+/* Le survol de la carte est déjà défini plus haut ; ici, seule la photo bouge
+   — elle respire sans déborder de la vignette (overflow déjà masqué). */
+.uee-card-photo{transition:transform .45s ease;}
+.uee-card:hover .uee-card-photo{transform:scale(1.06);}
+
+.cat-item .ci-icon{transition:transform .22s ease;}
+.cat-item:hover .ci-icon{transform:translateY(-3px) scale(1.06);}
+
+/* Réglage système « réduire les animations » : on coupe tout mouvement.
+   Ce n'est pas une préférence esthétique — c'est un besoin d'accessibilité
+   pour les personnes sujettes au mal des transports ou aux migraines. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;scroll-behavior:auto !important;
+  }
+}
 
 .uee-pdp-info .breadcrumb-cat{font-size:12px;color:var(--brand-red);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
 .uee-pdp-info h1{font-size:27px;color:var(--navy);margin-top:8px;line-height:1.25;}
@@ -386,8 +474,19 @@ footer.uee{background:#151E2E;color:#9aa7bd;padding:56px 0 0;font-size:13px;}
 .uee-checkline input{accent-color:var(--brand-red);width:15px;height:15px;}
 .uee-checkline .count{color:#b4b4b4;font-size:12px;}
 .uee-swatches{display:flex;gap:8px;flex-wrap:wrap;}
-.uee-swatches span{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;}
-.uee-swatches span.sel{box-shadow:0 0 0 2px var(--brand-red);}
+.uee-swatches span,.uee-swatches button{
+  width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);
+  cursor:pointer;padding:0;transition:transform .15s;
+}
+.uee-swatches button:hover{transform:scale(1.1);}
+.uee-swatches span.sel,.uee-swatches button.sel{box-shadow:0 0 0 2px var(--brand-red);}
+
+/* Colonne de filtres : messages et action de remise à zéro. */
+.filter-note{font-size:12.5px;color:var(--muted);}
+.filter-clear{
+  margin-top:12px;background:none;color:var(--brand-red);font-size:12.5px;font-weight:600;
+  text-decoration:underline;padding:0;
+}
 .uee-price-range{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);}
 .uee-price-range input{width:100%;}
 

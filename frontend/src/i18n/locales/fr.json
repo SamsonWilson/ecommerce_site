@@ -1,5 +1,7 @@
 {
-  "topbar": { "wholesale": "Espace grossiste" },
+  "topbar": {
+    "wholesale": "Espace grossiste"
+  },
   "header": {
     "allCategories": "Toutes catégories",
     "searchPlaceholder": "Rechercher un produit, une référence...",
@@ -46,27 +48,43 @@
       "title2": "héritage chinois",
       "subtitle": "Vente au détail et en gros. Comptes professionnels avec tarifs préférentiels, MOQ dès 12 pièces, devis sous 24h.",
       "buyNow": "Acheter maintenant",
-      "wholesalePrices": "Tarifs grossiste"
+      "wholesalePrices": "Tarifs grossiste",
+      "previous": "Produit précédent",
+      "next": "Produit suivant"
     },
     "usp": {
-      "worldwide": "Livraison mondiale", "worldwideSub": "Europe · Amérique · Asie",
-      "secure": "Paiement sécurisé", "secureSub": "PayPal · Stripe · CB",
-      "wholesale": "Tarifs grossiste", "wholesaleSub": "MOQ dès 12 pièces",
-      "support": "Support 24/7", "supportSub": "WhatsApp & e-mail"
+      "worldwide": "Livraison mondiale",
+      "worldwideSub": "Europe · Amérique · Asie",
+      "secure": "Paiement sécurisé",
+      "secureSub": "PayPal · Stripe · CB",
+      "wholesale": "Tarifs grossiste",
+      "wholesaleSub": "MOQ dès 12 pièces",
+      "support": "Support 24/7",
+      "supportSub": "WhatsApp & e-mail"
     },
     "moments": {
       "heading": "Acheter par moment",
-      "ceremony": "Cérémonie", "reception": "Réception", "dinner": "Dîner",
-      "photoshoot": "Séance photo", "chinese": "Style chinois", "promotions": "Promotions"
+      "ceremony": "Cérémonie",
+      "reception": "Réception",
+      "dinner": "Dîner",
+      "photoshoot": "Séance photo",
+      "chinese": "Style chinois",
+      "promotions": "Promotions"
     },
     "bestSellers": {
       "heading": "Meilleures ventes",
-      "all": "Tout", "ceremony": "Cérémonie", "chinese": "Style chinois", "promo": "Promo"
+      "all": "Tout",
+      "ceremony": "Cérémonie",
+      "chinese": "Style chinois",
+      "promo": "Promo",
+      "empty": "Aucun produit dans cette catégorie pour le moment."
     },
     "promo": {
       "title": "Programme grossiste — jusqu'à -30%",
       "text": "Créez votre compte professionnel et débloquez vos tarifs préférentiels sur toute la boutique.",
-      "days": "Jours", "hours": "Heures", "min": "Min",
+      "days": "Jours",
+      "hours": "Heures",
+      "min": "Min",
       "createPro": "Créer un compte pro"
     },
     "testimonials": {
@@ -84,11 +102,79 @@
       "title": "Recevez -10% sur votre première commande",
       "text": "Nouveautés, offres grossiste et guides mariage, une fois par mois.",
       "placeholder": "Votre adresse e-mail",
-      "subscribe": "S'inscrire"
+      "subscribe": "S'inscrire",
+      "thanks": "Merci ! Votre code de réduction arrive par e-mail."
     }
   },
   "common": {
     "addToCart": "+ Ajouter au panier",
-    "addToWishlist": "Ajouter aux favoris"
+    "addToWishlist": "Ajouter aux favoris",
+    "removeFromWishlist": "Retirer des favoris",
+    "added": "✓ Ajouté au panier",
+    "loading": "Chargement…"
+  },
+  "admin": {
+    "nav": {
+      "management": "Pilotage",
+      "dashboard": "Tableau de bord",
+      "b2c": "Détail — B2C",
+      "orders": "Commandes",
+      "customers": "Clients",
+      "promotions": "Promotions",
+      "b2b": "Gros — B2B",
+      "proAccounts": "Comptes pro",
+      "tiers": "Paliers tarifaires",
+      "quotes": "Devis",
+      "logistics": "Logistique & équipe",
+      "deliveries": "Livraisons",
+      "team": "Équipe",
+      "common": "Commun",
+      "catalog": "Catalogue",
+      "categories": "Catégories",
+      "languages": "Langues",
+      "searchPlaceholder": "Rechercher une commande, un client, un produit...",
+      "administration": "Administration"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Aperçu de l'activité commerciale",
+      "export": "Exporter",
+      "addProduct": "Ajouter un produit",
+      "revenue": "Chiffre d'affaires",
+      "orders": "Commandes",
+      "newPros": "Nouveaux comptes pro",
+      "pendingQuotes": "Devis en attente",
+      "sales7d": "Ventes des 7 derniers jours",
+      "week": "Semaine",
+      "month": "Mois",
+      "year": "Année",
+      "repartition": "Répartition B2C / B2B",
+      "recentOrders": "Dernières commandes",
+      "seeAll": "Voir tout →",
+      "topProducts": "Produits les plus vendus",
+      "order": "Commande",
+      "customer": "Client",
+      "amount": "Montant",
+      "status": "Statut"
+    },
+    "languages": {
+      "title": "Gestion des langues & Internationalisation",
+      "subtitle": "Définissez la langue active, gérez les traductions et activez/désactivez les langues publiées.",
+      "addLanguage": "Ajouter une langue",
+      "closeForm": "Fermer le formulaire",
+      "configuredTitle": "Langues configurées",
+      "configuredSubtitle": "La langue cochée avec le bouton radio est la langue active actuelle sur votre session.",
+      "tableLang": "Langue",
+      "tableCode": "Code",
+      "tableProgress": "Avancement",
+      "tableActive": "Langue active",
+      "tablePublished": "Publiée sur le site",
+      "activeTag": "ACTIVE",
+      "scopeTitle": "Avancement par périmètre",
+      "scopeSubtitle": "Sélectionner une langue active modifie instantanément l'interface globale via i18next.",
+      "scopeInterface": "Interface du site (clés i18n)",
+      "scopeProducts": "Contenus produits (nom, description)",
+      "scopePages": "Pages éditoriales (FAQ, livraison)"
+    }
   }
 }

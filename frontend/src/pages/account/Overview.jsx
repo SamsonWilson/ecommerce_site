@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../lib/api.js';
 import { useAuth } from '../../store/auth.js';
 import { useCart } from '../../store/cart.js';
+import { IconPackage, IconPdf, IconUser } from '../../components/icons.jsx';
 
 export default function Overview() {
   const user = useAuth((s) => s.user);
@@ -17,49 +18,71 @@ export default function Overview() {
   const isPro = profile?.account_type === 'WHOLESALE';
 
   return (
-    <>
+    <div className="acc-overview">
       <div className="acc-head">
-        <h1>Bonjour {user?.first_name || ''}</h1>
-        <p>Retrouvez ici vos commandes, vos devis et vos informations.</p>
+        <div className="acc-head-content">
+          <h1>Bonjour, <span>{user?.first_name || 'Client'}</span></h1>
+          <p>Bienvenue dans votre espace personnel. Retrouvez ici vos commandes, devis et informations.</p>
+        </div>
       </div>
 
       <div className="acc-tiles">
-        <div className="acc-tile">
-          <div className="lab">Panier en cours</div>
-          <div className="val">{cartCount}</div>
+        <div className="acc-tile tile-cart">
+          <div className="tile-icon"><IconPackage /></div>
+          <div className="tile-content">
+            <div className="lab">Panier en cours</div>
+            <div className="val">{cartCount}</div>
+          </div>
         </div>
-        <div className="acc-tile">
-          <div className="lab">Devis en cours</div>
-          <div className="val">{quotes.length}</div>
+        <div className="acc-tile tile-quotes">
+          <div className="tile-icon"><IconPdf /></div>
+          <div className="tile-content">
+            <div className="lab">Devis en cours</div>
+            <div className="val">{quotes.length}</div>
+          </div>
         </div>
-        <div className="acc-tile">
-          <div className="lab">Type de compte</div>
-          <div className="val" style={{ fontSize: 17, marginTop: 9 }}>
-            <span className={`pill ${isPro ? 'ship' : 'paid'}`}>
-              {profile?.account_type_display || '—'}
-            </span>
+        <div className="acc-tile tile-account">
+          <div className="tile-icon"><IconUser /></div>
+          <div className="tile-content">
+            <div className="lab">Type de compte</div>
+            <div className="val">
+              <span className={`pill ${isPro ? 'ship' : 'paid'}`}>
+                {profile?.account_type_display || 'Particulier'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="card-box">
-        <div className="card-title">Vos informations</div>
-        <table className="simple-table">
-          <tbody>
-            <tr><td style={{ color: 'var(--muted)' }}>E-mail</td><td>{user?.email}</td></tr>
-            <tr><td style={{ color: 'var(--muted)' }}>Nom</td>
-              <td>{[user?.first_name, user?.last_name].filter(Boolean).join(' ') || '—'}</td></tr>
-            <tr><td style={{ color: 'var(--muted)' }}>Connexion</td>
-              <td>{user?.auth_provider === 'GOOGLE' ? 'Compte Google' : 'E-mail et mot de passe'}</td></tr>
-            {isPro && (
-              <tr><td style={{ color: 'var(--muted)' }}>Société</td><td>{profile?.company_name || '—'}</td></tr>
-            )}
-          </tbody>
-        </table>
-        <Link to="/compte/profil" className="btn-primary" style={{ display: 'inline-block', marginTop: 16 }}>
-          Modifier mon profil
-        </Link>
+      <div className="acc-info-card">
+        <div className="card-title">Vos informations personnelles</div>
+        <div className="info-grid">
+          <div className="info-item">
+            <div className="lbl">E-mail</div>
+            <div className="vlu">{user?.email || '—'}</div>
+          </div>
+          <div className="info-item">
+            <div className="lbl">Nom complet</div>
+            <div className="vlu">{[user?.first_name, user?.last_name].filter(Boolean).join(' ') || '—'}</div>
+          </div>
+          <div className="info-item">
+            <div className="lbl">Méthode de connexion</div>
+            <div className="vlu">{user?.auth_provider === 'GOOGLE' ? 'Compte Google' : 'E-mail et mot de passe'}</div>
+          </div>
+          {isPro && (
+            <div className="info-item">
+              <div className="lbl">Société</div>
+              <div className="vlu">{profile?.company_name || '—'}</div>
+            </div>
+          )}
+        </div>
+        
+        <div className="info-actions">
+          <Link to="/compte/profil" className="btn-premium">
+            Modifier mon profil
+          </Link>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

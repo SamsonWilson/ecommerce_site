@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import { useCartCount } from '../store/cart.js';
+import { useWishlistCount } from '../store/wishlist.js';
 import {
   IconPhone, IconMail, IconFacebook, IconInstagram, IconPinterest,
   IconSearch, IconUser, IconHeart, IconBag, IconMenu, IconFlag,
@@ -22,7 +23,7 @@ function TopBar() {
         <div className="tb-right">
           <LanguageSwitcher />
           <span>|</span><span>EUR €</span><span>|</span>
-          <Link to="/pro">{t('topbar.wholesale')}</Link>
+          <Link to="/compte/pro">{t('topbar.wholesale')}</Link>
           <div className="tb-social">
             <a href="#" aria-label="Facebook"><IconFacebook /></a>
             <a href="#" aria-label="Instagram"><IconInstagram /></a>
@@ -37,6 +38,7 @@ function TopBar() {
 function SiteHeader() {
   const { t } = useTranslation();
   const count = useCartCount();
+  const wishCount = useWishlistCount();
   return (
     <header className="uee">
       <div className="container uee-head-row">
@@ -58,9 +60,11 @@ function SiteHeader() {
 
         <div className="uee-actions">
           <Link className="uee-action" to="/compte"><IconUser />{t('header.account')}</Link>
-          <Link className="uee-action" to="/compte/favoris"><IconHeart />{t('header.favorites')}</Link>
+          <Link className="uee-action" to="/compte/favoris">
+            <IconHeart />{t('header.favorites')}{wishCount > 0 && <span className="badge">{wishCount}</span>}
+          </Link>
           <Link className="uee-action" to="/panier"><IconBag />{t('header.cart')}{count > 0 && <span className="badge">{count}</span>}</Link>
-          <Link to="/pro" className="uee-quote-btn">{t('header.requestQuote')}</Link>
+          <Link to="/compte/pro" className="uee-quote-btn">{t('header.requestQuote')}</Link>
         </div>
       </div>
     </header>
@@ -79,7 +83,7 @@ function SiteNav() {
           <li><NavLink to="/boutique">{t('nav.reception')}</NavLink></li>
           <li><NavLink to="/boutique">{t('nav.chinese')}</NavLink></li>
           <li><NavLink to="/nouveautes">{t('nav.new')}</NavLink></li>
-          <li><NavLink to="/pro">{t('nav.wholesalers')}</NavLink></li>
+          <li><NavLink to="/compte/pro">{t('nav.wholesalers')}</NavLink></li>
           <li><NavLink to="/contact">{t('nav.contact')}</NavLink></li>
         </ul>
         <span className="promo-flag"><IconFlag />{t('nav.freeShipping')}</span>
@@ -115,7 +119,7 @@ export function SiteFooter() {
             <h4>{t('footer.pros')}</h4>
             <ul>
               <li><NavLink to="/compte/inscription?type=pro">{t('footer.createPro')}</NavLink></li>
-              <li><NavLink to="/pro">{t('footer.requestQuote')}</NavLink></li>
+              <li><NavLink to="/compte/pro">{t('footer.requestQuote')}</NavLink></li>
               <li><a href="#">{t('footer.catalogPdf')}</a></li>
             </ul>
           </div>

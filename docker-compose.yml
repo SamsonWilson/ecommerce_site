@@ -44,6 +44,15 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE:-False}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
+      # Photos produits : disque partagé par défaut, bucket S3/R2 si USE_S3=True
+      USE_S3: ${USE_S3:-False}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_ENDPOINT_URL: ${AWS_S3_ENDPOINT_URL:-}
+      AWS_S3_REGION_NAME: ${AWS_S3_REGION_NAME:-auto}
+      AWS_S3_CUSTOM_DOMAIN: ${AWS_S3_CUSTOM_DOMAIN:-}
+      AWS_LOCATION: ${AWS_LOCATION:-media}
     depends_on:
       db:
         condition: service_healthy
@@ -52,6 +61,10 @@ services:
   backend:
     build: ./backend
     environment: *backend_env
+    volumes:
+      # Volume partagé : tous les réplicas écrivent et relisent les mêmes
+      # photos. Inutile si USE_S3=True (le bucket joue ce rôle).
+      - media:/app/media
     depends_on:
       db:
         condition: service_healthy
@@ -75,8 +88,12 @@ services:
         VITE_FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
     ports:
       - "80:80"
+    volumes:
+      # nginx sert les photos directement : Django ne les sert pas hors DEBUG.
+      - media:/srv/media:ro
     depends_on:
       - backend
 
 volumes:
   pgdata:
+  media:

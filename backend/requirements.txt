@@ -13,6 +13,9 @@ psycopg[binary]                      # driver PostgreSQL
 google-auth
 requests                             # transport HTTP requis par google-auth
 
+# Stockage des médias (photos produits) sur S3 / Cloudflare R2 — activé par USE_S3
+django-storages[s3]
+
 # Production
 gunicorn                             # serveur WSGI
 whitenoise                           # fichiers statiques en prod

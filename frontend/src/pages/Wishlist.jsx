@@ -1,11 +1,15 @@
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
-import { catalogProducts } from '../data/products.jsx';
-
-// Sélection factice de favoris (en attendant le modèle Wishlist côté serveur).
-const favorites = [catalogProducts[0], catalogProducts[5], catalogProducts[4]];
+import { defaultFigure, figureBySlug } from '../data/products.jsx';
+import { useWishlist } from '../store/wishlist.js';
 
 export default function Wishlist() {
+  // Les favoris sont ceux que le visiteur a réellement cochés (conservés dans
+  // le navigateur). Le visuel est ré-résolu ici : le store ne garde que des
+  // données sérialisables.
+  const items = useWishlist((s) => s.items);
+  const favorites = items.map((p) => ({ ...p, figure: figureBySlug[p.slug] || defaultFigure }));
+
   return (
     <>
       <div className="acc-head">
@@ -16,7 +20,7 @@ export default function Wishlist() {
       {favorites.length === 0 ? (
         <div className="card-box">
           <div className="acc-empty">
-            Aucun favori pour l'instant.<br />
+            Aucun favori pour l&apos;instant.<br />
             <Link to="/boutique" className="btn-primary" style={{ display: 'inline-block', marginTop: 16 }}>
               Explorer le catalogue
             </Link>

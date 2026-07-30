@@ -1,5 +1,7 @@
 {
-  "topbar": { "wholesale": "Wholesale area" },
+  "topbar": {
+    "wholesale": "Wholesale area"
+  },
   "header": {
     "allCategories": "All categories",
     "searchPlaceholder": "Search a product, a reference...",
@@ -46,27 +48,43 @@
       "title2": "Chinese heritage",
       "subtitle": "Retail and wholesale. Professional accounts with preferential pricing, MOQ from 12 pieces, quotes within 24h.",
       "buyNow": "Buy now",
-      "wholesalePrices": "Wholesale prices"
+      "wholesalePrices": "Wholesale prices",
+      "previous": "Previous product",
+      "next": "Next product"
     },
     "usp": {
-      "worldwide": "Worldwide shipping", "worldwideSub": "Europe · Americas · Asia",
-      "secure": "Secure payment", "secureSub": "PayPal · Stripe · Card",
-      "wholesale": "Wholesale pricing", "wholesaleSub": "MOQ from 12 pieces",
-      "support": "24/7 support", "supportSub": "WhatsApp & email"
+      "worldwide": "Worldwide shipping",
+      "worldwideSub": "Europe · Americas · Asia",
+      "secure": "Secure payment",
+      "secureSub": "PayPal · Stripe · Card",
+      "wholesale": "Wholesale pricing",
+      "wholesaleSub": "MOQ from 12 pieces",
+      "support": "24/7 support",
+      "supportSub": "WhatsApp & email"
     },
     "moments": {
       "heading": "Shop by moment",
-      "ceremony": "Ceremony", "reception": "Reception", "dinner": "Dinner",
-      "photoshoot": "Photoshoot", "chinese": "Chinese style", "promotions": "Sales"
+      "ceremony": "Ceremony",
+      "reception": "Reception",
+      "dinner": "Dinner",
+      "photoshoot": "Photoshoot",
+      "chinese": "Chinese style",
+      "promotions": "Sales"
     },
     "bestSellers": {
       "heading": "Best sellers",
-      "all": "All", "ceremony": "Ceremony", "chinese": "Chinese style", "promo": "Sale"
+      "all": "All",
+      "ceremony": "Ceremony",
+      "chinese": "Chinese style",
+      "promo": "Sale",
+      "empty": "No products in this category yet."
     },
     "promo": {
       "title": "Wholesale program — up to -30%",
       "text": "Create your professional account and unlock preferential pricing across the shop.",
-      "days": "Days", "hours": "Hours", "min": "Min",
+      "days": "Days",
+      "hours": "Hours",
+      "min": "Min",
       "createPro": "Create a pro account"
     },
     "testimonials": {
@@ -84,11 +102,79 @@
       "title": "Get -10% on your first order",
       "text": "New arrivals, wholesale offers and wedding guides, once a month.",
       "placeholder": "Your email address",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "thanks": "Thank you! Your discount code is on its way by email."
     }
   },
   "common": {
     "addToCart": "+ Add to cart",
-    "addToWishlist": "Add to wishlist"
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "added": "✓ Added to cart",
+    "loading": "Loading…"
+  },
+  "admin": {
+    "nav": {
+      "management": "Management",
+      "dashboard": "Dashboard",
+      "b2c": "Retail — B2C",
+      "orders": "Orders",
+      "customers": "Customers",
+      "promotions": "Promotions",
+      "b2b": "Wholesale — B2B",
+      "proAccounts": "Pro Accounts",
+      "tiers": "Price Tiers",
+      "quotes": "Quotes",
+      "logistics": "Logistics & Team",
+      "deliveries": "Deliveries",
+      "team": "Team",
+      "common": "Common",
+      "catalog": "Catalog",
+      "categories": "Categories",
+      "languages": "Languages",
+      "searchPlaceholder": "Search an order, customer, product...",
+      "administration": "Administration"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of commercial activity",
+      "export": "Export",
+      "addProduct": "Add product",
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "newPros": "New pro accounts",
+      "pendingQuotes": "Pending quotes",
+      "sales7d": "Sales past 7 days",
+      "week": "Week",
+      "month": "Month",
+      "year": "Year",
+      "repartition": "B2C / B2B Breakdown",
+      "recentOrders": "Recent orders",
+      "seeAll": "See all →",
+      "topProducts": "Top selling products",
+      "order": "Order",
+      "customer": "Customer",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "languages": {
+      "title": "Language Management & Internationalization",
+      "subtitle": "Set active language, manage translations and enable/disable published languages.",
+      "addLanguage": "Add a language",
+      "closeForm": "Close form",
+      "configuredTitle": "Configured Languages",
+      "configuredSubtitle": "The language checked with the radio button is the current active language in your session.",
+      "tableLang": "Language",
+      "tableCode": "Code",
+      "tableProgress": "Progress",
+      "tableActive": "Active Language",
+      "tablePublished": "Published on Site",
+      "activeTag": "ACTIVE",
+      "scopeTitle": "Progress by Scope",
+      "scopeSubtitle": "Selecting an active language instantly changes the entire interface via i18next.",
+      "scopeInterface": "Site Interface (i18n keys)",
+      "scopeProducts": "Product Content (name, description)",
+      "scopePages": "Editorial Pages (FAQ, shipping)"
+    }
   }
 }

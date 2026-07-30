@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import CustomerProfile
+from .permissions import staff_sections
 
 User = get_user_model()
 
@@ -28,6 +29,12 @@ class UserSerializer(serializers.ModelSerializer):
     """Profil renvoyé par /auth/me/ — jamais le mot de passe."""
 
     profile = CustomerProfileSerializer(read_only=True)
+    # Rôle employé : c'est lui qui décide des écrans affichés dans /gestion.
+    role = serializers.CharField(source="staff_profile.role", read_only=True, default=None)
+    role_display = serializers.CharField(
+        source="staff_profile.get_role_display", read_only=True, default=None
+    )
+    sections = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -35,8 +42,12 @@ class UserSerializer(serializers.ModelSerializer):
             "id", "email", "first_name", "last_name",
             "preferred_language", "preferred_currency",
             "auth_provider", "is_staff", "profile",
+            "role", "role_display", "sections",
         )
         read_only_fields = ("id", "email", "auth_provider", "is_staff")
+
+    def get_sections(self, obj):
+        return staff_sections(obj)
 
 
 class SignupSerializer(BaseRegisterSerializer):

@@ -4,7 +4,6 @@ import SiteLayout from './components/SiteLayout.jsx';
 import Home from './pages/Home.jsx';
 import Category from './pages/Category.jsx';
 import Product from './pages/Product.jsx';
-import Pro from './pages/Pro.jsx';
 import Cart from './pages/Cart.jsx';
 import Checkout from './pages/Checkout.jsx';
 import OrderConfirmation from './pages/OrderConfirmation.jsx';
@@ -27,6 +26,8 @@ import Register from './pages/account/Register.jsx';
 import OAuthCallback from './pages/account/OAuthCallback.jsx';
 import ForgotPassword from './pages/account/ForgotPassword.jsx';
 import ResetPassword from './pages/account/ResetPassword.jsx';
+import Shop from './pages/account/Shop.jsx';
+import AccountCart from './pages/account/AccountCart.jsx';
 
 // L'admin a sa propre feuille de style ; on la charge à la demande (routes /gestion/*)
 // pour éviter de mêler ses styles à ceux de la boutique.
@@ -43,7 +44,7 @@ export default function App() {
           <Route path="/nouveautes" element={<Category title="Nouveautés" count={36} />} />
           <Route path="/promotions" element={<Category title="Promotions" count={24} />} />
           <Route path="/produit/:slug" element={<Product />} />
-          <Route path="/pro" element={<Pro />} />
+          <Route path="/pro" element={<Navigate to="/compte/pro" replace />} />
 
           {/* Tunnel d'achat */}
           <Route path="/panier" element={<Cart />} />
@@ -69,6 +70,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="/compte" element={<AccountLayout />}>
             <Route index element={<Overview />} />
+            <Route path="boutique" element={<Shop />} />
             <Route path="commandes" element={<MyOrders />} />
             <Route path="devis" element={<MyQuotes />} />
             <Route path="favoris" element={<Wishlist />} />

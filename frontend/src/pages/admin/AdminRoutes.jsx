@@ -6,6 +6,7 @@ import '../../styles/admin.css';
 import AdminLayout from './AdminLayout.jsx';
 import AdminLogin from './AdminLogin.jsx';
 import RequireAdmin from './RequireAdmin.jsx';
+import Guard from './RequireSection.jsx';
 import Dashboard from './Dashboard.jsx';
 
 // Socle commun
@@ -23,6 +24,10 @@ import ProAccounts from './ProAccounts.jsx';
 import PriceTiers from './PriceTiers.jsx';
 import Quotes from './Quotes.jsx';
 
+// Équipe interne
+import Deliveries from './Deliveries.jsx';
+import Employees from './Employees.jsx';
+
 export default function AdminRoutes() {
   return (
     <Routes>
@@ -30,22 +35,26 @@ export default function AdminRoutes() {
 
       <Route element={<RequireAdmin />}>
         <Route element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Guard section="dashboard"><Dashboard /></Guard>} />
 
           {/* Détail — B2C */}
-          <Route path="commandes" element={<Orders />} />
-          <Route path="clients" element={<Customers />} />
-          <Route path="promotions" element={<Promotions />} />
+          <Route path="commandes" element={<Guard section="orders"><Orders /></Guard>} />
+          <Route path="clients" element={<Guard section="customers"><Customers /></Guard>} />
+          <Route path="promotions" element={<Guard section="promotions"><Promotions /></Guard>} />
 
           {/* Gros — B2B */}
-          <Route path="comptes-pro" element={<ProAccounts />} />
-          <Route path="paliers" element={<PriceTiers />} />
-          <Route path="devis" element={<Quotes />} />
+          <Route path="comptes-pro" element={<Guard section="b2b"><ProAccounts /></Guard>} />
+          <Route path="paliers" element={<Guard section="b2b"><PriceTiers /></Guard>} />
+          <Route path="devis" element={<Guard section="b2b"><Quotes /></Guard>} />
+
+          {/* Équipe interne */}
+          <Route path="livraisons" element={<Guard section="deliveries"><Deliveries /></Guard>} />
+          <Route path="equipe" element={<Guard section="staff"><Employees /></Guard>} />
 
           {/* Socle commun */}
-          <Route path="produits" element={<Products />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="langues" element={<Languages />} />
+          <Route path="produits" element={<Guard section="catalog"><Products /></Guard>} />
+          <Route path="categories" element={<Guard section="catalog"><Categories /></Guard>} />
+          <Route path="langues" element={<Guard section="catalog"><Languages /></Guard>} />
         </Route>
       </Route>
     </Routes>

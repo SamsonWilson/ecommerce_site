@@ -1,5 +1,6 @@
+from accounts.permissions import HasStaffSection
 from rest_framework import generics, viewsets
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import QuoteRequest
 from .serializers import AdminQuoteSerializer, QuoteCreateSerializer, QuoteSerializer
@@ -34,7 +35,8 @@ class MyQuoteDetailView(generics.RetrieveAPIView):
 class AdminQuoteViewSet(viewsets.ModelViewSet):
     """Gestion des devis côté back-office (is_staff uniquement)."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [HasStaffSection]
+    required_section = "b2b"
     serializer_class = AdminQuoteSerializer
     queryset = QuoteRequest.objects.prefetch_related("items__variant__product").all()
     filterset_fields = ["status"]

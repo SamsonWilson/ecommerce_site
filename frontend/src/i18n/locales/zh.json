@@ -1,5 +1,7 @@
 {
-  "topbar": { "wholesale": "批发专区" },
+  "topbar": {
+    "wholesale": "批发专区"
+  },
   "header": {
     "allCategories": "所有分类",
     "searchPlaceholder": "搜索商品或货号…",
@@ -46,27 +48,43 @@
       "title2": "中式传承",
       "subtitle": "零售与批发。专业账户享优惠价，起订量12件起，24小时内提供报价。",
       "buyNow": "立即购买",
-      "wholesalePrices": "批发价格"
+      "wholesalePrices": "批发价格",
+      "previous": "上一件商品",
+      "next": "下一件商品"
     },
     "usp": {
-      "worldwide": "全球配送", "worldwideSub": "欧洲 · 美洲 · 亚洲",
-      "secure": "安全支付", "secureSub": "PayPal · Stripe · 银行卡",
-      "wholesale": "批发价格", "wholesaleSub": "起订量12件起",
-      "support": "全天候客服", "supportSub": "WhatsApp 与邮件"
+      "worldwide": "全球配送",
+      "worldwideSub": "欧洲 · 美洲 · 亚洲",
+      "secure": "安全支付",
+      "secureSub": "PayPal · Stripe · 银行卡",
+      "wholesale": "批发价格",
+      "wholesaleSub": "起订量12件起",
+      "support": "全天候客服",
+      "supportSub": "WhatsApp 与邮件"
     },
     "moments": {
       "heading": "按场合选购",
-      "ceremony": "婚礼仪式", "reception": "宴会", "dinner": "晚宴",
-      "photoshoot": "婚纱摄影", "chinese": "中式风格", "promotions": "促销"
+      "ceremony": "婚礼仪式",
+      "reception": "宴会",
+      "dinner": "晚宴",
+      "photoshoot": "婚纱摄影",
+      "chinese": "中式风格",
+      "promotions": "促销"
     },
     "bestSellers": {
       "heading": "畅销榜",
-      "all": "全部", "ceremony": "婚礼仪式", "chinese": "中式风格", "promo": "促销"
+      "all": "全部",
+      "ceremony": "婚礼仪式",
+      "chinese": "中式风格",
+      "promo": "促销",
+      "empty": "该分类暂无商品。"
     },
     "promo": {
       "title": "批发计划——低至7折",
       "text": "注册专业账户，即可在全店解锁优惠价。",
-      "days": "天", "hours": "小时", "min": "分",
+      "days": "天",
+      "hours": "小时",
+      "min": "分",
       "createPro": "注册专业账户"
     },
     "testimonials": {
@@ -84,11 +102,79 @@
       "title": "首单立减 10%",
       "text": "新品、批发优惠与婚礼指南，每月一次。",
       "placeholder": "您的邮箱地址",
-      "subscribe": "订阅"
+      "subscribe": "订阅",
+      "thanks": "感谢订阅！优惠码将通过邮件发送给您。"
     }
   },
   "common": {
     "addToCart": "+ 加入购物车",
-    "addToWishlist": "加入收藏"
+    "addToWishlist": "加入收藏",
+    "removeFromWishlist": "移出收藏",
+    "added": "✓ 已加入购物车",
+    "loading": "加载中…"
+  },
+  "admin": {
+    "nav": {
+      "management": "管理与概览",
+      "dashboard": "仪表板",
+      "b2c": "零售 — B2C",
+      "orders": "订单",
+      "customers": "客户",
+      "promotions": "促销活动",
+      "b2b": "批发 — B2B",
+      "proAccounts": "专业账户",
+      "tiers": "阶梯价格",
+      "quotes": "报价单",
+      "logistics": "物流与团队",
+      "deliveries": "配送",
+      "team": "团队",
+      "common": "公共模块",
+      "catalog": "商品目录",
+      "categories": "分类",
+      "languages": "语言设置",
+      "searchPlaceholder": "搜索订单、客户、产品...",
+      "administration": "后台管理"
+    },
+    "dashboard": {
+      "title": "仪表板",
+      "subtitle": "商业活动概览",
+      "export": "导出",
+      "addProduct": "添加产品",
+      "revenue": "营业额",
+      "orders": "订单数",
+      "newPros": "新增专业账户",
+      "pendingQuotes": "待处理报价",
+      "sales7d": "过去7天销售额",
+      "week": "周",
+      "month": "月",
+      "year": "年",
+      "repartition": "B2C / B2B 比例",
+      "recentOrders": "最新订单",
+      "seeAll": "查看全部 →",
+      "topProducts": "热销商品",
+      "order": "订单",
+      "customer": "客户",
+      "amount": "金额",
+      "status": "状态"
+    },
+    "languages": {
+      "title": "语言管理与国际化",
+      "subtitle": "设置当前活动语言，管理翻译，并启用/禁用已发布的语言。",
+      "addLanguage": "添加语言",
+      "closeForm": "关闭表单",
+      "configuredTitle": "已配置语言",
+      "configuredSubtitle": "带单选按钮选中的语言是您当前会话中的活动语言。",
+      "tableLang": "语言",
+      "tableCode": "代码",
+      "tableProgress": "进度",
+      "tableActive": "活动语言",
+      "tablePublished": "已在网站发布",
+      "activeTag": "活动",
+      "scopeTitle": "按范围进度",
+      "scopeSubtitle": "选择活动语言会通过 i18next 立即更改整个界面。",
+      "scopeInterface": "网站界面 (i18n 键)",
+      "scopeProducts": "产品内容 (名称、描述)",
+      "scopePages": "编辑页面 (常见问题、配送)"
+    }
   }
 }

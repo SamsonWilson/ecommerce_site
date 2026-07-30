@@ -1,3 +1,4 @@
+from django.db.models import Min
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
@@ -23,7 +24,7 @@ def public_product_queryset(request):
 
     Le filtrage se fait sur le queryset, jamais côté frontend.
     """
-    qs = Product.objects.filter(is_active=True).prefetch_related("variants", "colors")
+    qs = Product.objects.filter(is_active=True).prefetch_related("variants", "colors", "media")
     user = getattr(request, "user", None)
     approved_pro = (
         user
@@ -44,11 +45,16 @@ class ProductListView(generics.ListAPIView):
     serializer_class = ProductListSerializer
     filterset_class = ProductFilter
     search_fields = ("name", "description")
-    ordering_fields = ("created_at", "name")
+    # `min_price` est annoté ci-dessous : il permet de trier la boutique par prix.
+    ordering_fields = ("created_at", "name", "min_price")
     ordering = ("-created_at",)
 
     def get_queryset(self):
-        return public_product_queryset(self.request).distinct()
+        return (
+            public_product_queryset(self.request)
+            .annotate(min_price=Min("variants__retail_price"))
+            .distinct()
+        )
 
 
 class ProductDetailView(generics.RetrieveAPIView):

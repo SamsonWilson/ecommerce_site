@@ -1,24 +1,82 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEOHead from '../components/SEOHead.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { bestSellers } from '../data/products.jsx';
+import { api } from '../lib/api.js';
+import { productsFromApi } from '../lib/catalog.js';
 import {
   IconChevronLeft, IconChevronRight, IconTruck, IconCard, IconStore, IconChat,
   IconCeremony, IconGuests, IconBell, IconCamera, IconLayers, IconTag,
   IconShield, IconCheck, Stars,
 } from '../components/icons.jsx';
 
+const HERO_SLIDES = 3;
+
+const SHELF_ICONS = [
+  <IconCeremony key="a" />, <IconGuests key="b" />, <IconBell key="c" />,
+  <IconCamera key="d" />, <IconLayers key="e" />, <IconTag key="f" />,
+];
+
 export default function Home() {
   const { t } = useTranslation();
 
-  const moments = [
-    { icon: <IconCeremony />, name: t('home.moments.ceremony') },
-    { icon: <IconGuests />, name: t('home.moments.reception') },
-    { icon: <IconBell />, name: t('home.moments.dinner') },
-    { icon: <IconCamera />, name: t('home.moments.photoshoot') },
-    { icon: <IconLayers />, name: t('home.moments.chinese') },
-    { icon: <IconTag />, name: t('home.moments.promotions') },
+  const [products, setProducts] = useState(bestSellers);
+  const [heroProducts, setHeroProducts] = useState(bestSellers.slice(0, HERO_SLIDES));
+  const [cats, setCats] = useState([]);
+  const [tab, setTab] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [live, setLive] = useState(false);
+
+  const [slide, setSlide] = useState(0);
+  const [subscribed, setSubscribed] = useState(false);
+
+  useEffect(() => {
+    api.categories()
+      .then((d) => setCats(d.results || d))
+      .catch(() => setCats([]));
+
+    api.products({ page_size: HERO_SLIDES })
+      .then((d) => {
+        const items = productsFromApi(d);
+        if (items.length) { setHeroProducts(items); setSlide(0); }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    api.products({ page_size: 8, category: tab || undefined })
+      .then((d) => {
+        if (!alive) return;
+        setProducts(productsFromApi(d));
+        setLive(true);
+      })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [tab]);
+
+  const tabs = [{ slug: '', name: t('home.bestSellers.all') },
+    ...cats.slice(0, 3).map((c) => ({ slug: c.slug, name: c.name }))];
+
+  const slides = heroProducts.slice(0, HERO_SLIDES);
+  const featured = slides[slide] || slides[0];
+  const step = (d) => setSlide((s) => (s + d + slides.length) % (slides.length || 1));
+
+  const fallbackMoments = [
+    { slug: '', name: t('home.moments.ceremony') },
+    { slug: '', name: t('home.moments.reception') },
+    { slug: '', name: t('home.moments.dinner') },
+    { slug: '', name: t('home.moments.photoshoot') },
+    { slug: '', name: t('home.moments.chinese') },
+    { slug: '', name: t('home.moments.promotions') },
   ];
+  const shelves = (cats.length ? cats.slice(0, 6) : fallbackMoments).map((c, i) => ({
+    ...c, icon: SHELF_ICONS[i % SHELF_ICONS.length],
+  }));
 
   const usps = [
     { icon: <IconTruck />, title: t('home.usp.worldwide'), sub: t('home.usp.worldwideSub') },
@@ -35,36 +93,66 @@ export default function Home() {
 
   return (
     <>
+      <SEOHead
+        title="Accessoires de Mariage & Haute Coiffure Chinoise"
+        description="Collection exclusive d'accessoires de mariage d'inspiration traditionnelle chinoise et occidentale. Vente au détail et tarifs professionnels B2B."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Maison Lian",
+          "url": "https://maisonlian.com",
+          "logo": "https://maisonlian.com/assets/hero.png"
+        }}
+      />
       {/* HERO */}
       <section className="uee-hero">
-        <span className="slider-arrow left"><IconChevronLeft /></span>
-        <span className="slider-arrow right"><IconChevronRight /></span>
+        <button type="button" className="slider-arrow left" aria-label={t('home.hero.previous')}
+          onClick={() => step(-1)}>
+          <IconChevronLeft />
+        </button>
+        <button type="button" className="slider-arrow right" aria-label={t('home.hero.next')}
+          onClick={() => step(1)}>
+          <IconChevronRight />
+        </button>
         <div className="container">
           <div>
             <span className="sale-tag">{t('home.hero.badge')}</span>
             <h1>{t('home.hero.title1')} <em>&amp;</em> {t('home.hero.title2')}</h1>
-            <p>{t('home.hero.subtitle')}</p>
+            <p>{featured ? featured.name : t('home.hero.subtitle')}</p>
             <div className="uee-hero-cta">
-              <Link to="/produit/epingle-phenix-cinabre" className="btn-primary">{t('home.hero.buyNow')}</Link>
+              <Link to={featured ? `/produit/${featured.slug}` : '/boutique'} className="btn-primary">
+                {t('home.hero.buyNow')}
+              </Link>
               <Link to="/pro" className="btn-outline">{t('home.hero.wholesalePrices')}</Link>
             </div>
           </div>
           <div className="uee-hero-art">
             <div className="disc">
-              <svg className="figure" viewBox="0 0 200 220" fill="none" stroke="#B91C14" strokeWidth="1.4">
-                <path d="M100 20 C 75 55, 60 110, 100 165 C 140 110, 125 55, 100 20 Z"/>
-                <path d="M100 165 L 100 205" strokeWidth="2"/>
-                <path d="M78 85 C 62 78, 48 85, 46 105"/>
-                <path d="M122 85 C 138 78, 152 85, 154 105"/>
-              </svg>
-              <div className="price-float">
-                <div className="pf-old">160 €</div>
-                <div className="pf-new">128 €</div>
-              </div>
+              {featured?.image ? (
+                <img className="hero-photo" src={featured.image} alt={featured.name} />
+              ) : featured?.figure || (
+                <svg className="figure" viewBox="0 0 200 220" fill="none" stroke="#B91C14" strokeWidth="1.4">
+                  <path d="M100 20 C 75 55, 60 110, 100 165 C 140 110, 125 55, 100 20 Z"/>
+                  <path d="M100 165 L 100 205" strokeWidth="2"/>
+                  <path d="M78 85 C 62 78, 48 85, 46 105"/>
+                  <path d="M122 85 C 138 78, 152 85, 154 105"/>
+                </svg>
+              )}
+              {featured?.priceNew && (
+                <div className="price-float">
+                  {featured.priceOld && <div className="pf-old">{featured.priceOld}</div>}
+                  <div className="pf-new">{featured.priceNew}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        <div className="slider-dots"><span className="active"></span><span></span><span></span></div>
+        <div className="slider-dots">
+          {slides.map((s, i) => (
+            <button key={s?.slug || i} type="button" className={i === slide ? 'active' : undefined}
+              aria-label={`${i + 1}`} onClick={() => setSlide(i)} />
+          ))}
+        </div>
       </section>
 
       {/* USP */}
@@ -87,8 +175,12 @@ export default function Home() {
         <div className="container">
           <div className="uee-section-head"><h2>{t('home.moments.heading')}</h2></div>
           <div className="cat-grid">
-            {moments.map((m) => (
-              <Link className="cat-item" to="/boutique" key={m.name}>
+            {shelves.map((m) => (
+              <Link
+                className="cat-item"
+                to={m.slug ? `/boutique?category=${m.slug}` : '/boutique'}
+                key={m.slug || m.name}
+              >
                 <span className="ci-icon">{m.icon}</span>
                 <span className="ci-name">{m.name}</span>
               </Link>
@@ -103,17 +195,29 @@ export default function Home() {
           <div className="uee-section-head">
             <h2>{t('home.bestSellers.heading')}</h2>
             <div className="uee-tabs">
-              <button className="uee-tab active">{t('home.bestSellers.all')}</button>
-              <button className="uee-tab">{t('home.bestSellers.ceremony')}</button>
-              <button className="uee-tab">{t('home.bestSellers.chinese')}</button>
-              <button className="uee-tab">{t('home.bestSellers.promo')}</button>
+              {tabs.map((c) => (
+                <button
+                  key={c.slug || 'all'}
+                  type="button"
+                  className={`uee-tab${tab === c.slug ? ' active' : ''}`}
+                  onClick={() => setTab(c.slug)}
+                >
+                  {c.name}
+                </button>
+              ))}
             </div>
           </div>
           <div className="uee-product-grid">
-            {bestSellers.map((p) => (
-              <ProductCard key={p.slug} product={p} showStars />
+            {products.map((p) => (
+              <ProductCard key={p.slug} product={p} showStars={!live} />
             ))}
           </div>
+          {loading && products.length === 0 && (
+            <p className="uee-grid-note">{t('common.loading')}</p>
+          )}
+          {!loading && products.length === 0 && (
+            <p className="uee-grid-note">{t('home.bestSellers.empty')}</p>
+          )}
         </div>
       </section>
 
@@ -178,10 +282,14 @@ export default function Home() {
             <h3>{t('home.newsletter.title')}</h3>
             <p>{t('home.newsletter.text')}</p>
           </div>
-          <form className="uee-nl-form" onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder={t('home.newsletter.placeholder')} />
-            <button type="submit">{t('home.newsletter.subscribe')}</button>
-          </form>
+          {subscribed ? (
+            <p className="nl-thanks">{t('home.newsletter.thanks')}</p>
+          ) : (
+            <form className="uee-nl-form" onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }}>
+              <input type="email" required placeholder={t('home.newsletter.placeholder')} />
+              <button type="submit">{t('home.newsletter.subscribe')}</button>
+            </form>
+          )}
         </div>
       </section>
     </>

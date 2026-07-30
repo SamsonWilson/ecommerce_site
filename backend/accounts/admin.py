@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import CustomerProfile, User
+from .models import CustomerProfile, StaffProfile, User
 
 
 class CustomerProfileInline(admin.StackedInline):
@@ -28,6 +28,14 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),
     )
+
+
+@admin.register(StaffProfile)
+class StaffProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "role", "job_title", "delivery_zone", "created_at")
+    list_filter = ("role",)
+    search_fields = ("user__email", "user__first_name", "user__last_name", "job_title")
+    autocomplete_fields = ("user", "created_by")
 
 
 @admin.register(CustomerProfile)

@@ -13,6 +13,7 @@ class ProductFilter(filters.FilterSet):
     collection = filters.CharFilter(field_name="collection__slug")
     min_price = filters.NumberFilter(method="filter_min_price")
     max_price = filters.NumberFilter(method="filter_max_price")
+    max_moq = filters.NumberFilter(method="filter_max_moq")
 
     class Meta:
         model = Product
@@ -24,3 +25,8 @@ class ProductFilter(filters.FilterSet):
 
     def filter_max_price(self, queryset, name, value):
         return queryset.annotate(_p=Min("variants__retail_price")).filter(_p__lte=value)
+
+    # Filtre professionnel : ne garder que les produits commandables à partir
+    # de `value` pièces ou moins (la déclinaison la plus accessible fait foi).
+    def filter_max_moq(self, queryset, name, value):
+        return queryset.annotate(_m=Min("variants__moq")).filter(_m__lte=value)

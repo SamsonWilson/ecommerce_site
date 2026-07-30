@@ -180,6 +180,7 @@ img,svg{display:block;}
 .cell-flex{display:flex;align-items:center;gap:10px;}
 .cell-thumb{width:36px;height:36px;border-radius:6px;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .cell-thumb svg{width:20px;height:20px;stroke:var(--red);}
+.cell-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px;}
 .cell-main{font-weight:600;color:var(--navy);}
 .cell-sub{font-size:11.5px;color:var(--muted);}
 
@@ -264,6 +265,45 @@ img,svg{display:block;}
 .admin-swatches{display:flex;flex-direction:column;gap:10px;}
 .admin-swatches span{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);}
 .admin-swatches i{width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 1px var(--line);flex-shrink:0;}
+
+/* Photos d'un produit : miniatures enregistrées + fichiers en attente d'envoi. */
+.photo-grid{display:flex;flex-wrap:wrap;gap:12px;margin-top:2px;}
+.photo-item,.photo-add{
+  width:92px;height:92px;border-radius:8px;overflow:hidden;position:relative;
+  border:1px solid var(--line);background:var(--bg);
+}
+.photo-item img,.photo-item video{width:100%;height:100%;object-fit:cover;display:block;background:#000;}
+.photo-item figcaption{
+  position:absolute;left:0;right:0;bottom:0;background:rgba(15,24,38,.72);color:#fff;
+  font-size:10px;font-weight:600;text-align:center;padding:3px 0;
+}
+.photo-item.pending{border-style:dashed;border-color:var(--red);}
+.photo-drop{
+  position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;
+  background:rgba(15,24,38,.72);color:#fff;font-size:14px;line-height:1;padding:0;
+}
+.photo-drop:hover{background:var(--red);}
+.photo-add{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  border-style:dashed;cursor:pointer;font-size:11.5px;color:var(--muted);font-weight:600;
+}
+.photo-add:hover{border-color:var(--red);color:var(--red);}
+.photo-add svg{width:16px;height:16px;}
+.photo-add input{display:none;}
+
+/* Choix des coloris d'un produit : pastilles cliquables, cochées = sélection. */
+.admin-label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;}
+.color-picker{display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;}
+.color-picker button{
+  width:28px;height:28px;border-radius:50%;box-shadow:0 0 0 1px var(--line);
+  position:relative;transition:.15s;
+}
+.color-picker button:hover{transform:scale(1.08);}
+.color-picker button.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--red);}
+.color-picker button.sel::after{
+  content:"";position:absolute;inset:0;margin:auto;width:9px;height:5px;
+  border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-2px);
+}
 
 /* ---------- Page de connexion admin ---------- */
 .admin-login{
