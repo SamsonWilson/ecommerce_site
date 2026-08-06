@@ -1,21 +1,31 @@
-# Cœur
-django~=5.1
-djangorestframework
-djangorestframework-simplejwt        # JWT
-django-cors-headers                  # autoriser le domaine du frontend
-django-environ                       # config par variables d'environnement
-django-filter                        # filtres API (catégorie, couleur, prix)
+# ==============================================================================
+# DEPENDANCES PYTHON BACKEND (DJANGO + REST FRAMEWORK + PROD)
+# ==============================================================================
 
-# Base de données
-psycopg[binary]                      # driver PostgreSQL
+# --- Cœur Framework & API REST ---
+django>=5.1,<5.2
+djangorestframework>=3.15.0
+djangorestframework-simplejwt>=5.3.1
+django-cors-headers>=4.4.0
+django-environ>=0.11.2
+django-filter>=24.3
 
-# Authentification Google (vérification de l'ID token)
-google-auth
-requests                             # transport HTTP requis par google-auth
+# --- Authentification & Inscription (Allauth / Dj-Rest-Auth) ---
+django-allauth>=65.3.0
+dj-rest-auth[with_social]>=7.0.0
 
-# Stockage des médias (photos produits) sur S3 / Cloudflare R2 — activé par USE_S3
-django-storages[s3]
+# --- Base de Données PostgreSQL ---
+psycopg[binary]>=3.2.0
 
-# Production
-gunicorn                             # serveur WSGI
-whitenoise                           # fichiers statiques en prod
+# --- Authentification OAuth2 & Services HTTP ---
+google-auth>=2.30.0
+requests>=2.32.0
+
+# --- Traitement Médias & Stockage Cloud S3 / Cloudflare R2 ---
+Pillow>=10.4.0
+django-storages[s3]>=1.14.4
+boto3>=1.34.0
+
+# --- Serveur WSGI & Fichiers Statiques en Production ---
+gunicorn>=23.0.0
+whitenoise>=6.7.0

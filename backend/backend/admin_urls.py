@@ -7,6 +7,8 @@ from catalog.admin_views import (
     AdminColorViewSet,
     AdminMomentViewSet,
     AdminProductViewSet,
+    AdminStockMovementViewSet,
+    AdminStockViewSet,
 )
 from pricing.views import PriceTierViewSet
 from quotes.views import AdminQuoteViewSet
@@ -15,6 +17,8 @@ router = DefaultRouter()
 router.register("customers", AdminCustomerViewSet, basename="admin-customer")
 router.register("staff", AdminStaffViewSet, basename="admin-staff")
 router.register("products", AdminProductViewSet, basename="admin-product")
+router.register("stock", AdminStockViewSet, basename="admin-stock")
+router.register("stock-movements", AdminStockMovementViewSet, basename="admin-stock-movement")
 router.register("categories", AdminCategoryViewSet, basename="admin-category")
 router.register("colors", AdminColorViewSet, basename="admin-color")
 router.register("wedding-moments", AdminMomentViewSet, basename="admin-moment")

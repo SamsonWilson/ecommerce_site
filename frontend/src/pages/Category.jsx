@@ -84,6 +84,8 @@ export default function Category({ title = 'Boutique' }) {
 
   const heading = cats.find((c) => c.slug === category)?.name || title;
 
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
   return (
     <>
       <div className="uee-breadcrumb">
@@ -101,7 +103,7 @@ export default function Category({ title = 'Boutique' }) {
       <div className="container">
         <div className="uee-shop-layout">
           {/* SIDEBAR */}
-          <aside className="uee-sidebar">
+          <aside className={`uee-sidebar ${showMobileFilters ? 'mobile-open' : ''}`}>
             <div className="uee-filter-block">
               <h4>Catégories</h4>
               <label className="uee-checkline">
@@ -144,21 +146,19 @@ export default function Category({ title = 'Boutique' }) {
                 </button>
               )}
             </div>
-
-            <div className="uee-filter-block" style={{ background: '#FBEAEA', boxShadow: 'none' }}>
-              <h4 style={{ border: 'none' }}>Programme grossiste</h4>
-              <p style={{ fontSize: '12.5px', color: 'var(--muted)', lineHeight: 1.6 }}>
-                Créez un compte pro pour voir vos tarifs préférentiels directement sur cette page.
-              </p>
-              <Link to="/pro" className="btn-primary" style={{ display: 'block', textAlign: 'center', marginTop: 12 }}>
-                Créer un compte pro
-              </Link>
-            </div>
           </aside>
 
           {/* GRILLE */}
           <div>
             <div className="uee-shop-toolbar">
+              <button
+                type="button"
+                className="mobile-filter-toggle-btn"
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+              >
+                ⚙️ {showMobileFilters ? 'Masquer les filtres' : 'Filtrer & Trier'}
+              </button>
+
               <span className="count-label">
                 {count ?? products.length} produit(s) — <strong>{heading}</strong>
               </span>

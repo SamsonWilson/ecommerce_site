@@ -6,11 +6,41 @@ from rest_framework import generics, status, views
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from catalog.models import ProductVariant
+from catalog.models import ProductVariant, StockMovement
 from pricing.services import resolve_price
 from accounts.permissions import HasStaffSection
 from .models import Order, OrderItem
 from .serializers import OrderSerializer
+
+
+def deduct_order_stock(order):
+    """Déduit les quantités commandées du stock et enregistre le mouvement de stock."""
+    with transaction.atomic():
+        for item in order.items.select_related("variant").all():
+            if item.variant:
+                item.variant.stock = max(0, item.variant.stock - item.quantity)
+                item.variant.save(update_fields=["stock"])
+                StockMovement.objects.create(
+                    variant=item.variant,
+                    quantity_delta=-item.quantity,
+                    reason=StockMovement.Reason.SALE,
+                    reference=order.reference,
+                )
+
+
+def restore_order_stock(order):
+    """Restitue les quantités au stock lors d'une annulation ou remboursement."""
+    with transaction.atomic():
+        for item in order.items.select_related("variant").all():
+            if item.variant:
+                item.variant.stock += item.quantity
+                item.variant.save(update_fields=["stock"])
+                StockMovement.objects.create(
+                    variant=item.variant,
+                    quantity_delta=item.quantity,
+                    reason=StockMovement.Reason.RETURN,
+                    reference=order.reference,
+                )
 
 
 class CheckoutView(views.APIView):
@@ -68,6 +98,12 @@ class CheckoutView(views.APIView):
                     variant = ProductVariant.objects.select_related("product").first()
 
                 if variant:
+                    # Vérification de la disponibilité du stock
+                    if variant.stock < qty:
+                        return Response(
+                            {"detail": f"Stock insuffisant pour {variant.product.name} (Disponible : {variant.stock})."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
                     rp = resolve_price(variant, user=request.user if request.user.is_authenticated else None)
                     unit_price = Decimal(str(raw_price)) if raw_price and Decimal(str(raw_price)) > 0 else rp.unit_price
                     prod_name = variant.product.name
@@ -157,13 +193,15 @@ class StripeWebhookView(views.APIView):
                     ref = intent.get("metadata", {}).get("order_reference")
                     if ref:
                         order = Order.objects.filter(reference=ref).first()
-                        if order:
+                        if order and order.status != Order.Status.PAID:
                             order.status = Order.Status.PAID
                             order.save()
+                            deduct_order_stock(order)
             except Exception as e:
                 return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"status": "success"}, status=status.HTTP_200_OK)
+
 
 
 class OrderListView(generics.ListAPIView):
@@ -258,4 +296,16 @@ class AdminOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     required_section = "orders"
     serializer_class = OrderSerializer
     queryset = Order.objects.prefetch_related("items", "customer").all()
+
+    def perform_update(self, serializer):
+        old_status = serializer.instance.status
+        order = serializer.save()
+        new_status = order.status
+
+        if old_status != new_status:
+            if new_status == Order.Status.PAID and old_status != Order.Status.PAID:
+                deduct_order_stock(order)
+            elif new_status in [Order.Status.CANCELLED, Order.Status.REFUNDED] and old_status not in [Order.Status.CANCELLED, Order.Status.REFUNDED]:
+                restore_order_stock(order)
+
 

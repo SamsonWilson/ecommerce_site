@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
   const expose = (...names) => JSON.stringify(names.map((n) => env[n]).find(Boolean) || '')
 
   return {
+    base: mode === 'production' ? '/static/' : '/',
     plugins: [react()],
     envDir: rootDir,
     define: {

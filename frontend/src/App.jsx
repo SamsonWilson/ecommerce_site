@@ -19,7 +19,6 @@ import Overview from './pages/account/Overview.jsx';
 import MyOrders from './pages/account/MyOrders.jsx';
 import MyQuotes from './pages/account/MyQuotes.jsx';
 import Profile from './pages/account/Profile.jsx';
-import ProAccess from './pages/account/ProAccess.jsx';
 import Wishlist from './pages/Wishlist.jsx';
 import Login from './pages/account/Login.jsx';
 import Register from './pages/account/Register.jsx';
@@ -44,7 +43,6 @@ export default function App() {
           <Route path="/nouveautes" element={<Category title="Nouveautés" count={36} />} />
           <Route path="/promotions" element={<Category title="Promotions" count={24} />} />
           <Route path="/produit/:slug" element={<Product />} />
-          <Route path="/pro" element={<Navigate to="/compte/pro" replace />} />
 
           {/* Tunnel d'achat */}
           <Route path="/panier" element={<Cart />} />
@@ -76,7 +74,6 @@ export default function App() {
             <Route path="devis" element={<MyQuotes />} />
             <Route path="favoris" element={<Wishlist />} />
             <Route path="profil" element={<Profile />} />
-            <Route path="pro" element={<ProAccess />} />
           </Route>
         </Route>
         {/* Ancien lien public des favoris */}

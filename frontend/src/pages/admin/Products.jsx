@@ -357,7 +357,7 @@ export default function Products() {
                   </td>
                   <td className="cell-sub">{v.moq ?? '—'}</td>
                   <td>
-                    <span className={(v.stock ?? 0) > 10 ? 'status paid' : 'status pending'}>{v.stock ?? 0}</span>
+                    <span className={(v.stock ?? 0) === 0 ? 'status rejected' : (v.stock ?? 0) <= 5 ? 'status pending' : 'status paid'}>{v.stock ?? 0}</span>
                   </td>
                   <td>
                     <div className="row-actions">

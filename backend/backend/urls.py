@@ -2,9 +2,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
-from core.views import health
+from core.views import health, spa_index
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -19,7 +19,10 @@ urlpatterns = [
     path("api/v1/", include("catalog.urls")),
 ]
 
-# En développement, Django sert lui-même les photos produits. En production
-# c'est nginx (ou le stockage objet) qui s'en charge — voir nginx/default.conf.
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Service des médias (photos produits)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# SPA fallback pour toutes les routes du frontend React (hors static & media)
+urlpatterns += [
+    re_path(r"^(?!static/|media/).*", spa_index),
+]

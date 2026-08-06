@@ -171,37 +171,23 @@ export default function Product() {
             <div className="uee-purchase">
               <div className="uee-qty-row">
                 <div className="uee-qty-stepper">
-                  <button aria-label="Diminuer" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-                  <input type="text" value={qty} aria-label="Quantité" readOnly />
-                  <button aria-label="Augmenter" onClick={() => setQty((q) => q + 1)}>+</button>
+                  <button aria-label="Diminuer" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={view.stock === 0}>−</button>
+                  <input type="text" value={view.stock === 0 ? 0 : qty} aria-label="Quantité" readOnly />
+                  <button aria-label="Augmenter" onClick={() => setQty((q) => Math.min(view.stock || 1, q + 1))} disabled={view.stock === 0 || qty >= view.stock}>+</button>
                 </div>
-                <span className="uee-stock">
-                  <IconCheck />{view.stock > 0 ? 'En stock — expédition sous 3 jours' : 'Sur commande'}
+                <span className="uee-stock" style={{ color: view.stock > 0 ? undefined : 'var(--brand-red, #d9534f)' }}>
+                  <IconCheck />{view.stock > 0 ? `En stock (${view.stock} disponible${view.stock > 1 ? 's' : ''})` : 'Rupture de stock'}
                 </span>
               </div>
               <div className="uee-pdp-cta">
-                <button className="btn-primary" onClick={addToCart}>
-                  {added ? 'Ajouté au panier ✓' : 'Ajouter au panier'}
+                <button className="btn-primary" onClick={addToCart} disabled={view.stock === 0}>
+                  {view.stock === 0 ? 'Rupture de stock' : added ? 'Ajouté au panier ✓' : 'Ajouter au panier'}
                 </button>
                 <span className="uee-icon-btn" aria-label="Ajouter aux favoris"><IconHeart /></span>
                 <span className="uee-icon-btn" aria-label="Télécharger la fiche PDF"><IconPdf /></span>
               </div>
             </div>
 
-            <div className="uee-pro-box">
-              <div className="pb-head">
-                <IconStore />
-                <h4>Vous êtes professionnel ? Débloquez le tarif grossiste</h4>
-              </div>
-              <p className="moq-note" style={{ marginTop: 0 }}>
-                MOQ : {view.moq} pièces — au-delà, le tarif grossiste s'applique automatiquement à votre compte pro.
-              </p>
-              <div className="form-row">
-                <input type="number" min={view.moq} defaultValue={view.moq * 2} placeholder="Quantité" style={{ width: 110 }} />
-                <input type="text" placeholder="Votre e-mail professionnel" style={{ flex: 1, minWidth: 180 }} />
-                <Link to="/pro" className="btn-outline">Demander un devis</Link>
-              </div>
-            </div>
           </div>
         </div>
       </div>

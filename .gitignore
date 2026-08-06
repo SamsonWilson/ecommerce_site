@@ -1,11 +1,25 @@
-# Fichiers téléversés depuis le back-office (photos produits) : ils
-# appartiennent au stockage, pas au dépôt.
+# Fichiers téléversés depuis le back-office (photos produits)
 backend/media/
 
-# Artefacts Python
+# Artefacts Python & Environnements virtuels
 __pycache__/
+/**/__pycache__/
 *.py[cod]
+*.pyc
+venv/
+.venv/
+env/
 backend/staticfiles/
 
-# Secrets
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.dist/
+
+# Secrets & DB locales
 .env
+*.sqlite3
+backend/db.sqlite3
+
+

@@ -10,8 +10,75 @@ from .admin_serializers import (
     AdminMomentSerializer,
     AdminProductMediaSerializer,
     AdminProductSerializer,
+    AdminVariantSerializer,
+    StockMovementSerializer,
 )
-from .models import Category, ColorTheme, Product, WeddingMoment
+from .models import Category, ColorTheme, Product, ProductVariant, StockMovement, WeddingMoment
+
+
+class AdminStockViewSet(viewsets.ModelViewSet):
+    """
+    Gestion dédiée des stocks pour les variantes de produits.
+    """
+
+    permission_classes = [HasStaffSection]
+    required_section = "catalog"
+    queryset = ProductVariant.objects.select_related("product", "product__category").all().order_by("stock", "sku")
+    serializer_class = AdminVariantSerializer
+    filterset_fields = ["product__category"]
+    search_fields = ["sku", "product__name"]
+
+    @action(detail=True, methods=["post"], url_path="adjust")
+    def adjust_stock(self, request, pk=None):
+        variant = self.get_object()
+        delta = request.data.get("delta")
+        new_stock = request.data.get("new_stock")
+        reason = request.data.get("reason", StockMovement.Reason.CORRECTION)
+        reference = request.data.get("reference", "")
+
+        if delta is not None:
+            try:
+                delta = int(delta)
+            except ValueError:
+                return Response({"detail": "Delta invalide."}, status=status.HTTP_400_BAD_REQUEST)
+            variant.stock = max(0, variant.stock + delta)
+        elif new_stock is not None:
+            try:
+                new_stock = int(new_stock)
+            except ValueError:
+                return Response({"detail": "Stock invalide."}, status=status.HTTP_400_BAD_REQUEST)
+            delta = new_stock - variant.stock
+            variant.stock = max(0, new_stock)
+        else:
+            return Response({"detail": "Précisez delta ou new_stock."}, status=status.HTTP_400_BAD_REQUEST)
+
+        variant.save(update_fields=["stock"])
+        movement = StockMovement.objects.create(
+            variant=variant,
+            quantity_delta=delta,
+            reason=reason,
+            reference=reference,
+        )
+        return Response({
+            "variant_id": variant.id,
+            "sku": variant.sku,
+            "stock": variant.stock,
+            "movement": StockMovementSerializer(movement).data
+        })
+
+
+class AdminStockMovementViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Historique des mouvements de stock.
+    """
+
+    permission_classes = [HasStaffSection]
+    required_section = "catalog"
+    queryset = StockMovement.objects.select_related("variant", "variant__product").all().order_by("-created_at")
+    serializer_class = StockMovementSerializer
+    filterset_fields = ["reason", "variant"]
+    search_fields = ["variant__sku", "variant__product__name", "reference"]
+
 
 
 class AdminProductViewSet(viewsets.ModelViewSet):

@@ -15,8 +15,24 @@ from .models import (
     Product,
     ProductMedia,
     ProductVariant,
+    StockMovement,
     WeddingMoment,
 )
+
+
+class StockMovementSerializer(serializers.ModelSerializer):
+    variant_sku = serializers.CharField(source="variant.sku", read_only=True)
+    product_name = serializers.CharField(source="variant.product.name", read_only=True)
+    reason_display = serializers.CharField(source="get_reason_display", read_only=True)
+
+    class Meta:
+        model = StockMovement
+        fields = (
+            "id", "variant", "variant_sku", "product_name",
+            "quantity_delta", "reason", "reason_display", "reference", "created_at"
+        )
+        read_only_fields = ("id", "created_at")
+
 
 # Marques ISO-BMFF (l'octet 4..8 vaut « ftyp ») : la marque distingue une image
 # AVIF d'une photo iPhone HEIC et d'une vidéo MP4/QuickTime.

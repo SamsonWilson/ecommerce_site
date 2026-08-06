@@ -11,11 +11,14 @@ import Dashboard from './Dashboard.jsx';
 
 // Socle commun
 import Products from './Products.jsx';
+import StockManagement from './StockManagement.jsx';
+import Inventory from './Inventory.jsx';
 import Categories from './Categories.jsx';
 import Languages from './Languages.jsx';
 
 // Pôle détail (B2C)
 import Orders from './Orders.jsx';
+import Accounting from './Accounting.jsx';
 import Customers from './Customers.jsx';
 import Promotions from './Promotions.jsx';
 
@@ -39,6 +42,7 @@ export default function AdminRoutes() {
 
           {/* Détail — B2C */}
           <Route path="commandes" element={<Guard section="orders"><Orders /></Guard>} />
+          <Route path="comptabilite" element={<Guard section="orders"><Accounting /></Guard>} />
           <Route path="clients" element={<Guard section="customers"><Customers /></Guard>} />
           <Route path="promotions" element={<Guard section="promotions"><Promotions /></Guard>} />
 
@@ -53,6 +57,8 @@ export default function AdminRoutes() {
 
           {/* Socle commun */}
           <Route path="produits" element={<Guard section="catalog"><Products /></Guard>} />
+          <Route path="stocks" element={<Guard section="catalog"><StockManagement /></Guard>} />
+          <Route path="inventaire" element={<Guard section="catalog"><Inventory /></Guard>} />
           <Route path="categories" element={<Guard section="catalog"><Categories /></Guard>} />
           <Route path="langues" element={<Guard section="catalog"><Languages /></Guard>} />
         </Route>

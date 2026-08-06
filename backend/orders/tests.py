@@ -18,6 +18,7 @@ class OrderTestCase(TestCase):
             retail_price=Decimal("95.00"),
             wholesale_price=Decimal("40.00"),
             moq=1,
+            stock=100,
         )
 
     def test_checkout_creates_order_with_frozen_prices(self):
@@ -46,3 +47,15 @@ class OrderTestCase(TestCase):
         item = order.items.first()
         self.assertEqual(item.unit_price, Decimal("95.00"))
         self.assertEqual(item.sku, "DE-SILVER")
+
+    def test_checkout_fails_if_insufficient_stock(self):
+        payload = {
+            "email": "buyer@example.com",
+            "items": [
+                {"variant_id": self.variant.id, "quantity": 150}
+            ],
+        }
+        response = self.client.post("/api/v1/checkout/", payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Stock insuffisant", response.data["detail"])
+

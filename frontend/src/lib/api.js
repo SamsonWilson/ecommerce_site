@@ -110,6 +110,11 @@ export const api = {
   adminDeleteProductImage: (id, mediaId) =>
     request(`/admin/products/${id}/media/${mediaId}/`, { method: 'DELETE', auth: true }),
 
+  // Gestion des stocks et historique des mouvements
+  adminStock: (params) => request(`/admin/stock/${qs(params)}`, { auth: true }),
+  adminAdjustStock: (id, data) => request(`/admin/stock/${id}/adjust/`, { method: 'POST', body: data, auth: true }),
+  adminStockMovements: (params) => request(`/admin/stock-movements/${qs(params)}`, { auth: true }),
+
   // Taxonomies du catalogue (catégories, coloris, moments)
   adminCategories: () => request('/admin/categories/', { auth: true }),
   adminCreateCategory: (d) => request('/admin/categories/', { method: 'POST', body: d, auth: true }),

@@ -4,19 +4,20 @@ from .base import env
 
 DEBUG = False
 
-# Hôtes autorisés fournis par l'environnement (jamais "*").
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+# Hôtes autorisés (par environnement ou repli sur le domaine du serveur)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["ecommerce.ginolux.com", "localhost", "127.0.0.1", "web", "backend", "*"])
 
 # HTTPS / cookies sécurisés
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # derrière nginx
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # derrière le proxy inverse
+SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=False)
+CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=False)
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
 
-# CSRF de confiance (domaines servis par l'edge nginx)
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+# URL du frontend en prod
+FRONTEND_URL = env("FRONTEND_URL", default="https://ecommerce.ginolux.com")
+SOCIAL_CALLBACK_URL = f"{FRONTEND_URL}/compte/connexion/callback"
+
+# CSRF & CORS de confiance (domaines du serveur distant)
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://ecommerce.ginolux.com", "http://ecommerce.ginolux.com"])
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["https://ecommerce.ginolux.com", "http://ecommerce.ginolux.com"])

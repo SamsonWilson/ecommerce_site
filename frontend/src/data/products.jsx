@@ -82,4 +82,29 @@ export const figureBySlug = Object.fromEntries(
   [...catalogProducts, ...bestSellers].map((p) => [p.slug, p.figure])
 );
 
-export const defaultFigure = fig('#B0894A', <circle cx="100" cy="110" r="55" />);
+export const defaultFigure = (
+  <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <linearGradient id="defaultGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFD700" />
+        <stop offset="50%" stopColor="#C9A227" />
+        <stop offset="100%" stopColor="#8A6615" />
+      </linearGradient>
+      <linearGradient id="defaultRubyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#C0392B" />
+        <stop offset="100%" stopColor="#7C1F2C" />
+      </linearGradient>
+    </defs>
+    <rect width="200" height="220" fill="#FAF7F2" />
+    <circle cx="100" cy="95" r="45" fill="url(#defaultRubyGrad)" opacity="0.08" />
+    <path d="M100 25 C 75 60, 65 110, 100 165 C 135 110, 125 60, 100 25 Z" stroke="url(#defaultGoldGrad)" strokeWidth="2.5" />
+    <path d="M100 165 L 100 205" stroke="url(#defaultGoldGrad)" strokeWidth="3" strokeLinecap="round" />
+    <circle cx="100" cy="85" r="14" fill="url(#defaultRubyGrad)" />
+    <circle cx="100" cy="85" r="5" fill="#FFF" opacity="0.7" />
+    <path d="M72 85 C 58 75, 45 82, 42 102" stroke="url(#defaultGoldGrad)" strokeWidth="2" strokeLinecap="round" />
+    <path d="M128 85 C 142 75, 155 82, 158 102" stroke="url(#defaultGoldGrad)" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="42" cy="102" r="4.5" fill="url(#defaultRubyGrad)" />
+    <circle cx="158" cy="102" r="4.5" fill="url(#defaultRubyGrad)" />
+  </svg>
+);
+

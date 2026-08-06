@@ -33,10 +33,7 @@ export default function MyQuotes() {
           <p className="acc-empty">Chargement…</p>
         ) : quotes.length === 0 ? (
           <div className="acc-empty">
-            Vous n'avez pas encore de demande de devis.<br />
-            <Link to="/pro" className="btn-primary" style={{ display: 'inline-block', marginTop: 16 }}>
-              Demander un devis
-            </Link>
+            Vous n'avez pas encore de demande de devis.
           </div>
         ) : (
           <table className="simple-table">

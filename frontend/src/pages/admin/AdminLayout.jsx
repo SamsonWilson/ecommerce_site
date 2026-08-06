@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/auth.js';
@@ -22,6 +23,7 @@ export default function AdminLayout() {
       defaultLabel: 'Détail — B2C',
       items: [
         { to: '/gestion/commandes', icon: I.bag, nameKey: 'admin.nav.orders', defaultName: 'Commandes', section: 'orders' },
+        { to: '/gestion/comptabilite', icon: I.quote, nameKey: 'admin.nav.accounting', defaultName: 'Comptabilité', section: 'orders' },
         { to: '/gestion/clients', icon: I.users, nameKey: 'admin.nav.customers', defaultName: 'Clients', section: 'customers' },
         { to: '/gestion/promotions', icon: I.percent, nameKey: 'admin.nav.promotions', defaultName: 'Promotions', section: 'promotions' },
       ],
@@ -48,6 +50,8 @@ export default function AdminLayout() {
       defaultLabel: 'Commun',
       items: [
         { to: '/gestion/produits', icon: I.tag, nameKey: 'admin.nav.catalog', defaultName: 'Catalogue', section: 'catalog' },
+        { to: '/gestion/stocks', icon: I.moq, nameKey: 'admin.nav.stock', defaultName: 'Stocks', section: 'catalog' },
+        { to: '/gestion/inventaire', icon: I.check, nameKey: 'admin.nav.inventory', defaultName: 'Inventaire Physique', section: 'catalog' },
         { to: '/gestion/categories', icon: I.layers, nameKey: 'admin.nav.categories', defaultName: 'Catégories', section: 'catalog' },
         { to: '/gestion/langues', icon: I.globe, nameKey: 'admin.nav.languages', defaultName: 'Langues', section: 'catalog' },
         { href: '/admin/', icon: I.settings, nameKey: 'admin.nav.djangoAdmin', defaultName: 'Django Admin', external: true, section: 'settings' },
@@ -70,15 +74,32 @@ export default function AdminLayout() {
     navigate('/gestion/connexion', { replace: true });
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="admin-shell">
-      <aside className="admin-sidebar">
+      {sidebarOpen && (
+        <div
+          className="admin-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
         <div className="admin-brand">
           <span className="mark">ML</span>
           <span className="word">
             Maison Lián
             <small>{t('admin.nav.administration', 'Administration')}</small>
           </span>
+          <button
+            type="button"
+            className="admin-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="admin-nav">
@@ -97,6 +118,7 @@ export default function AdminLayout() {
                     to={it.to}
                     end={it.end}
                     className={({ isActive }) => (isActive ? 'active' : undefined)}
+                    onClick={() => setSidebarOpen(false)}
                   >
                     {it.icon}{itemName}
                     {it.badge && <span className="nav-badge">{it.badge}</span>}
@@ -121,6 +143,15 @@ export default function AdminLayout() {
 
       <div className="admin-main">
         <div className="admin-topbar">
+          <button
+            type="button"
+            className="admin-mobile-burger"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar menu"
+          >
+            ☰
+          </button>
+
           <div className="admin-search">
             {I.search}
             <input

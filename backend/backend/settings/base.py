@@ -15,6 +15,7 @@ env = environ.Env(
     SECRET_KEY=(str, "dev-insecure-change-me"),
     ALLOWED_HOSTS=(list, ["*"]),
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:5173"]),
+    CSRF_TRUSTED_ORIGINS=(list, ["http://localhost:5173", "https://ecommerce.ginolux.com"]),
     GOOGLE_CLIENT_ID=(str, ""),
 )
 # Charge un fichier .env s'il existe (dev local sans Docker)
@@ -23,6 +24,7 @@ environ.Env.read_env(BASE_DIR.parent / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173", "https://ecommerce.ginolux.com", "http://ecommerce.ginolux.com"])
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -134,7 +136,7 @@ MAX_VIDEO_SIZE_MB = env.int("MAX_VIDEO_SIZE_MB", default=50)
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
 
 # --- Stockage objet des médias (S3 / Cloudflare R2) ------------------------

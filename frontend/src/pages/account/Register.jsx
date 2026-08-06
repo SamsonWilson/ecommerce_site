@@ -72,8 +72,6 @@ export default function Register() {
 
           <p className="auth-alt" style={{ textAlign: 'left', lineHeight: 1.6 }}>
             Votre compte vous permet de commander <strong>au détail</strong>.
-            Vous êtes revendeur ? <Link to="/pro">Demandez l'accès grossiste</Link> :
-            nos équipes activent les tarifs de gros après étude de votre dossier.
           </p>
 
           <p className="auth-alt">Déjà client ? <Link to="/compte/connexion">Se connecter</Link></p>
