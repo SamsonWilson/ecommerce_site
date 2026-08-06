@@ -4,7 +4,7 @@ from django.db import migrations
 def set_site(apps, schema_editor):
     Site = apps.get_model("sites", "Site")
     Site.objects.update_or_create(
-        pk=1, defaults={"domain": "ecommerce.ginolux.com", "name": "Maison Lián"}
+        pk=1, defaults={"domain": "maisonlian.com", "name": "Maison Lián"}
     )
 
 

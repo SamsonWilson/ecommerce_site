@@ -55,17 +55,17 @@ export default function Home() {
   }, []);
 
   // ── Scroll-reveal refs ──────────────────────────────────────────────────
-  const revealHero        = useReveal({ threshold: 0.05 });
-  const revealUsp         = useRevealChildren({ stagger: 100 });
-  const revealAmzGrid1    = useRevealChildren({ stagger: 80 });
-  const revealAmzGrid2    = useRevealChildren({ stagger: 80 });
-  const revealCats        = useRevealChildren({ stagger: 60 });
-  const revealGrid        = useRevealChildren({ stagger: 70 });
-  const revealShelf1      = useReveal();
-  const revealShelf2      = useReveal();
-  const revealPromo       = useReveal();
-  const revealTestis      = useRevealChildren({ stagger: 120 });
-  const revealNewsletter  = useReveal();
+  const revealHero = useReveal({ threshold: 0.05 });
+  const revealUsp = useRevealChildren({ stagger: 100 });
+  const revealAmzGrid1 = useRevealChildren({ stagger: 80 });
+  const revealAmzGrid2 = useRevealChildren({ stagger: 80 });
+  const revealCats = useRevealChildren({ stagger: 60 });
+  const revealGrid = useRevealChildren({ stagger: 70 });
+  const revealShelf1 = useReveal();
+  const revealShelf2 = useReveal();
+  const revealPromo = useReveal();
+  const revealTestis = useRevealChildren({ stagger: 120 });
+  const revealNewsletter = useReveal();
 
   useEffect(() => {
     timerRef.current = setInterval(() => {

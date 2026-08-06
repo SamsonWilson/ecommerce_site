@@ -56,5 +56,4 @@ printf " Backend  : http://127.0.0.1:8000\n"
 printf " Frontend : http://127.0.0.1:3000\n"
 printf " Appuyez sur Ctrl+C pour arreter les serveurs.\n"
 printf "=========================================\n\n"
-
 wait "$BACKEND_PID" "$FRONTEND_PID"

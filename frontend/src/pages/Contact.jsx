@@ -30,7 +30,7 @@ export default function Contact() {
           </div>
 
           <div className="card-box">
-            <div className="card-title">Nos coordonnées</div>
+            <div className="card-title">Nosssssssssssssssss coordonnéessssssssssssss</div>
             <div className="contact-info">
               <div className="ci-row"><span className="ic"><IconMapPin /></span><div><div className="lab">Ateliers</div><div className="val">Paris &amp; Guangzhou</div></div></div>
               <div className="ci-row"><span className="ic"><IconPhone /></span><div><div className="lab">Téléphone</div><div className="val">+33 1 84 25 00 00</div></div></div>
