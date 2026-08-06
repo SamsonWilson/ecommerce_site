@@ -65,6 +65,12 @@ class SignupSerializer(BaseRegisterSerializer):
     first_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
     last_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
 
+    def validate_email(self, email):
+        email = email.lower().strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError("Un compte existe déjà avec cette adresse e-mail.")
+        return email
+
     def get_cleaned_data(self):
         return {
             "email": self.validated_data.get("email", ""),

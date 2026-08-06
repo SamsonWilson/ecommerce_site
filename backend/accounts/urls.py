@@ -3,6 +3,7 @@ from django.urls import path
 
 from .social_views import FacebookLogin
 from .views import (
+    AuthConfigView,
     CookieTokenObtainPairView,
     CookieTokenRefreshView,
     GoogleAuthView,
@@ -11,6 +12,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("config/", AuthConfigView.as_view(), name="auth-config"),
     path("login/", CookieTokenObtainPairView.as_view(), name="auth-login"),
     path("refresh/", CookieTokenRefreshView.as_view(), name="auth-refresh"),
     path("logout/", LogoutView.as_view(), name="auth-logout"),

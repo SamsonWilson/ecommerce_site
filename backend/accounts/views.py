@@ -169,3 +169,15 @@ class RegisterView(BaseRegisterView):
         if isinstance(data, dict):
             data.pop("refresh", None)
         return data
+
+
+class AuthConfigView(APIView):
+    """Expose la clé publique Google Client ID pour le bouton frontend."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            "google_client_id": getattr(settings, "GOOGLE_CLIENT_ID", "") or "",
+            "facebook_app_id": getattr(settings, "FACEBOOK_APP_ID", "") or "",
+        })
+

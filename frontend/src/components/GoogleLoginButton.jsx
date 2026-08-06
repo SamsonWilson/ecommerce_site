@@ -6,21 +6,37 @@ import PropTypes from 'prop-types';
 // que le parent envoie à POST /api/v1/auth/google/ (vérification + création).
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-export default function GoogleLoginButton({ onSuccess }) {
+export default function GoogleLoginButton({ onSuccess, text = 'continue_with' }) {
   const ref = useRef(null);
+  const [clientId, setClientId] = useState(import.meta.env.VITE_GOOGLE_CLIENT_ID || '');
+  const [loading, setLoading] = useState(!import.meta.env.VITE_GOOGLE_CLIENT_ID);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!CLIENT_ID) return undefined;
+    if (!clientId) {
+      fetch('/api/v1/auth/config/')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.google_client_id) {
+            setClientId(data.google_client_id);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [clientId]);
+
+  useEffect(() => {
+    if (!clientId) return undefined;
 
     const init = () => {
       try {
         window.google.accounts.id.initialize({
-          client_id: CLIENT_ID,
+          client_id: clientId,
           callback: (resp) => onSuccess?.(resp.credential),
         });
         window.google.accounts.id.renderButton(ref.current, {
-          theme: 'outline', size: 'large', width: 320, text: 'continue_with',
+          theme: 'outline', size: 'large', width: 190, text,
         });
       } catch {
         setFailed(true);
@@ -42,9 +58,11 @@ export default function GoogleLoginButton({ onSuccess }) {
       if (ref.current && ref.current.childElementCount === 0) setFailed(true);
     }, 2500);
     return () => clearTimeout(t);
-  }, [onSuccess]);
+  }, [clientId, onSuccess, text]);
 
-  if (!CLIENT_ID) {
+  if (loading) return null;
+
+  if (!clientId) {
     return (
       <p className="social-note">
         Connexion Google indisponible : <code>GOOGLE_CLIENT_ID</code> n'est pas
@@ -55,7 +73,7 @@ export default function GoogleLoginButton({ onSuccess }) {
 
   return (
     <>
-      <div ref={ref} style={{ display: 'flex', justifyContent: 'center' }} />
+      <div ref={ref} style={{ display: 'flex', justifyContent: 'center', width: '100%' }} />
       {failed && (
         <p className="social-note">
           Le bouton Google n'a pas pu se charger. Vérifiez que l'adresse{' '}
@@ -67,4 +85,4 @@ export default function GoogleLoginButton({ onSuccess }) {
   );
 }
 
-GoogleLoginButton.propTypes = { onSuccess: PropTypes.func };
+GoogleLoginButton.propTypes = { onSuccess: PropTypes.func, width: PropTypes.number, text: PropTypes.string };
