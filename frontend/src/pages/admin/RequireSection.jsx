@@ -6,7 +6,7 @@ import { useAuth } from '../../store/auth.js';
 // qui n'a pas accès au tableau de bord (un livreur, par exemple).
 export const SECTION_HOME = {
   dashboard: '/gestion',
-  orders: '/gestion/commandes',
+  orders: '/gestion/ventes',
   customers: '/gestion/clients',
   promotions: '/gestion/promotions',
   b2b: '/gestion/comptes-pro',

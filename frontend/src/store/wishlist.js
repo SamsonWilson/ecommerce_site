@@ -6,6 +6,7 @@ import { persist } from 'zustand/middleware';
 const snapshot = (p) => ({
   slug: p.slug, name: p.name, cat: p.cat,
   priceNew: p.priceNew, priceOld: p.priceOld, badge: p.badge,
+  image: p.image,
 });
 
 export const useWishlist = create(

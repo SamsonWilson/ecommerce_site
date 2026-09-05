@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics, status, views
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -59,6 +60,13 @@ class CheckoutView(views.APIView):
         if isinstance(shipping_address, dict) and "payment_method" not in shipping_address:
             shipping_address["payment_method"] = data.get("payment_method", "card")
         raw_items = data.get("items", [])
+        raw_mark_paid = data.get("mark_paid")
+        if raw_mark_paid in ("true", "True", "1", 1, True):
+            mark_paid = True
+        elif raw_mark_paid in ("false", "False", "0", 0, False, None):
+            mark_paid = False
+        else:
+            mark_paid = bool(request.user.is_authenticated and getattr(request.user, "is_staff", False))
 
         if not email:
             return Response({"detail": "Adresse email obligatoire."}, status=status.HTTP_400_BAD_REQUEST)
@@ -134,7 +142,7 @@ class CheckoutView(views.APIView):
                 customer=request.user if request.user.is_authenticated else None,
                 email=email,
                 order_type=Order.OrderType.WHOLESALE if is_wholesale else Order.OrderType.RETAIL,
-                status=Order.Status.PENDING,
+                status=Order.Status.PAID if mark_paid else Order.Status.PENDING,
                 currency="EUR",
                 subtotal=subtotal,
                 shipping_cost=shipping_cost,
@@ -146,6 +154,9 @@ class CheckoutView(views.APIView):
 
             for item_data in order_items_to_create:
                 OrderItem.objects.create(order=order, **item_data)
+
+            if mark_paid:
+                deduct_order_stock(order)
 
             # Intégration Stripe (si clé fournie en prod/dev) ou token de simulation
             client_secret = f"mock_pi_secret_{order.reference}"
@@ -299,13 +310,21 @@ class AdminOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         old_status = serializer.instance.status
-        order = serializer.save()
-        new_status = order.status
+        new_status = serializer.validated_data.get("status")
 
-        if old_status != new_status:
-            if new_status == Order.Status.PAID and old_status != Order.Status.PAID:
+        if new_status is not None and not Order.is_valid_transition(old_status, new_status):
+            raise ValidationError({
+                "detail": (
+                    f"Transition de statut non autorisée : {old_status} -> {new_status}. "
+                    "Les étapes doivent être suivies dans l'ordre."
+                )
+            })
+
+        order = serializer.save()
+        if old_status != order.status:
+            if order.status == Order.Status.PAID and old_status != Order.Status.PAID:
                 deduct_order_stock(order)
-            elif new_status in [Order.Status.CANCELLED, Order.Status.REFUNDED] and old_status not in [Order.Status.CANCELLED, Order.Status.REFUNDED]:
+            elif order.status in [Order.Status.CANCELLED, Order.Status.REFUNDED] and old_status not in [Order.Status.CANCELLED, Order.Status.REFUNDED]:
                 restore_order_stock(order)
 
 

@@ -13,6 +13,22 @@ class Order(models.Model):
         CANCELLED = "CANCELLED", "Annulée"
         REFUNDED = "REFUNDED", "Remboursée"
 
+    @staticmethod
+    def is_valid_transition(current_status, next_status):
+        if current_status == next_status:
+            return True
+
+        allowed = {
+            Order.Status.PENDING: {Order.Status.PAID, Order.Status.CANCELLED},
+            Order.Status.PAID: {Order.Status.PREPARING, Order.Status.CANCELLED},
+            Order.Status.PREPARING: {Order.Status.SHIPPED, Order.Status.CANCELLED},
+            Order.Status.SHIPPED: {Order.Status.DELIVERED, Order.Status.CANCELLED},
+            Order.Status.DELIVERED: set(),
+            Order.Status.CANCELLED: set(),
+            Order.Status.REFUNDED: set(),
+        }
+        return next_status in allowed.get(current_status, set())
+
     class OrderType(models.TextChoices):
         RETAIL = "RETAIL", "Commande détail"
         WHOLESALE = "WHOLESALE", "Commande gros"

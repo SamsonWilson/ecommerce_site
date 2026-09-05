@@ -32,6 +32,7 @@ export const productFromApi = (p) => ({
   priceOld: formatEuro(p.original_price),
   badge: badgeFor(p.price, p.original_price),
   image: p.image || undefined,
+  stock: Number(p.stock ?? 0),
   // Repli tant qu'aucune photo n'a été téléversée pour ce produit.
   figure: figureBySlug[p.slug] || defaultFigure,
 });

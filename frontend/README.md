@@ -1,16 +1,66 @@
-# React + Vite
+# Site e-commerce – accès local
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Identifiants de connexion admin
 
-Currently, two official plugins are available:
+Le compte d’administration local est le suivant :
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- E-mail : admin@maisonlian.com
+- Mot de passe : Admin123456!
+- URL : http://localhost:3000/gestion/connexion
 
-## React Compiler
+> Ces identifiants sont pour l’environnement local de développement. À changer avant mise en production.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Démarrage rapide
 
-## Expanding the Oxlint configuration
+### 1) Backend Django
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+cd /home/star/Desktop/site_ecommerce_giovane
+source venv/bin/activate
+cd backend
+python manage.py migrate
+python manage.py init_admin
+python manage.py runserver 0.0.0.0:8000
+```
+
+### 2) Frontend
+
+```bash
+cd /home/star/Desktop/site_ecommerce_giovane/frontend
+npm install
+npm run dev -- --host 0.0.0.0 --port 3000
+```
+
+Ensuite ouvrir :
+
+- Frontend : http://localhost:3000
+- Admin : http://localhost:3000/gestion/connexion
+
+## Comptes de test utiles
+
+- Admin : admin@maisonlian.com / Admin123456!
+- Client pro en attente (déjà présent en base) : pro@ivoire.be
+
+## Notes de projet
+
+Le projet est une boutique e-commerce B2C/B2B avec :
+
+- Django REST API
+- React + Vite frontend
+- PostgreSQL en cible de production
+- espace client, panier, checkout, gestion admin, comptes pro
+
+## Verification rapide
+
+Le compte admin a bien été vérifié en base via Django :
+
+```bash
+python manage.py shell -c "from accounts.models import User; u=User.objects.filter(is_superuser=True).first(); print(u.email); print(u.check_password('Admin123456!'))"
+```
+
+La sortie attendue doit afficher :
+
+```text
+admin@maisonlian.com
+True
+```

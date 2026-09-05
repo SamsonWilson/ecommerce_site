@@ -245,11 +245,31 @@ class AdminProductSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
 
+    def validate_name(self, value):
+        cleaned = value.strip() if value else value
+        if not cleaned:
+            return value
+
+        queryset = Product.objects.filter(name__iexact=cleaned)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("Ce nom de produit est déjà utilisé.")
+        return cleaned
+
     def validate_variants(self, value):
         if not value:
             raise serializers.ValidationError(
                 "Un produit doit avoir au moins une déclinaison (prix, stock, MOQ)."
             )
+        seen = set()
+        for variant in value:
+            sku = (variant.get("sku") or "").strip()
+            if not sku:
+                continue
+            if sku.lower() in seen:
+                raise serializers.ValidationError("Deux déclinaisons ne peuvent pas avoir le même SKU.")
+            seen.add(sku.lower())
         return value
 
     def create(self, validated_data):

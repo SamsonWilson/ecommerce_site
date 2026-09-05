@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { IconHeart, Stars } from './icons.jsx';
@@ -9,9 +9,13 @@ import { useWishlist } from '../store/wishlist.js';
 // Carte produit réutilisable (grilles accueil, catégorie, produits associés).
 export default function ProductCard({ product, showStars = false, showWish = true }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const add = useCart((s) => s.add);
   const toggleWish = useWishlist((s) => s.toggle);
   const wished = useWishlist((s) => s.items.some((x) => x.slug === product.slug));
+
+  const isAccount = location.pathname.startsWith('/compte');
+  const targetLink = isAccount ? `/compte/produit/${product.slug}` : `/produit/${product.slug}`;
 
   // Confirmation brève après l'ajout : sans retour visuel, le clic semble sans effet.
   const [added, setAdded] = useState(false);
@@ -24,6 +28,9 @@ export default function ProductCard({ product, showStars = false, showWish = tru
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setAdded(false), 1600);
   };
+
+  const stock = Number(product.stock ?? 0);
+  const stockLabel = stock > 0 ? `Stock : ${stock} dispo` : 'Rupture de stock';
 
   return (
     <div className="uee-card">
@@ -42,8 +49,8 @@ export default function ProductCard({ product, showStars = false, showWish = tru
           </button>
         )}
         {product.image
-          ? <img className="uee-card-photo" src={product.image} alt={product.name} loading="lazy" />
-          : product.figure}
+          ? <Link to={targetLink}><img className="uee-card-photo" src={product.image} alt={product.name} loading="lazy" /></Link>
+          : <Link to={targetLink} style={{ display: 'block', width: '100%', height: '100%', color: 'inherit' }}>{product.figure}</Link>}
         <button type="button" className="uee-quickadd" onClick={addToCart}>
           {added ? t('common.added') : t('common.addToCart')}
         </button>
@@ -51,12 +58,15 @@ export default function ProductCard({ product, showStars = false, showWish = tru
       <div className="uee-card-info">
         <span className="ci-cat">{product.cat}</span>
         <div className="ci-name">
-          <Link to={`/produit/${product.slug}`}>{product.name}</Link>
+          <Link to={targetLink}>{product.name}</Link>
         </div>
         {showStars && typeof product.rating === 'number' && <Stars value={product.rating} />}
         <div className="price-row">
           <span className="new">{product.priceNew}</span>
           {product.priceOld && <span className="old">{product.priceOld}</span>}
+        </div>
+        <div className={`stock-tag ${stock > 0 ? 'in-stock' : 'out-stock'}`}>
+          {stock > 0 ? `Disponible : ${stock}` : 'Épuisé'}
         </div>
         {product.moq && <div className="moq-tag">{product.moq}</div>}
       </div>
@@ -74,6 +84,7 @@ ProductCard.propTypes = {
     badge: PropTypes.string,
     image: PropTypes.string,
     moq: PropTypes.string,
+    stock: PropTypes.number,
     rating: PropTypes.number,
     figure: PropTypes.node,
   }).isRequired,

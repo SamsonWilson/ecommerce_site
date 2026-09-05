@@ -21,7 +21,7 @@ const SHELF_ICONS = [
 ];
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [products, setProducts] = useState(bestSellers);
   const [heroProducts, setHeroProducts] = useState(bestSellers.slice(0, HERO_SLIDES));
@@ -32,6 +32,12 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
 
+  const liveToasts = [
+    { name: t('home.liveOrders.item1'), loc: t('home.liveOrders.locParis'), time: t('home.liveOrders.time2min') },
+    { name: t('home.liveOrders.item2'), loc: t('home.liveOrders.locLyon'), time: t('home.liveOrders.time5min') },
+    { name: t('home.liveOrders.item3'), loc: t('home.liveOrders.locBrussels'), time: t('home.liveOrders.time12min') },
+  ];
+
   // Compte à rebours promotionnel réactif
   const [timeLeft, setTimeLeft] = useState({ days: 3, hours: 14, min: 52, sec: 0 });
 
@@ -41,18 +47,13 @@ export default function Home() {
 
   // Toast d'activité en direct réactif
   const [activeToast, setActiveToast] = useState(0);
-  const liveToasts = [
-    { name: 'Épingle Chinoise Dorée & Perles', loc: 'Paris, France', time: 'Il y a 2 min' },
-    { name: 'Peigne de Mariée Fleur de Lys', loc: 'Lyon, France', time: 'Il y a 5 min' },
-    { name: 'Diadème Princesse Cristal', loc: 'Bruxelles, Belgique', time: 'Il y a 12 min' },
-  ];
 
   useEffect(() => {
     const toastInterval = setInterval(() => {
       setActiveToast((prev) => (prev + 1) % liveToasts.length);
     }, 7000);
     return () => clearInterval(toastInterval);
-  }, []);
+  }, [i18n.language, liveToasts.length]);
 
   // ── Scroll-reveal refs ──────────────────────────────────────────────────
   const revealHero = useReveal({ threshold: 0.05 });
@@ -145,7 +146,7 @@ export default function Home() {
   const usps = [
     { icon: <IconTruck />, title: t('home.usp.worldwide'), sub: t('home.usp.worldwideSub') },
     { icon: <IconCard />, title: t('home.usp.secure'), sub: t('home.usp.secureSub') },
-    { icon: <IconStore />, title: t('home.usp.wholesale'), sub: t('home.usp.wholesaleSub') },
+    { icon: <IconShield />, title: t('home.usp.quality'), sub: t('home.usp.qualitySub') },
     { icon: <IconChat />, title: t('home.usp.support'), sub: t('home.usp.supportSub') },
   ];
 
@@ -156,23 +157,24 @@ export default function Home() {
   ];
 
   // Quad items pour les cartes style Amazon avec fallbacks garantis
-  const quadNouveautes = catalogProducts.slice(0, 4);
+  const homepageProducts = products.length ? products : bestSellers;
+  const quadNouveautes = homepageProducts.slice(0, 4);
   const quadMoments = [
-    { name: 'Cérémonie', link: '/boutique?category=ceremonie', icon: <IconCeremony /> },
-    { name: 'Réception', link: '/boutique?category=reception', icon: <IconGuests /> },
-    { name: 'Style Chinois', link: '/boutique?category=chinois', icon: <IconLayers /> },
-    { name: 'Photoshoot', link: '/boutique?category=photos', icon: <IconCamera /> },
+    { name: t('home.moments.ceremony'), link: '/boutique?category=ceremonie', icon: <IconCeremony /> },
+    { name: t('home.moments.reception'), link: '/boutique?category=reception', icon: <IconGuests /> },
+    { name: t('home.moments.chinese'), link: '/boutique?category=chinois', icon: <IconLayers /> },
+    { name: t('home.moments.photoshoot'), link: '/boutique?category=photos', icon: <IconCamera /> },
   ];
 
-  const quadCoiffure = catalogProducts.slice(4, 8);
-  const flashProduct = catalogProducts.find((p) => p.badge) || catalogProducts[0];
-  const featuredSingleProduct = catalogProducts[0];
+  const quadCoiffure = homepageProducts.slice(4, 8);
+  const flashProduct = homepageProducts.find((p) => p.badge) || homepageProducts[0];
+  const featuredSingleProduct = homepageProducts[0] || catalogProducts[0];
 
   return (
     <main className="amz-home-body">
       <SEOHead
         title="Accessoires de Mariage & Haute Coiffure Chinoise | Maison Lián"
-        description="Collection exclusive d'accessoires de mariage d'inspiration traditionnelle chinoise et occidentale. Vente au détail et tarifs professionnels B2B."
+        description="Collection exclusive d'accessoires de mariage d'inspiration traditionnelle chinoise et occidentale. Vente au détail et créations sur-mesure d'exception."
         schema={{
           "@context": "https://schema.org",
           "@type": "Organization",
@@ -212,15 +214,15 @@ export default function Home() {
               <Link to={featured ? `/produit/${featured.slug}` : '/boutique'} className="btn-primary">
                 {t('home.hero.buyNow')} ➔
               </Link>
-              <Link to="/compte/inscription?type=pro" className="btn-outline">
-                {t('home.hero.wholesalePrices')}
+              <Link to="/boutique" className="btn-outline">
+                {t('home.hero.discoverCollection')}
               </Link>
             </div>
           </div>
 
           <div className="uee-hero-art">
             <div className="hero-pill p1">💎 Fait Main &amp; Finitions Dorées</div>
-            <div className="hero-pill p2">✨ Tarifs Pro Grossiste -30%</div>
+            <div className="hero-pill p2">✨ Édition Limitée Mariage</div>
             <div className="disc pg-fade" key={featured?.slug || slide}>
               {featured?.image ? (
                 <img className="hero-photo" src={featured.image} alt={featured.name} />
@@ -267,7 +269,7 @@ export default function Home() {
             {/* CARTE 1: NOUVEAUTÉS DU CATALOGUE (QUAD 2x2) */}
             <div className="amz-card">
               <div>
-                <h3>Dernières Nouveautés</h3>
+                <h3>{t('home.overview.latestNews')}</h3>
                 <div className="amz-card-quad">
                   {quadNouveautes.map((p, idx) => (
                     <Link to={`/produit/${p.slug}`} key={p.slug || idx} className="amz-quad-item">
@@ -285,13 +287,13 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              <Link to="/boutique" className="amz-card-link">Découvrir les nouveautés →</Link>
+              <Link to="/boutique" className="amz-card-link">{t('home.overview.discoverNews')} →</Link>
             </div>
 
             {/* CARTE 2: MOMENTS DE MARIAGE (QUAD 2x2) */}
             <div className="amz-card">
               <div>
-                <h3>Acheter par Événement</h3>
+                <h3>{t('home.overview.shopByEvent')}</h3>
                 <div className="amz-card-quad">
                   {quadMoments.map((m) => (
                     <Link to={m.link} key={m.name} className="amz-quad-item">
@@ -303,14 +305,14 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              <Link to="/boutique" className="amz-card-link">Voir toutes les collections →</Link>
+              <Link to="/boutique" className="amz-card-link">{t('home.overview.viewCollections')} →</Link>
             </div>
 
             {/* CARTE 3: VENTE FLASH DU JOUR */}
             <div className="amz-card">
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <h3 style={{ margin: 0 }}>Vente Flash du Jour</h3>
+                  <h3 style={{ margin: 0 }}>{t('home.overview.flashSale')}</h3>
                   <span className="amz-deal-tag">-20%</span>
                 </div>
                 <div className="amz-flash-img">
@@ -323,40 +325,40 @@ export default function Home() {
                   ) : (
                     <IconCeremony />
                   )}
-                  <span className="amz-flash-badge">✦ Offre Limitée</span>
+                  <span className="amz-flash-badge">✦ {t('home.overview.limitedOffer')}</span>
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F1111' }}>
-                  {flashProduct?.name || 'Épingle Chinoise Dorée & Perles'}
+                  {flashProduct?.name || t('home.overview.defaultFlashProduct')}
                 </div>
                 <div className="amz-progress-bg">
                   <div className="amz-progress-fill" style={{ width: '75%' }}></div>
                 </div>
                 <div style={{ fontSize: 11.5, color: '#565959', display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                  <span>Déjà réservé à 75%</span>
-                  <span style={{ color: '#CC0C39', fontWeight: 700 }}>Stock limité</span>
+                  <span>{t('home.overview.alreadyReserved')}</span>
+                  <span style={{ color: '#CC0C39', fontWeight: 700 }}>{t('home.overview.limitedStock')}</span>
                 </div>
               </div>
               <Link to={flashProduct ? `/produit/${flashProduct.slug}` : '/boutique'} className="amz-card-link" style={{ marginTop: 10 }}>
-                Profiter de la vente flash →
+                {t('home.overview.takeFlashDeal')} →
               </Link>
             </div>
 
-            {/* CARTE 4: ESPACE GROSSISTE B2B */}
+            {/* CARTE 4: ÉCRIN CADEAU & EMBALLAGE SIGNATURE */}
             <div className="amz-card amz-card-dark">
               <div>
-                <span className="amz-b2b-badge">✦ ESPACE PROFESSIONNEL</span>
-                <h3 style={{ color: '#fff', marginTop: 6, fontFamily: 'var(--serif)', fontSize: 19 }}>Compte Grossiste &amp; Devis Sur-Mesure</h3>
+                <span className="amz-b2b-badge">✦ {t('home.overview.signatureBox')}</span>
+                <h3 style={{ color: '#fff', marginTop: 6, fontFamily: 'var(--serif)', fontSize: 19 }}>{t('home.overview.signatureBoxTitle')}</h3>
                 <p style={{ fontSize: 12.5, color: '#c3cbdc', lineHeight: 1.55, marginBottom: 14 }}>
-                  Accédez aux tarifs professionnels préférentiels, MOQ réduit dès 12 pièces et création personnalisée.
+                  {t('home.overview.signatureBoxText')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, fontSize: 12, color: '#e2e8f0', marginBottom: 16 }}>
-                  <div>✓ Jusqu'à -30% sur l'ensemble du catalogue</div>
-                  <div>✓ Expédition prioritaire sous 48h</div>
-                  <div>✓ Facturation H.T. &amp; devis immédiat</div>
+                  <div>✓ {t('home.overview.signatureFeature1')}</div>
+                  <div>✓ {t('home.overview.signatureFeature2')}</div>
+                  <div>✓ {t('home.overview.signatureFeature3')}</div>
                 </div>
               </div>
-              <Link to="/compte/inscription?type=pro" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px' }}>
-                Créer mon compte pro ➔
+              <Link to="/boutique" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px' }}>
+                {t('home.overview.exploreCollections')} ➔
               </Link>
             </div>
 
@@ -370,8 +372,8 @@ export default function Home() {
           <div className="amz-shelf">
             <div className="amz-shelf-head">
               <div>
-                <h2>Ventes Flash &amp; Sélection Tendance</h2>
-                <p className="amz-shelf-sub">Les articles les plus demandés et plébiscités de la saison</p>
+                <h2>{t('home.overview.flashTrend')}</h2>
+                <p className="amz-shelf-sub">{t('home.overview.flashTrendSub')}</p>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <button type="button" className="amz-arrow-btn" aria-label="Précédent" onClick={() => scrollRail(railRef1, 'left')}>
@@ -394,122 +396,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 4 : SECOND SUPER-GRID MULTI-CARTES (COIFFURE, COUP DE COEUR, SERVICES, DEVIS) */}
-      <section className="amz-grid-section">
-        <div className="container">
-          <div className="amz-grid-4" ref={revealAmzGrid2}>
 
-            {/* CARTE 5: HAUTE COIFFURE NUPTIALE (QUAD 2x2) */}
-            <div className="amz-card">
-              <div>
-                <h3>Haute Coiffure Nuptiale</h3>
-                <div className="amz-card-quad">
-                  {quadCoiffure.map((p) => (
-                    <Link to={`/produit/${p.slug}`} key={p.slug} className="amz-quad-item">
-                      <div className="amz-quad-img">
-                        {p.figure ? (
-                          <div style={{ width: '65%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.figure}</div>
-                        ) : (
-                          <IconTag />
-                        )}
-                      </div>
-                      <span className="amz-quad-label">{p.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <Link to="/boutique" className="amz-card-link">Explorer la collection coiffure →</Link>
-            </div>
-
-            {/* CARTE 6: COUP DE CŒUR DE LA MARIÉE (SINGLE FEATURED CARD) */}
-            <div className="amz-card">
-              <div>
-                <span className="amz-card-kicker">✦ RECOMMANDATION MAISON LIÁN</span>
-                <h3 style={{ marginTop: 4 }}>{featuredSingleProduct.name}</h3>
-                <div className="amz-single-feat-img">
-                  {featuredSingleProduct.image ? (
-                    <img src={featuredSingleProduct.image} alt={featuredSingleProduct.name} />
-                  ) : featuredSingleProduct.figure ? (
-                    <div style={{ width: '55%', height: '55%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {featuredSingleProduct.figure}
-                    </div>
-                  ) : (
-                    <IconCeremony />
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <Stars value={5} />
-                  <span style={{ fontSize: 12, color: '#007185', fontWeight: 600 }}>(98 avis)</span>
-                </div>
-                <div className="amz-price-box">
-                  <span className="amz-price-new">{featuredSingleProduct.priceNew}</span>
-                  {featuredSingleProduct.priceOld && <span className="amz-price-old">{featuredSingleProduct.priceOld}</span>}
-                  <span className="amz-prime-badge">✓ Livraison Gratuite dès 150€</span>
-                </div>
-              </div>
-              <Link to={`/produit/${featuredSingleProduct.slug}`} className="amz-card-link">Voir la fiche produit →</Link>
-            </div>
-
-            {/* CARTE 7: GARANTIES & SERVICES MAISON LIÁN */}
-            <div className="amz-card">
-              <div>
-                <h3>Engagements &amp; Services</h3>
-                <div className="amz-services-list">
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconTruck /></span>
-                    <div>
-                      <div className="amz-s-title">Expédition Express 48h</div>
-                      <div className="amz-s-sub">Emballage sécurisé &amp; suivi</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconShield /></span>
-                    <div>
-                      <div className="amz-s-title">Qualité Garantie</div>
-                      <div className="amz-s-sub">Finition dorée à la main</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconStore /></span>
-                    <div>
-                      <div className="amz-s-title">Tarifs Direct Fabrique</div>
-                      <div className="amz-s-sub">Paiement sur facture pro</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconChat /></span>
-                    <div>
-                      <div className="amz-s-title">Conseils &amp; Support 7j/7</div>
-                      <div className="amz-s-sub">Conseiller dédié en direct</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <Link to="/contact" className="amz-card-link">Découvrir nos garanties →</Link>
-            </div>
-
-            {/* CARTE 8: DEMANDE DE DEVIS SUR-MESURE */}
-            <div className="amz-card amz-quote-card">
-              <div>
-                <span className="amz-quote-kicker">✦ DEVIS ESPACE BOUTIQUE</span>
-                <h3>Commandes Sur-Mesure &amp; Mariages</h3>
-                <p className="amz-quote-desc">
-                  Besoin d'une personnalisation de parure, de coloris spécifique ou d'un volume conséquent pour votre mariage ou boutique ?
-                </p>
-                <div className="amz-quote-features">
-                  <div>✓ Devis rapide transmis sous 24h</div>
-                  <div>✓ Échantillonnage sur demande</div>
-                  <div>✓ Accompagnement styliste dédié</div>
-                </div>
-              </div>
-              <Link to="/contact" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px', marginTop: 14 }}>
-                Demander un devis sur-mesure ➔
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* SECTION 5 : CARROUSEL HORIZONTAL 2 - MEILLEURES VENTES */}
       <section className="amz-shelf-section" ref={revealShelf2}>
@@ -517,8 +404,8 @@ export default function Home() {
           <div className="amz-shelf">
             <div className="amz-shelf-head">
               <div>
-                <h2>Meilleures Ventes dans Bijoux &amp; Mariage</h2>
-                <p className="amz-shelf-sub">Inspiré par les choix des mariées et boutiques partenaires</p>
+                <h2>{t('home.overview.bestSales')}</h2>
+                <p className="amz-shelf-sub">{t('home.overview.bestSalesSub')}</p>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <button type="button" className="amz-arrow-btn" aria-label="Précédent" onClick={() => scrollRail(railRef2, 'left')}>
@@ -532,7 +419,7 @@ export default function Home() {
 
             <div className="amz-rail-wrapper">
               <div className="amz-rail" ref={railRef2}>
-                {catalogProducts.map((p) => (
+                {homepageProducts.map((p) => (
                   <ProductCard key={p.slug} product={{ ...p, rating: 5 }} showStars={true} />
                 ))}
               </div>
@@ -548,7 +435,7 @@ export default function Home() {
             <div className="uee-section-head" style={{ marginBottom: 24 }}>
               <div>
                 <span className="section-kicker">✦ EXPLORER LE CATALOGUE</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>Acheter par Rayon / Catégorie</h2>
+                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.shopByDepartment')}</h2>
               </div>
               <Link to="/boutique" className="amz-card-link">
                 Voir toutes les catégories →
@@ -578,7 +465,7 @@ export default function Home() {
             <div className="uee-section-head" style={{ marginBottom: 24 }}>
               <div>
                 <span className="section-kicker">✦ COLLECTION EN DIRECT</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>Catalogue Général &amp; Nouveautés</h2>
+                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.generalCatalog')}</h2>
               </div>
               <div className="uee-tabs">
                 <button
@@ -586,7 +473,7 @@ export default function Home() {
                   className={`uee-tab${tab === '' ? ' active' : ''}`}
                   onClick={() => setTab('')}
                 >
-                  Tous nos trésors
+                  {t('home.overview.allTreasures')}
                 </button>
                 {cats.slice(0, 5).map((c) => (
                   <button
@@ -621,13 +508,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 8 : BANNIÈRE PROMO B2B AVEC COUNTDOWN */}
+      {/* SECTION 8 : BANNIÈRE PROMO AVEC COUNTDOWN */}
       <section className="amz-block-section">
         <div className="container">
           <div className="promo-banner reveal-elem" ref={revealPromo}>
             <div>
-              <h3>{t('home.promo.title')}</h3>
-              <p>{t('home.promo.text')}</p>
+              <h3>{t('home.overview.weddingOffer')}</h3>
+              <p>{t('home.overview.weddingOfferText')}</p>
               <div className="promo-countdown">
                 <div>
                   <div className="cd-num">{String(timeLeft.days).padStart(2, '0')}</div>
@@ -647,7 +534,124 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <Link to="/compte/inscription?type=pro" className="btn-primary">{t('home.promo.createPro')}</Link>
+            <Link to="/boutique" className="btn-primary">{t('home.overview.discoverSelection')} ➔</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4-CARD GRID EN BAS DE PAGE : COIFFURE, RECOMMANDATION, SERVICES, ESPACE PRO */}
+      <section className="amz-grid-section">
+        <div className="container">
+          <div className="amz-grid-4" ref={revealAmzGrid2}>
+
+            {/* CARTE 5: HAUTE COIFFURE NUPTIALE (QUAD 2x2) */}
+            <div className="amz-card">
+              <div>
+                <h3>{t('home.overview.hauteCoiffure')}</h3>
+                <div className="amz-card-quad">
+                  {quadCoiffure.map((p) => (
+                    <Link to={`/produit/${p.slug}`} key={p.slug} className="amz-quad-item">
+                      <div className="amz-quad-img">
+                        {p.figure ? (
+                          <div style={{ width: '65%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.figure}</div>
+                        ) : (
+                          <IconTag />
+                        )}
+                      </div>
+                      <span className="amz-quad-label">{p.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <Link to="/boutique" className="amz-card-link">{t('home.overview.exploreHairCollection')} →</Link>
+            </div>
+
+            {/* CARTE 6: COUP DE CŒUR DE LA MARIÉE (SINGLE FEATURED CARD) */}
+            <div className="amz-card">
+              <div>
+                <span className="amz-card-kicker">✦ {t('home.overview.recommendation')}</span>
+                <h3 style={{ marginTop: 4 }}>{featuredSingleProduct.name}</h3>
+                <div className="amz-single-feat-img">
+                  {featuredSingleProduct.image ? (
+                    <img src={featuredSingleProduct.image} alt={featuredSingleProduct.name} />
+                  ) : featuredSingleProduct.figure ? (
+                    <div style={{ width: '55%', height: '55%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {featuredSingleProduct.figure}
+                    </div>
+                  ) : (
+                    <IconCeremony />
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <Stars value={5} />
+                  <span style={{ fontSize: 12, color: '#007185', fontWeight: 600 }}>(98 avis)</span>
+                </div>
+                <div className="amz-price-box">
+                  <span className="amz-price-new">{featuredSingleProduct.priceNew}</span>
+                  {featuredSingleProduct.priceOld && <span className="amz-price-old">{featuredSingleProduct.priceOld}</span>}
+                  <span className="amz-prime-badge">✓ Livraison Gratuite dès 150€</span>
+                </div>
+              </div>
+              <Link to={`/produit/${featuredSingleProduct.slug}`} className="amz-card-link">{t('home.overview.viewProduct')} →</Link>
+            </div>
+
+            {/* CARTE 7: GARANTIES & SERVICES MAISON LIÁN */}
+            <div className="amz-card">
+              <div>
+                <h3>{t('home.overview.commitments')}</h3>
+                <div className="amz-services-list">
+                  <div className="amz-service-item">
+                    <span className="amz-service-icon"><IconTruck /></span>
+                    <div>
+                      <div className="amz-s-title">Expédition Express 48h</div>
+                      <div className="amz-s-sub">Emballage sécurisé &amp; suivi</div>
+                    </div>
+                  </div>
+                  <div className="amz-service-item">
+                    <span className="amz-service-icon"><IconShield /></span>
+                    <div>
+                      <div className="amz-s-title">{t('home.usp.quality')}</div>
+                      <div className="amz-s-sub">{t('home.usp.qualitySub')}</div>
+                    </div>
+                  </div>
+                  <div className="amz-service-item">
+                    <span className="amz-service-icon"><IconStore /></span>
+                    <div>
+                      <div className="amz-s-title">Tarifs Direct Fabrique</div>
+                      <div className="amz-s-sub">Paiement sur facture pro</div>
+                    </div>
+                  </div>
+                  <div className="amz-service-item">
+                    <span className="amz-service-icon"><IconChat /></span>
+                    <div>
+                      <div className="amz-s-title">Conseils &amp; Support 7j/7</div>
+                      <div className="amz-s-sub">Conseiller dédié en direct</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Link to="/contact" className="amz-card-link">{t('home.overview.discoverGuarantees')} →</Link>
+            </div>
+
+            {/* CARTE 8: ESPACE GROSSISTE & REVENDEURS */}
+            <div className="amz-card amz-quote-card">
+              <div>
+                <span className="amz-quote-kicker">✦ {t('home.overview.professionalSpace')}</span>
+                <h3>{t('home.overview.wholesaleAccounts')}</h3>
+                <p className="amz-quote-desc">
+                  {t('home.overview.wholesaleText')}
+                </p>
+                <div className="amz-quote-features">
+                  <div>✓ {t('home.overview.wholesaleFeature1')}</div>
+                  <div>✓ {t('home.overview.wholesaleFeature2')}</div>
+                  <div>✓ {t('home.overview.wholesaleFeature3')}</div>
+                </div>
+              </div>
+              <Link to="/compte/pro" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px', marginTop: 14 }}>
+                {t('home.overview.discoverProSpace')} ➔
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
@@ -659,7 +663,7 @@ export default function Home() {
             <div className="uee-section-head" style={{ marginBottom: 24 }}>
               <div>
                 <span className="section-kicker">✦ EXPÉRIENCE &amp; AVIS CERTIFIÉS</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>Ce que nos mariées et partenaires disent de nous</h2>
+                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.customerReviewsTitle')}</h2>
               </div>
             </div>
             <div className="testi-grid" ref={revealTestis}>
@@ -721,14 +725,14 @@ export default function Home() {
 
       {/* SECTION 12 : BOUTON RETOUR EN HAUT STYLE AMAZON */}
       <div className="amz-back-to-top" onClick={scrollToTop}>
-        <span>Retour en haut ▲</span>
+        <span>{t('home.backToTop')} ▲</span>
       </div>
 
       {/* TOAST DYNAMIQUE D'ACTIVITÉ EN DIRECT */}
       <div className="live-toast">
         <div className="lt-dot"></div>
         <div className="lt-content">
-          <div className="lt-title">✦ Commande en direct</div>
+          <div className="lt-title">✦ {t('home.liveOrders.title')}</div>
           <div className="lt-item">{liveToasts[activeToast].name}</div>
           <div className="lt-sub">{liveToasts[activeToast].loc} • {liveToasts[activeToast].time}</div>
         </div>

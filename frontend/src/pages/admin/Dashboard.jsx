@@ -10,7 +10,7 @@ export default function Dashboard() {
     { icon: I.euro, bg: '#FDE9E8', label: t('admin.dashboard.revenue', "Chiffre d'affaires"), value: '48 260 €', trend: '+12,4%', period: 'vs mois dernier', dir: 'up' },
     { icon: I.bag2, bg: '#E9F0FE', label: t('admin.dashboard.orders', 'Commandes'), value: '386', trend: '+6,1%', period: 'vs mois dernier', dir: 'up' },
     { icon: I.store2, bg: '#F1E9FE', label: t('admin.dashboard.newPros', 'Nouveaux comptes pro'), value: '7', trend: '+2', period: 'cette semaine', dir: 'up' },
-    { icon: I.quote2, bg: '#FFF6E3', label: t('admin.dashboard.pendingQuotes', 'Devis en attente'), value: '5', trend: 'Réponse moy. 18h', period: 'objectif 24h', dir: 'down' },
+    { icon: I.quote2, bg: '#FFF6E3', label: t('admin.dashboard.avgBasket', 'Panier moyen'), value: '125 €', trend: '+4,2%', period: 'vs mois dernier', dir: 'up' },
   ];
 
   const bars = [['Lun', 52], ['Mar', 68], ['Mer', 45], ['Jeu', 80], ['Ven', 100, true], ['Sam', 74], ['Dim', 38]];

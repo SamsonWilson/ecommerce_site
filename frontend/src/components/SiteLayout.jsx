@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import { useCartCount } from '../store/cart.js';
 import { useWishlistCount } from '../store/wishlist.js';
+import { api } from '../lib/api.js';
 import {
   IconPhone, IconMail, IconFacebook, IconInstagram, IconPinterest,
   IconSearch, IconUser, IconHeart, IconBag, IconMenu, IconFlag,
@@ -21,7 +22,7 @@ function TopBar() {
         <div className="tb-right">
           <LanguageSwitcher />
           <span>|</span><span>EUR €</span><span>|</span>
-          <Link to="/compte/pro">{t('topbar.wholesale')}</Link>
+          <Link to="/contact">{t('topbar.customerService')}</Link>
           <div className="tb-social">
             <a href="#" aria-label="Facebook"><IconFacebook /></a>
             <a href="#" aria-label="Instagram"><IconInstagram /></a>
@@ -35,8 +36,29 @@ function TopBar() {
 
 function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearchOpen }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const count = useCartCount();
   const wishCount = useWishlistCount();
+
+  const [query, setQuery] = useState('');
+  const [cat, setCat] = useState('all');
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    api.categories()
+      .then((d) => setCategories(d.results || d))
+      .catch(() => {});
+  }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q && cat === 'all') return;
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (cat && cat !== 'all') params.set('category', cat);
+    navigate(`/boutique?${params.toString()}`);
+  };
 
   return (
     <header className="uee">
@@ -54,16 +76,21 @@ function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearch
           <span className="word">MAISON <span>LIÁN</span></span>
         </Link>
 
-        <div className="uee-search">
-          <select defaultValue="all">
+        <form onSubmit={handleSearchSubmit} className="uee-search">
+          <select value={cat} onChange={(e) => setCat(e.target.value)}>
             <option value="all">{t('header.allCategories')}</option>
-            <option>{t('nav.ceremony')}</option>
-            <option>{t('nav.reception')}</option>
-            <option>{t('nav.chinese')}</option>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.name}</option>
+            ))}
           </select>
-          <input type="text" placeholder={t('header.searchPlaceholder')} />
-          <button aria-label={t('header.searchPlaceholder')}><IconSearch /></button>
-        </div>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('header.searchPlaceholder')}
+          />
+          <button type="submit" aria-label={t('header.searchPlaceholder')}><IconSearch /></button>
+        </form>
 
         <div className="uee-actions">
           <button className="mobile-search-btn" onClick={onToggleSearch} aria-label="Search">
@@ -83,16 +110,22 @@ function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearch
             <span>{t('header.cart')}</span>
             {count > 0 && <span className="badge">{count}</span>}
           </Link>
-          <Link to="/compte/pro" className="uee-quote-btn">{t('header.requestQuote')}</Link>
+          <Link to="/contact" className="uee-quote-btn">{t('header.requestQuote')}</Link>
         </div>
       </div>
 
       {mobileSearchOpen && (
         <div className="mobile-search-bar container">
-          <div className="uee-search mobile-search-inner">
-            <input type="text" placeholder={t('header.searchPlaceholder')} autoFocus />
-            <button aria-label={t('header.searchPlaceholder')}><IconSearch /></button>
-          </div>
+          <form onSubmit={(e) => { handleSearchSubmit(e); if (onToggleSearch) onToggleSearch(); }} className="uee-search mobile-search-inner">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('header.searchPlaceholder')}
+              autoFocus
+            />
+            <button type="submit" aria-label={t('header.searchPlaceholder')}><IconSearch /></button>
+          </form>
         </div>
       )}
     </header>
@@ -115,7 +148,6 @@ function SiteNav({ onToggleMenu }) {
           <li><NavLink to="/boutique">{t('nav.reception')}</NavLink></li>
           <li><NavLink to="/boutique">{t('nav.chinese')}</NavLink></li>
           <li><NavLink to="/nouveautes">{t('nav.new')}</NavLink></li>
-          <li><NavLink to="/compte/pro">{t('nav.wholesalers')}</NavLink></li>
           <li><NavLink to="/contact">{t('nav.contact')}</NavLink></li>
         </ul>
         <span className="promo-flag"><IconFlag />{t('nav.freeShipping')}</span>
@@ -147,14 +179,13 @@ function MobileDrawer({ isOpen, onClose }) {
             <li><NavLink to="/boutique" onClick={onClose}>{t('nav.reception')}</NavLink></li>
             <li><NavLink to="/boutique" onClick={onClose}>{t('nav.chinese')}</NavLink></li>
             <li><NavLink to="/nouveautes" onClick={onClose}>{t('nav.new')}</NavLink></li>
-            <li><NavLink to="/compte/pro" onClick={onClose}>{t('nav.wholesalers')}</NavLink></li>
             <li><NavLink to="/contact" onClick={onClose}>{t('nav.contact')}</NavLink></li>
-            <li><NavLink to="/faq" onClick={onClose}>FAQ</NavLink></li>
-            <li><NavLink to="/livraison" onClick={onClose}>Livraison & Retours</NavLink></li>
+            <li><NavLink to="/faq" onClick={onClose}>{t('footer.faq')}</NavLink></li>
+            <li><NavLink to="/livraison" onClick={onClose}>{t('footer.shippingReturns')}</NavLink></li>
           </ul>
 
           <div className="mobile-drawer-cta">
-            <Link to="/compte/pro" className="btn-primary" style={{ display: 'block', textAlign: 'center' }} onClick={onClose}>
+            <Link to="/contact" className="btn-primary" style={{ display: 'block', textAlign: 'center' }} onClick={onClose}>
               {t('header.requestQuote')}
             </Link>
           </div>

@@ -12,12 +12,14 @@ import Dashboard from './Dashboard.jsx';
 // Socle commun
 import Products from './Products.jsx';
 import StockManagement from './StockManagement.jsx';
+import StockReport from './StockReport.jsx';
 import Inventory from './Inventory.jsx';
 import Categories from './Categories.jsx';
 import Languages from './Languages.jsx';
 
 // Pôle détail (B2C)
 import Orders from './Orders.jsx';
+import Sales from './Sales.jsx';
 import Accounting from './Accounting.jsx';
 import Customers from './Customers.jsx';
 import Promotions from './Promotions.jsx';
@@ -25,7 +27,6 @@ import Promotions from './Promotions.jsx';
 // Pôle gros (B2B)
 import ProAccounts from './ProAccounts.jsx';
 import PriceTiers from './PriceTiers.jsx';
-import Quotes from './Quotes.jsx';
 
 // Équipe interne
 import Deliveries from './Deliveries.jsx';
@@ -42,6 +43,7 @@ export default function AdminRoutes() {
 
           {/* Détail — B2C */}
           <Route path="commandes" element={<Guard section="orders"><Orders /></Guard>} />
+          <Route path="ventes" element={<Guard section="orders"><Sales /></Guard>} />
           <Route path="comptabilite" element={<Guard section="orders"><Accounting /></Guard>} />
           <Route path="clients" element={<Guard section="customers"><Customers /></Guard>} />
           <Route path="promotions" element={<Guard section="promotions"><Promotions /></Guard>} />
@@ -49,7 +51,6 @@ export default function AdminRoutes() {
           {/* Gros — B2B */}
           <Route path="comptes-pro" element={<Guard section="b2b"><ProAccounts /></Guard>} />
           <Route path="paliers" element={<Guard section="b2b"><PriceTiers /></Guard>} />
-          <Route path="devis" element={<Guard section="b2b"><Quotes /></Guard>} />
 
           {/* Équipe interne */}
           <Route path="livraisons" element={<Guard section="deliveries"><Deliveries /></Guard>} />
@@ -58,6 +59,7 @@ export default function AdminRoutes() {
           {/* Socle commun */}
           <Route path="produits" element={<Guard section="catalog"><Products /></Guard>} />
           <Route path="stocks" element={<Guard section="catalog"><StockManagement /></Guard>} />
+          <Route path="stocks-rapport" element={<Guard section="catalog"><StockReport /></Guard>} />
           <Route path="inventaire" element={<Guard section="catalog"><Inventory /></Guard>} />
           <Route path="categories" element={<Guard section="catalog"><Categories /></Guard>} />
           <Route path="langues" element={<Guard section="catalog"><Languages /></Guard>} />

@@ -84,10 +84,7 @@ export default function StockManagement() {
   };
 
   const REASON_LABELS = {
-    SALE: t('admin.stock.reasonSale', 'Vente (Commande)'),
     RESTOCK: t('admin.stock.reasonRestock', 'Réapprovisionnement'),
-    RETURN: t('admin.stock.reasonReturn', 'Retour / Annulation'),
-    CORRECTION: t('admin.stock.reasonCorrection', 'Correction Inventaire'),
   };
 
   return (
@@ -195,9 +192,6 @@ export default function StockManagement() {
                 <label>{t('admin.stock.reason', 'Raison du mouvement')}</label>
                 <select value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} style={{ borderRadius: 8 }}>
                   <option value="RESTOCK">{REASON_LABELS.RESTOCK}</option>
-                  <option value="CORRECTION">{REASON_LABELS.CORRECTION}</option>
-                  <option value="RETURN">{REASON_LABELS.RETURN}</option>
-                  <option value="SALE">{REASON_LABELS.SALE}</option>
                 </select>
               </div>
 

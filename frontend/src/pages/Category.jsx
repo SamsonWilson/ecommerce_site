@@ -29,6 +29,7 @@ export default function Category({ title = 'Boutique' }) {
   // Les filtres vivent dans l'URL : un lien « /boutique?category=epingles »
   // depuis l'accueil arrive donc déjà filtré, et la page reste partageable.
   const [params, setParams] = useSearchParams();
+  const search = params.get('q') || params.get('search') || '';
   const category = params.get('category') || '';
   const color = params.get('color') || '';
   const ordering = params.get('sort') || '-created_at';
@@ -66,6 +67,7 @@ export default function Category({ title = 'Boutique' }) {
     setLoading(true);
     api.products({
       page_size: 50,
+      search: search || undefined,
       category: category || undefined,
       color: color || undefined,
       max_price: maxPrice || undefined,
@@ -74,15 +76,29 @@ export default function Category({ title = 'Boutique' }) {
     })
       .then((data) => {
         if (!alive) return;
-        setProducts(productsFromApi(data));
-        setCount(data.count ?? null);
+        let items = productsFromApi(data);
+        if (search) {
+          const q = search.toLowerCase();
+          items = items.filter((p) => (p.name && p.name.toLowerCase().includes(q)) || (p.cat && p.cat.toLowerCase().includes(q)));
+        }
+        setProducts(items);
+        setCount(data.count ?? items.length);
       })
-      .catch(() => { /* API indisponible : on garde ce qui est affiché */ })
+      .catch(() => {
+        if (!alive) return;
+        let items = catalogProducts;
+        if (search) {
+          const q = search.toLowerCase();
+          items = items.filter((p) => (p.name && p.name.toLowerCase().includes(q)) || (p.cat && p.cat.toLowerCase().includes(q)));
+        }
+        setProducts(items);
+        setCount(items.length);
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [category, color, maxPrice, maxMoq, ordering]);
+  }, [category, search, color, maxPrice, maxMoq, ordering]);
 
-  const heading = cats.find((c) => c.slug === category)?.name || title;
+  const heading = search ? `Résultats pour "${search}"` : (cats.find((c) => c.slug === category)?.name || title);
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -150,6 +166,15 @@ export default function Category({ title = 'Boutique' }) {
 
           {/* GRILLE */}
           <div>
+            {search && (
+              <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, background: '#F0ECE4', border: '1px solid #DFD8CB', color: '#111', padding: '6px 14px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  🔍 Recherche : <strong>"{search}"</strong>
+                  <button type="button" onClick={() => setFilter('q', '')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: 14, color: '#C0392B', marginLeft: 4 }}>✕</button>
+                </span>
+              </div>
+            )}
+
             <div className="uee-shop-toolbar">
               <button
                 type="button"

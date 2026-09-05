@@ -19,9 +19,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
 
   # Applique les migrations une seule fois (évite les courses au scaling).
   migrate:
@@ -61,6 +63,7 @@ services:
 
   backend:
     build: ./backend
+    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
     environment: *backend_env
     volumes:
       # Volume partagé : tous les réplicas écrivent et relisent les mêmes
@@ -79,6 +82,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+    restart: unless-stopped
     # Aucun `ports:` -> jamais exposé directement au navigateur.
 
   web:
@@ -87,6 +91,7 @@ services:
       args:
         VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
         VITE_FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+    command: nginx -g 'daemon off;'
     ports:
       - "80:80"
     volumes:
@@ -94,6 +99,7 @@ services:
       - media:/srv/media:ro
     depends_on:
       - backend
+    restart: unless-stopped
 
 volumes:
   pgdata:

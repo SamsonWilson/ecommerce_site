@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cartTotals, eur } from '../data/cart.jsx';
 import { useCart } from '../store/cart.js';
 import { IconCheck, IconPackage } from '../components/icons.jsx';
 
 export default function OrderConfirmation() {
+  const location = useLocation();
+  const isAccount = location.pathname.startsWith('/compte');
+  const shopPath = isAccount ? '/compte/boutique' : '/boutique';
+
   // On fige le contenu du panier au montage, puis on le vide (commande passée).
   const [cartItems] = useState(() => useCart.getState().items);
   const clear = useCart((s) => s.clear);
@@ -35,8 +39,8 @@ export default function OrderConfirmation() {
       </div>
 
       <div className="confirm-actions">
-        <Link to="/compte" className="btn-outline">Suivre ma commande</Link>
-        <Link to="/boutique" className="btn-primary">Continuer mes achats</Link>
+        <Link to="/compte/commandes" className="btn-outline">Suivre ma commande</Link>
+        <Link to={shopPath} className="btn-primary">Continuer mes achats</Link>
       </div>
     </div>
   );

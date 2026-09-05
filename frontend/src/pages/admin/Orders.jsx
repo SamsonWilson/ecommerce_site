@@ -103,6 +103,12 @@ export default function Orders() {
   };
 
   const handleUpdateStatus = (orderId, newStatus) => {
+    const currentOrder = orders.find((o) => o.id === orderId) || selectedOrder;
+    if (currentOrder && !isValidStatusTransition(currentOrder.status, newStatus)) {
+      alert('Transition de statut non autorisée : les étapes doivent être validées dans l’ordre.');
+      return;
+    }
+
     setUpdating(true);
     api.adminUpdateOrder(orderId, { status: newStatus })
       .then((updated) => {
@@ -111,11 +117,9 @@ export default function Orders() {
           setSelectedOrder((prev) => ({ ...prev, ...updated }));
         }
       })
-      .catch(() => {
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-        if (selectedOrder && selectedOrder.id === orderId) {
-          setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
-        }
+      .catch((err) => {
+        const detail = err?.data?.detail || err?.message || 'Impossible de changer ce statut.';
+        alert(detail);
       })
       .finally(() => setUpdating(false));
   };
@@ -139,6 +143,21 @@ export default function Orders() {
       default:
         return <span className="status pending">⏳ {label || 'En attente'}</span>;
     }
+  };
+
+  const STATUS_TRANSITIONS = {
+    PENDING: ['PAID', 'CANCELLED'],
+    PAID: ['PREPARING', 'CANCELLED'],
+    PREPARING: ['SHIPPED', 'CANCELLED'],
+    SHIPPED: ['DELIVERED', 'CANCELLED'],
+    DELIVERED: [],
+    CANCELLED: [],
+  };
+
+  const isValidStatusTransition = (currentStatus, nextStatus) => {
+    if (!currentStatus || !nextStatus) return true;
+    if (currentStatus === nextStatus) return true;
+    return (STATUS_TRANSITIONS[currentStatus] || []).includes(nextStatus);
   };
 
   const getNextAction = (o) => {
@@ -455,12 +474,18 @@ export default function Orders() {
                   onChange={(e) => handleUpdateStatus(selectedOrder.id, e.target.value)}
                   style={{ background: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}
                 >
-                  <option value="PENDING">⏳ En attente de paiement</option>
-                  <option value="PAID">✓ Payée</option>
-                  <option value="PREPARING">⚡ En préparation</option>
-                  <option value="SHIPPED">📦 Expédiée</option>
-                  <option value="DELIVERED">🎉 Livrée</option>
-                  <option value="CANCELLED">✕ Annulée</option>
+                  {[selectedOrder.status, ...(STATUS_TRANSITIONS[selectedOrder.status] || [])]
+                    .filter((value, index, arr) => arr.indexOf(value) === index)
+                    .map((value) => (
+                      <option key={value} value={value}>
+                        {value === 'PENDING' && '⏳ En attente de paiement'}
+                        {value === 'PAID' && '✓ Payée'}
+                        {value === 'PREPARING' && '⚡ En préparation'}
+                        {value === 'SHIPPED' && '📦 Expédiée'}
+                        {value === 'DELIVERED' && '🎉 Livrée'}
+                        {value === 'CANCELLED' && '✕ Annulée'}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -551,26 +576,28 @@ export default function Orders() {
                   { val: 'SHIPPED', label: selectedOrder.shipping_address?.method === 'pickup' ? 'Prête au retrait' : 'Expédiée' },
                   { val: 'DELIVERED', label: selectedOrder.shipping_address?.method === 'pickup' ? 'Retirée' : 'Livrée' },
                   { val: 'CANCELLED', label: 'Annulée' },
-                ].map(st => (
-                  <button
-                    key={st.val}
-                    type="button"
-                    disabled={updating || selectedOrder.status === st.val}
-                    onClick={() => handleUpdateStatus(selectedOrder.id, st.val)}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      border: '1px solid #CBD5E1',
-                      background: selectedOrder.status === st.val ? '#1E293B' : '#fff',
-                      color: selectedOrder.status === st.val ? '#fff' : '#475569',
-                      cursor: selectedOrder.status === st.val ? 'default' : 'pointer'
-                    }}
-                  >
-                    {st.label}
-                  </button>
-                ))}
+                ]
+                  .filter((st) => st.val === selectedOrder.status || isValidStatusTransition(selectedOrder.status, st.val))
+                  .map(st => (
+                    <button
+                      key={st.val}
+                      type="button"
+                      disabled={updating || selectedOrder.status === st.val}
+                      onClick={() => handleUpdateStatus(selectedOrder.id, st.val)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        border: '1px solid #CBD5E1',
+                        background: selectedOrder.status === st.val ? '#1E293B' : '#fff',
+                        color: selectedOrder.status === st.val ? '#fff' : '#475569',
+                        cursor: selectedOrder.status === st.val ? 'default' : 'pointer'
+                      }}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
               </div>
             </div>
 

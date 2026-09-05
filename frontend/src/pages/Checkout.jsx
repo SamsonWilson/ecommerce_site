@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { cartTotals, eur } from '../data/cart.jsx';
 import { figureBySlug, defaultFigure } from '../data/products.jsx';
 import { useCart } from '../store/cart.js';
@@ -9,9 +9,13 @@ import { api } from '../lib/api.js';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuth((s) => s.user);
   const cartItems = useCart((s) => s.items);
   const clearCart = useCart((s) => s.clear);
+
+  const isAccount = location.pathname.startsWith('/compte');
+  const confirmPath = isAccount ? '/compte/commande/confirmee' : '/commande/confirmee';
 
   const [shipMethod, setShipMethod] = useState('standard');
   const [payMethod, setPayMethod] = useState('cod');
@@ -84,11 +88,11 @@ export default function Checkout() {
     try {
       const res = await api.checkout(payload);
       clearCart();
-      navigate('/commande/confirmee', { state: { order: res.order || res } });
+      navigate(confirmPath, { state: { order: res.order || res } });
     } catch (err) {
       console.warn('Erreur checkout backend, basculement mode démo local:', err);
       clearCart();
-      navigate('/commande/confirmee', {
+      navigate(confirmPath, {
         state: {
           order: {
             reference: `CMD-2026-${Math.floor(100000 + Math.random() * 900000)}`,

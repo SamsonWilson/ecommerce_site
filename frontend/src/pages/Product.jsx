@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
 import ProductGallery from '../components/ProductGallery.jsx';
 import { api } from '../lib/api.js';
@@ -43,9 +43,14 @@ function apiView(d) {
 
 export default function Product() {
   const { slug } = useParams();
+  const location = useLocation();
   const add = useCart((s) => s.add);
   const toggleWish = useWishlist((s) => s.toggle);
   const wished = useWishlist((s) => s.items.some((x) => x.slug === slug));
+
+  const isAccount = location.pathname.startsWith('/compte');
+  const shopPath = isAccount ? '/compte/boutique' : '/boutique';
+  const homePath = isAccount ? '/compte' : '/';
 
   const [view, setView] = useState(() => localView(slug));
   const [notFound, setNotFound] = useState(false);
@@ -81,7 +86,7 @@ export default function Product() {
       <div className="empty-state" style={{ padding: '90px 20px' }}>
         <h2>Produit introuvable</h2>
         <p>Cette référence n'existe pas ou n'est plus disponible.</p>
-        <Link to="/boutique" className="btn-primary">Retour au catalogue</Link>
+        <Link to={shopPath} className="btn-primary">Retour au catalogue</Link>
       </div>
     );
   }
@@ -108,8 +113,8 @@ export default function Product() {
       />
       <div className="uee-breadcrumb">
         <div className="container">
-          <Link to="/">Accueil</Link><span className="sep">/</span>
-          <Link to="/boutique">{view.cat || 'Boutique'}</Link><span className="sep">/</span>
+          <Link to={homePath}>{isAccount ? 'Espace Client' : 'Accueil'}</Link><span className="sep">/</span>
+          <Link to={shopPath}>{view.cat || 'Boutique'}</Link><span className="sep">/</span>
           <span>{view.name}</span>
         </div>
       </div>
@@ -197,7 +202,7 @@ export default function Product() {
         <div className="container">
           <div className="uee-section-head">
             <h2>Assortis à cette pièce</h2>
-            <Link className="see-all" to="/boutique">Voir tout →</Link>
+            <Link className="see-all" to={shopPath}>Voir tout →</Link>
           </div>
           <div className="uee-product-grid">
             {relatedProducts.filter((p) => p.slug !== slug).slice(0, 4).map((p) => (

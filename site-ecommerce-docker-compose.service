@@ -1,0 +1,17 @@
+[Unit]
+Description=Site e-commerce Docker Compose stack
+Requires=docker.service
+After=docker.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/home/star/Desktop/site_ecommerce_giovane
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --remove-orphans
+
+[Install]
+WantedBy=multi-user.target

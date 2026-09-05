@@ -17,8 +17,8 @@ import RequireAuth from './pages/account/RequireAuth.jsx';
 import AccountLayout from './pages/account/AccountLayout.jsx';
 import Overview from './pages/account/Overview.jsx';
 import MyOrders from './pages/account/MyOrders.jsx';
-import MyQuotes from './pages/account/MyQuotes.jsx';
 import Profile from './pages/account/Profile.jsx';
+import Wholesale from './pages/account/Wholesale.jsx';
 import Wishlist from './pages/Wishlist.jsx';
 import Login from './pages/account/Login.jsx';
 import Register from './pages/account/Register.jsx';
@@ -69,11 +69,13 @@ export default function App() {
           <Route path="/compte" element={<AccountLayout />}>
             <Route index element={<Overview />} />
             <Route path="boutique" element={<Shop />} />
+            <Route path="produit/:slug" element={<Product />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="commande/confirmee" element={<OrderConfirmation />} />
             <Route path="commandes" element={<MyOrders />} />
-            <Route path="devis" element={<MyQuotes />} />
             <Route path="favoris" element={<Wishlist />} />
             <Route path="profil" element={<Profile />} />
+            <Route path="pro" element={<Wholesale />} />
           </Route>
         </Route>
         {/* Ancien lien public des favoris */}

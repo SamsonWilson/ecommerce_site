@@ -1,8 +1,9 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth.js';
 import { useCart } from '../../store/cart.js';
+import { useWishlistCount } from '../../store/wishlist.js';
 import {
-  IconPackage, IconUser, IconHeart, IconStore, IconArrowLeft, IconPdf, IconLock, IconCart, IconBag,
+  IconPackage, IconUser, IconHeart, IconStore, IconArrowLeft, IconLock, IconCart, IconBag,
 } from '../../components/icons.jsx';
 
 // Coquille autonome de l'espace client : en-tête et navigation propres,
@@ -12,6 +13,7 @@ export default function AccountLayout() {
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
   const cartCount = useCart((s) => s.items.reduce((n, i) => n + i.qty, 0));
+  const wishCount = useWishlistCount();
 
   const name = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
@@ -21,7 +23,7 @@ export default function AccountLayout() {
 
   const signOut = async () => {
     await logout();
-    navigate('/', { replace: true });
+    navigate('/compte/connexion', { replace: true });
   };
 
   const link = ({ isActive }) => (isActive ? 'active' : undefined);
@@ -30,12 +32,12 @@ export default function AccountLayout() {
     <div className="acc-shell">
       <header className="acc-top">
         <div className="acc-top-inner">
-          <Link to="/" className="acc-logo">
+          <Link to="/compte" className="acc-logo">
             <span className="mark">ML</span>
             <span className="word">MAISON <span>LIÁN</span></span>
           </Link>
 
-          <Link to="/" className="back"><IconArrowLeft />Retour à la boutique</Link>
+          <Link to="/compte/boutique" className="back"><IconArrowLeft />Accéder à la boutique client</Link>
 
           <div className="acc-user">
             <span className="av">{initial}</span>
@@ -62,8 +64,14 @@ export default function AccountLayout() {
             )}
           </NavLink>
           <NavLink to="/compte/commandes" className={link}><IconPackage />Mes commandes</NavLink>
-          <NavLink to="/compte/devis" className={link}><IconPdf />Mes devis</NavLink>
-          <NavLink to="/compte/favoris" className={link}><IconHeart />Mes favoris</NavLink>
+          <NavLink to="/compte/favoris" className={link}>
+            <IconHeart />Mes favoris
+            {wishCount > 0 && (
+              <span style={{ background: 'var(--gold-base, #C5A059)', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px', marginLeft: 4 }}>
+                {wishCount}
+              </span>
+            )}
+          </NavLink>
           <div className="sep" />
           <NavLink to="/compte/profil" className={link}><IconUser />Mon profil</NavLink>
           <NavLink to="/compte/pro" className={link}><IconStore />Accès grossiste</NavLink>
