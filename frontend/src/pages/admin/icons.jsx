@@ -30,4 +30,6 @@ export const I = {
   bag2: <svg viewBox="0 0 24 24" fill="none" stroke="#2E6BE0" strokeWidth="1.8"><path d="M4 8h16l-1.4 11.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 8Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg>,
   store2: <svg viewBox="0 0 24 24" fill="none" stroke="#7B3FE4" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14"/><path d="M9 21v-6h6v6"/></svg>,
   quote2: <svg viewBox="0 0 24 24" fill="none" stroke="#E8A419" strokeWidth="1.8"><path d="M14 2l6 6M20 2 14 8"/><path d="M4 12l5 5L20 6"/></svg>,
+  sun: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+  moon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
 };

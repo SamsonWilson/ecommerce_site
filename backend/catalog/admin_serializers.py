@@ -5,6 +5,8 @@ Sérialiseurs du back-office catalogue.
 réservés aux comptes `is_staff` (voir AdminProductViewSet). Les sérialiseurs
 publics de catalog.serializers ne doivent jamais l'exposer (§6).
 """
+from decimal import Decimal
+import uuid
 from django.conf import settings
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -152,7 +154,9 @@ class AdminVariantSerializer(serializers.ModelSerializer):
     # Déclaré à la main pour neutraliser le UniqueValidator automatique :
     # dans une liste imbriquée, il ignore que la déclinaison est mise à jour
     # et refuserait son propre SKU. L'unicité est vérifiée dans validate().
-    sku = serializers.CharField(max_length=64)
+    sku = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    retail_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    wholesale_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
 
     class Meta:
         model = ProductVariant
@@ -272,6 +276,15 @@ class AdminProductSerializer(serializers.ModelSerializer):
             seen.add(sku.lower())
         return value
 
+    def validate(self, attrs):
+        channel = attrs.get("sales_channel") or (self.instance.sales_channel if self.instance else "BOTH")
+        for v in attrs.get("variants", []):
+            if channel == "RETAIL" and v.get("wholesale_price") is None:
+                v["wholesale_price"] = v.get("retail_price") or Decimal("0.00")
+            elif channel == "WHOLESALE" and v.get("retail_price") is None:
+                v["retail_price"] = v.get("wholesale_price") or Decimal("0.00")
+        return attrs
+
     def create(self, validated_data):
         variants = validated_data.pop("variants", [])
         colors = validated_data.pop("colors", [])
@@ -284,6 +297,8 @@ class AdminProductSerializer(serializers.ModelSerializer):
         product.wedding_moments.set(moments)
         for v in variants:
             v.pop("id", None)
+            if not v.get("sku"):
+                v["sku"] = f"ML-{uuid.uuid4().hex[:8].upper()}-01"
             ProductVariant.objects.create(product=product, **v)
         return product
 
@@ -306,9 +321,13 @@ class AdminProductSerializer(serializers.ModelSerializer):
             for v in variants:
                 vid = v.pop("id", None)
                 if vid and instance.variants.filter(pk=vid).exists():
+                    if not v.get("sku"):
+                        v.pop("sku", None)
                     ProductVariant.objects.filter(pk=vid).update(**v)
                     kept.append(vid)
                 else:
+                    if not v.get("sku"):
+                        v["sku"] = f"ML-{uuid.uuid4().hex[:8].upper()}-01"
                     kept.append(ProductVariant.objects.create(product=instance, **v).pk)
             instance.variants.exclude(pk__in=kept).delete()
         return instance

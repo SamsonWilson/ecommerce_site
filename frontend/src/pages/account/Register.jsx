@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthShell from './AuthShell.jsx';
 import SocialLogins from '../../components/SocialLogins.jsx';
 import { api, setAccessToken } from '../../lib/api.js';
 import { useAuth } from '../../store/auth.js';
@@ -9,8 +10,6 @@ export default function Register() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Google crée le compte s'il n'existe pas : inscription et connexion sont
-  // le même geste côté fournisseur.
   const googleSignup = async (credential) => {
     try {
       await useAuth.getState().loginGoogle(credential);
@@ -48,35 +47,80 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <div className="auth-tabs">
-          <Link to="/compte/connexion">Connexion</Link>
-          <Link to="/compte/inscription" className="active">Inscription</Link>
+    <AuthShell activeTab="inscription">
+      <form onSubmit={submit}>
+        <div className="field">
+          <label htmlFor="first_name">Prénom</label>
+          <input
+            id="first_name"
+            name="first_name"
+            autoComplete="given-name"
+            placeholder="Camille"
+          />
         </div>
-        <div className="auth-body">
-          <form onSubmit={submit}>
-            <div className="field"><label htmlFor="first_name">Prénom</label><input id="first_name" name="first_name" /></div>
-            <div className="field"><label htmlFor="email">E-mail</label><input id="email" name="email" type="email" required /></div>
-            <div className="field"><label htmlFor="password1">Mot de passe</label><input id="password1" name="password1" type="password" required /></div>
-            <div className="field"><label htmlFor="password2">Confirmer le mot de passe</label><input id="password2" name="password2" type="password" required /></div>
 
-            {error && <p style={{ color: 'var(--brand-red)', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+        <div className="field">
+          <label htmlFor="email">Adresse e-mail</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="mariage@exemple.com"
+          />
+        </div>
 
-            <button type="submit" className="btn-primary" disabled={busy}>
-              {busy ? 'Création…' : 'Créer mon compte'}
-            </button>
-          </form>
+        <div className="field">
+          <label htmlFor="password1">Mot de passe</label>
+          <input
+            id="password1"
+            name="password1"
+            type="password"
+            required
+            autoComplete="new-password"
+            placeholder="8 caractères minimum"
+          />
+        </div>
 
-          <SocialLogins onGoogle={googleSignup} label="ou s'inscrire avec" />
+        <div className="field">
+          <label htmlFor="password2">Confirmer le mot de passe</label>
+          <input
+            id="password2"
+            name="password2"
+            type="password"
+            required
+            autoComplete="new-password"
+            placeholder="Confirmez votre mot de passe"
+          />
+        </div>
 
-          <p className="auth-alt" style={{ textAlign: 'left', lineHeight: 1.6 }}>
-            Votre compte vous permet de commander <strong>au détail</strong>.
+        {error && (
+          <p style={{
+            background: 'var(--brand-red-soft)',
+            color: 'var(--brand-red)',
+            fontSize: 13,
+            fontWeight: 600,
+            padding: '10px 14px',
+            borderRadius: 8,
+            marginBottom: 16,
+            border: '1px solid rgba(192, 57, 43, 0.2)'
+          }}>
+            ⚠ {error}
           </p>
+        )}
 
-          <p className="auth-alt">Déjà client ? <Link to="/compte/connexion">Se connecter</Link></p>
-        </div>
-      </div>
-    </div>
+        <button type="submit" className="btn-primary" disabled={busy}>
+          {busy ? 'Création de votre compte…' : 'Créer mon compte Privilège ➔'}
+        </button>
+      </form>
+
+      <SocialLogins onGoogle={googleSignup} label="ou s'inscrire avec" />
+
+      <p className="auth-alt" style={{ marginTop: 22 }}>
+        Déjà client ?{' '}
+        <Link to="/compte/connexion" style={{ fontWeight: 700 }}>Se connecter</Link>
+      </p>
+    </AuthShell>
   );
 }

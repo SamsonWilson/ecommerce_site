@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import QRCode from 'react-qr-code';
 import { api } from '../../lib/api.js';
+import { useAuth } from '../../store/auth.js';
 import { I } from './icons.jsx';
-import { PageHead, Panel } from './ui.jsx';
+import { PageHead } from './ui.jsx';
 
 const DEFAULT_CUSTOMER_NAME = 'XXXXXXXXXXXX';
+
+const DEFAULT_CUSTOMER = {
+  id: 0,
+  full_name: DEFAULT_CUSTOMER_NAME,
+  email: 'comptoir@maisonlian.com',
+};
 
 const formatMoney = (value) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(value || 0));
@@ -42,17 +50,39 @@ const sampleProducts = [
 
 export default function Sales() {
   const { t } = useTranslation();
+  const user = useAuth((s) => s.user);
+  const cashierName = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
+    : 'Administrateur';
+
   const [products, setProducts] = useState(sampleProducts);
   const [loading, setLoading] = useState(true);
   const [productQuery, setProductQuery] = useState('');
-  const [customerSearch, setCustomerSearch] = useState(DEFAULT_CUSTOMER_NAME);
-  const [customers, setCustomers] = useState([{ id: 0, full_name: DEFAULT_CUSTOMER_NAME, email: 'client@inconnu.local' }]);
-  const [selectedCustomer, setSelectedCustomer] = useState({ id: 0, full_name: DEFAULT_CUSTOMER_NAME, email: 'client@inconnu.local' });
+  const [selectedCategory, setSelectedCategory] = useState('Tous');
+
+  const [customers, setCustomers] = useState([DEFAULT_CUSTOMER]);
+  const [selectedCustomer, setSelectedCustomer] = useState(DEFAULT_CUSTOMER);
+  const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cart, setCart] = useState([]);
-  const [saleMessage, setSaleMessage] = useState('');
+  const [saleMessage, setSaleMessage] = useState({ text: '', type: '', receipt: null });
+  const [completedReceipt, setCompletedReceipt] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  const getPaymentLabel = (method) => {
+    switch (method) {
+      case 'card':
+        return 'Carte bancaire';
+      case 'cash':
+        return 'Espèces';
+      case 'transfer':
+        return 'Virement';
+      default:
+        return 'Carte bancaire';
+    }
+  };
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -71,13 +101,10 @@ export default function Sales() {
     try {
       const data = await api.adminCustomers({ page: 1 });
       const rows = Array.isArray(data) ? data : (data.results || []);
-      const list = rows.length ? rows : [{ id: 0, full_name: DEFAULT_CUSTOMER_NAME, email: 'client@inconnu.local' }];
-      setCustomers(list);
-      setSelectedCustomer((current) => current?.id ? current : list[0] || { id: 0, full_name: DEFAULT_CUSTOMER_NAME, email: 'client@inconnu.local' });
+      const validRows = rows.filter((c) => c && c.id !== 0);
+      setCustomers([DEFAULT_CUSTOMER, ...validRows]);
     } catch {
-      const fallback = [{ id: 0, full_name: DEFAULT_CUSTOMER_NAME, email: 'client@inconnu.local' }];
-      setCustomers(fallback);
-      setSelectedCustomer(fallback[0]);
+      setCustomers([DEFAULT_CUSTOMER]);
     }
   }, []);
 
@@ -86,26 +113,35 @@ export default function Sales() {
     loadCustomers();
   }, [loadProducts, loadCustomers]);
 
+  // Extract categories for chips
+  const categories = useMemo(() => {
+    const list = new Set();
+    products.forEach((p) => {
+      if (p.category) list.add(p.category);
+    });
+    return ['Tous', ...Array.from(list)];
+  }, [products]);
+
+  // Filter products by search query and category chip
   const filteredProducts = useMemo(() => {
+    let result = products;
+
+    if (selectedCategory !== 'Tous') {
+      result = result.filter((p) => p.category === selectedCategory);
+    }
+
     const query = productQuery.trim().toLowerCase();
-    if (!query) return products;
+    if (query) {
+      result = result.filter((product) => {
+        const colors = getProductColors(product).map((color) => color.name.toLowerCase()).join(' ');
+        const sku = product.variants?.[0]?.sku || '';
+        const haystack = `${product.name} ${product.slug} ${sku} ${colors} ${product.category || ''}`.toLowerCase();
+        return haystack.includes(query);
+      });
+    }
 
-    return products.filter((product) => {
-      const colors = getProductColors(product).map((color) => color.name.toLowerCase()).join(' ');
-      const haystack = `${product.name} ${product.slug} ${colors} ${product.category || ''}`.toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [productQuery, products]);
-
-  const customerMatches = useMemo(() => {
-    const query = customerSearch.trim().toLowerCase();
-    if (!query) return customers;
-
-    return customers.filter((customer) => {
-      const haystack = `${customer.full_name || customer.email || ''} ${customer.email || ''}`.toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [customerSearch, customers]);
+    return result;
+  }, [productQuery, selectedCategory, products]);
 
   const addToCart = (product) => {
     const variant = product.variants?.[0];
@@ -127,7 +163,7 @@ export default function Sales() {
           variantId: variant.id,
           productId: product.id,
           productName: product.name,
-          sku: variant.sku,
+          sku: variant.sku || 'SKU',
           unitPrice: Number(variant.price ?? variant.retail_price ?? 0),
           quantity: 1,
           stock: Number(variant.stock ?? 0),
@@ -142,7 +178,7 @@ export default function Sales() {
         .map((item) => {
           if (item.variantId !== variantId) return item;
           const nextQty = Math.max(1, item.quantity + delta);
-          return { ...item, quantity: nextQty };
+          return { ...item, quantity: Math.min(nextQty, item.stock > 0 ? item.stock : 99) };
         })
         .filter((item) => item.quantity > 0)
     );
@@ -163,20 +199,16 @@ export default function Sales() {
   );
 
   const submitSale = async () => {
-    const finalCustomerEmail = customerEmail.trim() || selectedCustomer?.email || 'client@inconnu.local';
-    setCustomerEmail(finalCustomerEmail);
+    const finalCustomerName = customerName.trim() || (selectedCustomer && selectedCustomer.id !== 0 ? (selectedCustomer.full_name || selectedCustomer.email) : '') || DEFAULT_CUSTOMER_NAME;
+    const finalCustomerEmail = customerEmail.trim() || selectedCustomer?.email || 'comptoir@maisonlian.com';
 
-    if (!finalCustomerEmail) {
-      setSaleMessage('Ajoute une adresse e-mail client avant de valider la vente.');
-      return;
-    }
     if (!cart.length) {
-      setSaleMessage('Le panier de vente est vide.');
+      setSaleMessage({ text: 'Le panier de vente est vide.', type: 'error', receipt: null });
       return;
     }
 
     setBusy(true);
-    setSaleMessage('');
+    setSaleMessage({ text: '', type: '', receipt: null });
 
     try {
       const payload = {
@@ -185,7 +217,7 @@ export default function Sales() {
         mark_paid: true,
         shipping_address: {
           method: 'pickup',
-          name: 'Vente directe admin',
+          name: finalCustomerName,
           city: 'Paris',
           postal_code: '75000',
           country: 'FR',
@@ -201,14 +233,43 @@ export default function Sales() {
       };
 
       const response = await api.checkout(payload);
-      const orderRef = response?.order?.reference || response?.reference || 'CMD';
-      setSaleMessage(`Vente validée avec succès — référence ${orderRef}.`);
+      const orderRef = response?.order?.reference || response?.reference || `CMD-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Données du ticket (sans TVA, sans sous-total HT, sans email)
+      const receiptData = {
+        reference: orderRef,
+        date: new Date(),
+        customerName: finalCustomerName,
+        cashierName: cashierName,
+        paymentMethod: paymentMethod,
+        items: [...cart],
+        total: total,
+      };
+
+      setSaleMessage({
+        text: `Vente validée avec succès ! Référence : ${orderRef}`,
+        type: 'success',
+        receipt: receiptData,
+      });
+
+      // Ouvrir le ticket et déclencher l'impression
+      setCompletedReceipt(receiptData);
       setCart([]);
+      setCustomerName('');
       setCustomerEmail('');
       loadProducts();
+
+      // Déclenchement automatique de l'impression du ticket
+      setTimeout(() => {
+        try {
+          window.print();
+        } catch {
+          // Ignore si le navigateur bloque
+        }
+      }, 400);
     } catch (error) {
       const detail = error?.data?.detail || error?.message || 'La vente a échoué.';
-      setSaleMessage(detail);
+      setSaleMessage({ text: detail, type: 'error', receipt: null });
     } finally {
       setBusy(false);
     }
@@ -216,232 +277,572 @@ export default function Sales() {
 
   return (
     <>
-      <PageHead
-        title={t('admin.sales.title', 'Ventes')}
-        subtitle="Vente directe en boutique : recherchez les produits et le client puis validez la commande."
-      >
-        <button type="button" className="btn-admin ghost" onClick={loadProducts}>
-          {I.check} Actualiser
-        </button>
-      </PageHead>
+      <div className="no-print">
+        <PageHead
+          title={t('admin.sales.title', 'Caisse & Vente directe')}
+          subtitle="Enregistrez et encaissez rapidement les commandes en boutique physique."
+        >
+          <button type="button" className="btn-admin ghost" onClick={loadProducts}>
+            {I.check} Actualiser le stock
+          </button>
+        </PageHead>
 
-      <div style={{
-        background: 'linear-gradient(135deg, #1f2937 0%, #4f46e5 45%, #a855f7 100%)',
-        borderRadius: 24,
-        padding: 22,
-        marginBottom: 20,
-        color: '#fff',
-        boxShadow: '0 20px 40px rgba(79, 70, 229, 0.22)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.8 }}>Caisse</div>
-            <div style={{ fontSize: 34, fontWeight: 800, marginTop: 6 }}>Vente directe</div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 14, padding: '10px 14px', minWidth: 120 }}>
-              <div style={{ fontSize: 11, opacity: 0.8 }}>Produits</div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>{filteredProducts.length}</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 14, padding: '10px 14px', minWidth: 120 }}>
-              <div style={{ fontSize: 11, opacity: 0.8 }}>Panier</div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>{cartItemsCount}</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 14, padding: '10px 14px', minWidth: 150 }}>
-              <div style={{ fontSize: 11, opacity: 0.8 }}>Total</div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>{formatMoney(total)}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gap: 16, marginBottom: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
-          <div style={{ background: '#fff', border: '1px solid #E9EEF6', borderRadius: 18, padding: 14, boxShadow: '0 12px 24px rgba(15, 23, 42, 0.04)' }}>
-            <label style={{ display: 'block', fontWeight: 700, marginBottom: 8, color: '#1f2937' }}>Recherche produit</label>
-            <input
-              type="text"
-              value={productQuery}
-              onChange={(e) => setProductQuery(e.target.value)}
-              placeholder="Rechercher un produit, catégorie ou couleur"
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #DDE5F0', fontSize: 14, background: '#F9FAFF' }}
-            />
-          </div>
-
-          <div style={{ background: '#fff', border: '1px solid #E9EEF6', borderRadius: 18, padding: 14, boxShadow: '0 12px 24px rgba(15, 23, 42, 0.04)' }}>
-            <label style={{ display: 'block', fontWeight: 700, marginBottom: 8, color: '#1f2937' }}>Client</label>
-            <input
-              type="text"
-              value={customerSearch}
-              onChange={(e) => setCustomerSearch(e.target.value)}
-              placeholder={DEFAULT_CUSTOMER_NAME}
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #DDE5F0', fontSize: 14, background: '#F9FAFF' }}
-            />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-              {customerMatches.slice(0, 4).map((customer) => (
-                <button
-                  key={customer.id || customer.email || customer.full_name}
-                  type="button"
-                  className="btn-admin ghost"
-                  style={{ padding: '6px 10px', fontSize: 12, borderRadius: 999 }}
-                  onClick={() => {
-                    setSelectedCustomer(customer);
-                    setCustomerSearch(customer.full_name || customer.email || DEFAULT_CUSTOMER_NAME);
-                    setCustomerEmail(customer.email || '');
-                  }}
-                >
-                  {customer.full_name || customer.email || DEFAULT_CUSTOMER_NAME}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 0.9fr', gap: 22, alignItems: 'start' }}>
-        <div>
-          <Panel title="Produits en vente">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
-              {loading && <div className="admin-empty" style={{ gridColumn: '1 / -1' }}>Chargement des produits…</div>}
-
-              {!loading && filteredProducts.map((product) => {
-                const variant = product.variants?.[0];
-                const price = Number(variant?.price ?? variant?.retail_price ?? 0);
-                const stock = Number(variant?.stock ?? 0);
-                const image = buildMediaUrl(Array.isArray(product.media) ? (product.media.find((m) => m.media_type === 'IMAGE' || m.media_type === 'image')?.file || product.media[0]?.file || '') : '');
-                const colors = getProductColors(product);
-
-                return (
-                  <div key={product.id} style={{ border: '1px solid #EEF2FF', borderRadius: 20, padding: 14, background: 'linear-gradient(180deg, #ffffff 0%, #faf7ff 100%)', boxShadow: '0 12px 24px rgba(99, 102, 241, 0.06)' }}>
-                    <div style={{ width: '100%', height: 150, borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                      {image ? (
-                        <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ color: '#475569', fontWeight: 700 }}>Aucune image</div>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-                      <span className="tag-pill tier-1" style={{ fontSize: 10 }}>{product.category || 'Produit'}</span>
-                      <span className={stock > 0 ? 'status paid' : 'status cancelled'}>{stock > 0 ? `${stock} en stock` : 'Rupture'}</span>
-                    </div>
-
-                    <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: 6, lineHeight: 1.3 }}>{product.name}</div>
-                    <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{variant?.sku || 'SKU'}</div>
-
-                    {colors.length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                        {colors.map((color) => (
-                          <span key={`${product.id}-${color.name}`} title={color.name} style={{ width: 14, height: 14, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.1)', background: color.hex_code || '#C4B5FD', display: 'inline-block', boxShadow: '0 0 0 2px rgba(255,255,255,0.8)' }} />
-                        ))}
-                        <span style={{ fontSize: 11, color: '#64748b' }}>{colors.map((color) => color.name).join(', ')}</span>
-                      </div>
-                    )}
-
-                    <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: '#111827' }}>{formatMoney(price)}</div>
-
-                    <button type="button" className="btn-admin primary" style={{ width: '100%', borderRadius: 12, padding: '12px 10px', fontWeight: 700 }} onClick={() => addToCart(product)}>
-                      {I.plus} Ajouter à la vente
+        <div className="pos-layout">
+          {/* COLONNE GAUCHE : CATALOGUE & RECHERCHE */}
+          <section className="pos-catalog-section">
+            {/* Barre de recherche & filtres par catégorie */}
+            <div className="pos-toolbar">
+              <div className="pos-search-row">
+                <div className="pos-search-box">
+                  {I.search}
+                  <input
+                    type="text"
+                    value={productQuery}
+                    onChange={(e) => setProductQuery(e.target.value)}
+                    placeholder="Rechercher par nom, référence SKU, couleur…"
+                  />
+                  {productQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setProductQuery('')}
+                      style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 2 }}
+                    >
+                      {I.cross}
                     </button>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                  {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
+                </span>
+              </div>
 
-              {!loading && filteredProducts.length === 0 && (
-                <div className="admin-empty" style={{ gridColumn: '1 / -1' }}>Aucun produit correspondant à votre recherche.</div>
+              {categories.length > 1 && (
+                <div className="pos-category-chips">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`pos-chip ${selectedCategory === cat ? 'active' : ''}`}
+                      onClick={() => setSelectedCategory(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-          </Panel>
-        </div>
 
-        <div>
-          <Panel title="Panier de vente">
-            <div style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f3f4f6 100%)', borderRadius: 18, padding: 14, border: '1px solid #edf2f7', marginBottom: 12 }}>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Nom du client</label>
-                <input
-                  type="text"
-                  value={selectedCustomer?.full_name || DEFAULT_CUSTOMER_NAME}
-                  readOnly
-                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #DDE5F0', background: '#ffffff' }}
-                />
+            {/* Grille des produits */}
+            {loading ? (
+              <div className="admin-empty" style={{ padding: 40 }}>
+                Chargement des produits…
               </div>
-
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>E-mail client</label>
-                <input
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder={selectedCustomer?.email || 'client@example.com'}
-                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #DDE5F0', background: '#ffffff' }}
-                />
+            ) : filteredProducts.length === 0 ? (
+              <div className="admin-empty" style={{ padding: 40 }}>
+                Aucun produit ne correspond à votre recherche.
               </div>
+            ) : (
+              <div className="pos-products-grid">
+                {filteredProducts.map((product) => {
+                  const variant = product.variants?.[0];
+                  const price = Number(variant?.price ?? variant?.retail_price ?? 0);
+                  const stock = Number(variant?.stock ?? 0);
+                  const isOutOfStock = stock <= 0;
+                  const isLowStock = stock > 0 && stock <= 5;
+                  const image = buildMediaUrl(
+                    Array.isArray(product.media)
+                      ? (product.media.find((m) => m.media_type === 'IMAGE' || m.media_type === 'image')?.file || product.media[0]?.file || '')
+                      : ''
+                  );
+                  const colors = getProductColors(product);
 
-              <div style={{ marginBottom: 0 }}>
-                <label style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Mode de paiement</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #DDE5F0', background: '#ffffff' }}
+                  return (
+                    <article key={product.id} className="pos-product-card">
+                      <div className="pos-product-image">
+                        {image ? (
+                          <img src={image} alt={product.name} loading="lazy" />
+                        ) : (
+                          <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>Sans image</span>
+                        )}
+                        <span
+                          className={`pos-product-stock-tag ${
+                            isOutOfStock ? 'out-of-stock' : isLowStock ? 'low-stock' : 'in-stock'
+                          }`}
+                        >
+                          {isOutOfStock ? '● Rupture' : isLowStock ? `● ${stock} restants` : `● ${stock} en stock`}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span className="tag-pill tier-1" style={{ fontSize: 10 }}>
+                          {product.category || 'Général'}
+                        </span>
+                        {variant?.sku && (
+                          <span className="pos-product-sku" style={{ margin: 0 }}>
+                            {variant.sku}
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="pos-product-title" title={product.name}>
+                        {product.name}
+                      </h4>
+
+                      {colors.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+                          {colors.slice(0, 4).map((c) => (
+                            <span
+                              key={c.name}
+                              title={c.name}
+                              style={{
+                                width: 12,
+                                height: 12,
+                                borderRadius: '50%',
+                                backgroundColor: c.hex_code || '#ddd',
+                                display: 'inline-block',
+                                border: '1px solid rgba(0,0,0,0.15)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* LIGNE DE STOCK DÉDIÉE BIEN VISIBLE */}
+                      <div className="pos-product-stock-row">
+                        <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Stock :</span>
+                        <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
+                          {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restant${stock > 1 ? 's' : ''}` : `🟢 ${stock} en stock`}
+                        </span>
+                      </div>
+
+                      <div className="pos-product-footer">
+                        <div className="pos-product-price">{formatMoney(price)}</div>
+                        <button
+                          type="button"
+                          className="pos-add-btn"
+                          onClick={() => addToCart(product)}
+                          disabled={isOutOfStock}
+                          title={isOutOfStock ? 'Article en rupture' : 'Ajouter au panier'}
+                        >
+                          {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* COLONNE DROITE : PANIER STICKY & ENCAISSEMENT */}
+          <aside className="pos-cart-panel">
+            <div className="pos-cart-header">
+              <h3>
+                {I.bag} Ticket de caisse
+                {cartItemsCount > 0 && (
+                  <span className="tag-pill tier-1" style={{ fontSize: 11 }}>
+                    {cartItemsCount} article{cartItemsCount > 1 ? 's' : ''}
+                  </span>
+                )}
+              </h3>
+              {cart.length > 0 && (
+                <button
+                  type="button"
+                  className="btn-admin ghost"
+                  style={{ fontSize: 11, padding: '4px 8px', color: 'var(--muted)' }}
+                  onClick={() => setCart([])}
                 >
-                  <option value="card">Carte bancaire</option>
-                  <option value="cash">Espèces</option>
-                  <option value="transfer">Virement</option>
-                  <option value="paypal">PayPal</option>
-                </select>
+                  Vider
+                </button>
+              )}
+            </div>
+
+            {/* SÉLECTEUR CLIENT */}
+            <div className="pos-customer-box">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-head)' }}>
+                <span>Nom du client</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 500 }}>
+                  {customerName.trim() ? 'Saisi' : `Défaut : ${DEFAULT_CUSTOMER_NAME}`}
+                </span>
               </div>
+
+              {/* CHAMP DE SAISIE DU NOM DU CLIENT (DÉFAUT XXXXXXXXXXXX) */}
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder={DEFAULT_CUSTOMER_NAME}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 7,
+                  border: '1px solid var(--line)',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              />
+
+              {/* SÉLECTION D'UN COMPTE EXISTANT (FACULTATIF) */}
+              <select
+                value={selectedCustomer.id || 0}
+                onChange={(e) => {
+                  const cid = Number(e.target.value);
+                  const found = customers.find((c) => (c.id || 0) === cid) || DEFAULT_CUSTOMER;
+                  setSelectedCustomer(found);
+                  if (found.id !== 0) {
+                    setCustomerName(found.full_name || found.email || '');
+                    setCustomerEmail(found.email || '');
+                  } else {
+                    setCustomerName('');
+                    setCustomerEmail('');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  borderRadius: 7,
+                  border: '1px solid var(--line)',
+                  background: 'var(--input-bg)',
+                  color: 'var(--muted)',
+                  fontSize: 11.5,
+                }}
+              >
+                <option value={0}>-- Ou choisir un compte enregistré --</option>
+                {customers.filter((c) => c.id !== 0).map((c) => (
+                  <option key={c.id || c.email} value={c.id || 0}>
+                    👤 {c.full_name || c.email} ({c.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* MODE DE RÈGLEMENT */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-head)', marginBottom: 6 }}>
+                Mode de paiement
+              </div>
+              <div className="pos-payment-tabs">
+                <button
+                  type="button"
+                  className={`pos-payment-tab ${paymentMethod === 'card' ? 'active' : ''}`}
+                  onClick={() => setPaymentMethod('card')}
+                >
+                  💳 Carte
+                </button>
+                <button
+                  type="button"
+                  className={`pos-payment-tab ${paymentMethod === 'cash' ? 'active' : ''}`}
+                  onClick={() => setPaymentMethod('cash')}
+                >
+                  💵 Espèces
+                </button>
+                <button
+                  type="button"
+                  className={`pos-payment-tab ${paymentMethod === 'transfer' ? 'active' : ''}`}
+                  onClick={() => setPaymentMethod('transfer')}
+                >
+                  🏦 Virement
+                </button>
+              </div>
+            </div>
+
+            {/* LISTE DES ARTICLES DU PANIER */}
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-head)', marginTop: 2 }}>
+              Articles ({cartItemsCount})
             </div>
 
             {cart.length === 0 ? (
-              <div className="admin-empty" style={{ borderRadius: 12, background: '#f8fafc', padding: 20 }}>Aucun produit dans le panier.</div>
+              <div style={{ textAlign: 'center', padding: '28px 14px', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 10, border: '1px dashed var(--line)' }}>
+                <div style={{ fontSize: 24, marginBottom: 6, opacity: 0.7 }}>🛒</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600 }}>Le panier est vide</div>
+                <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>Cliquez sur "+ Ajouter" pour insérer des articles</div>
+              </div>
             ) : (
-              <div style={{ display: 'grid', gap: 10 }}>
+              <div className="pos-cart-list">
                 {cart.map((item) => (
-                  <div key={item.variantId} style={{ border: '1px solid #E9EEF6', borderRadius: 16, padding: 12, background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', boxShadow: '0 8px 18px rgba(15, 23, 42, 0.03)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                      <div>
-                        <strong style={{ fontSize: 14 }}>{item.productName}</strong>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.sku}</div>
+                  <div key={item.variantId} className="pos-cart-row">
+                    <div className="pos-cart-row-info">
+                      <div className="pos-cart-row-name" title={item.productName}>
+                        {item.productName}
                       </div>
-                      <button type="button" className="btn-admin ghost" onClick={() => removeFromCart(item.variantId)}>
-                        {I.cross}
+                      <div className="pos-cart-row-price">
+                        {formatMoney(item.unitPrice)} · <span style={{ fontFamily: 'monospace' }}>{item.sku}</span>
+                      </div>
+                    </div>
+
+                    <div className="pos-cart-qty-ctrl">
+                      <button
+                        type="button"
+                        className="pos-cart-qty-btn"
+                        onClick={() => updateQty(item.variantId, -1)}
+                        title="Diminuer"
+                      >
+                        −
+                      </button>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, minWidth: 18, textAlign: 'center' }}>
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        className="pos-cart-qty-btn"
+                        onClick={() => updateQty(item.variantId, 1)}
+                        disabled={item.stock > 0 && item.quantity >= item.stock}
+                        title="Augmenter"
+                      >
+                        +
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button type="button" className="btn-admin ghost" onClick={() => updateQty(item.variantId, -1)}>-</button>
-                        <strong>{item.quantity}</strong>
-                        <button type="button" className="btn-admin ghost" onClick={() => updateQty(item.variantId, 1)}>+</button>
-                      </div>
-                      <strong>{formatMoney(item.unitPrice * item.quantity)}</strong>
+                    <div className="pos-cart-row-total">
+                      {formatMoney(item.unitPrice * item.quantity)}
                     </div>
+
+                    <button
+                      type="button"
+                      className="pos-cart-del-btn"
+                      onClick={() => removeFromCart(item.variantId)}
+                      title="Supprimer la ligne"
+                    >
+                      {I.trash}
+                    </button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #E9EEF6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
-                <span>Total</span>
-                <span>{formatMoney(total)}</span>
+            {/* RÉCAPITULATIF TOTAL */}
+            <div className="pos-total-summary">
+              <div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>Total à encaisser</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>Net à payer</div>
+              </div>
+              <div className="pos-total-val">{formatMoney(total)}</div>
+            </div>
+
+            {/* BOUTON D'ENCAISSEMENT */}
+            <button
+              type="button"
+              className="pos-submit-btn"
+              disabled={cart.length === 0 || busy}
+              onClick={submitSale}
+            >
+              {busy ? 'Validation en cours…' : `Valider la vente (${formatMoney(total)})`}
+            </button>
+
+            {saleMessage.text && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  background: saleMessage.type === 'success' ? 'rgba(31, 169, 113, 0.12)' : 'rgba(225, 37, 27, 0.12)',
+                  color: saleMessage.type === 'success' ? '#1FA971' : '#E1251B',
+                  border: `1px solid ${saleMessage.type === 'success' ? 'rgba(31, 169, 113, 0.3)' : 'rgba(225, 37, 27, 0.3)'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span>{saleMessage.text}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {saleMessage.receipt && (
+                    <button
+                      type="button"
+                      className="btn-admin ghost"
+                      style={{ padding: '3px 8px', fontSize: 11, borderRadius: 6 }}
+                      onClick={() => setCompletedReceipt(saleMessage.receipt)}
+                    >
+                      🖨️ Ticket
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSaleMessage({ text: '', type: '', receipt: null })}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
+                  >
+                    {I.cross}
+                  </button>
+                </div>
+              </div>
+            )}
+          </aside>
+        </div>
+      </div>
+
+      {/* MODAL DU TICKET DE CAISSE POUR IMPRESSION */}
+      {completedReceipt && (
+        <div
+          className="pos-receipt-modal-backdrop"
+          onClick={() => setCompletedReceipt(null)}
+        >
+          <div
+            className="pos-receipt-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* EN-TÊTE MODAL (MASQUÉ À L'IMPRESSION) */}
+            <div className="pos-receipt-modal-header">
+              <h3>🧾 Ticket de caisse client</h3>
+              <button
+                type="button"
+                onClick={() => setCompletedReceipt(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 4,
+                }}
+                title="Fermer"
+              >
+                {I.cross}
+              </button>
+            </div>
+
+            {/* CONTENU IMPRIMABLE DU TICKET */}
+            <div className="pos-receipt-scrollable">
+              <div className="pos-receipt-paper">
+                <div className="pos-receipt-header">
+                  <div className="pos-receipt-brand">MAISON LIÁN</div>
+                  <div className="pos-receipt-sub">
+                    Haute Joaillerie & Ornements<br />
+                    18 Rue de la Paix, 75002 Paris<br />
+                    Tél : +33 1 42 68 55 00<br />
+                    SIRET : 849 203 145 00018
+                  </div>
+                </div>
+
+                <hr className="pos-receipt-divider" />
+
+                <div className="pos-receipt-meta">
+                  <div className="pos-receipt-meta-row">
+                    <span>TICKET N° :</span>
+                    <strong style={{ fontFamily: 'monospace' }}>{completedReceipt.reference}</strong>
+                  </div>
+                  <div className="pos-receipt-meta-row">
+                    <span>DATE :</span>
+                    <span>
+                      {new Intl.DateTimeFormat('fr-FR', {
+                        dateStyle: 'short',
+                        timeStyle: 'medium',
+                      }).format(new Date(completedReceipt.date))}
+                    </span>
+                  </div>
+                  <div className="pos-receipt-meta-row">
+                    <span>CAISSIER :</span>
+                    <strong>{completedReceipt.cashierName || cashierName || 'Administrateur'}</strong>
+                  </div>
+                  <div className="pos-receipt-meta-row">
+                    <span>CAISSE :</span>
+                    <span>Caisse Boutique #1</span>
+                  </div>
+                  <div className="pos-receipt-meta-row">
+                    <span>CLIENT :</span>
+                    <strong style={{ letterSpacing: completedReceipt.customerName === DEFAULT_CUSTOMER_NAME ? '1px' : 'normal' }}>
+                      {completedReceipt.customerName}
+                    </strong>
+                  </div>
+                  <div className="pos-receipt-meta-row">
+                    <span>RÈGLEMENT :</span>
+                    <strong>{getPaymentLabel(completedReceipt.paymentMethod)}</strong>
+                  </div>
+                </div>
+
+                <hr className="pos-receipt-divider" />
+
+                <div className="pos-receipt-items">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 700, color: '#64748b', marginBottom: 6, textTransform: 'uppercase' }}>
+                    <span>Désignation / Réf</span>
+                    <span>Total</span>
+                  </div>
+
+                  {completedReceipt.items.map((item, idx) => (
+                    <div key={idx} className="pos-receipt-item-row">
+                      <div className="pos-receipt-item-desc">
+                        <div className="pos-receipt-item-title">
+                          {item.quantity} × {item.productName}
+                        </div>
+                      </div>
+                      <div className="pos-receipt-item-total">
+                        {formatMoney(item.unitPrice * item.quantity)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <hr className="pos-receipt-divider" />
+
+                {/* TOTAL UNIQUE (SANS SOUS-TOTAL HT, SANS TVA) */}
+                <div className="pos-receipt-totals">
+                  <div className="pos-receipt-total-row pos-receipt-total-main" style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
+                    <span>TOTAL :</span>
+                    <span>{formatMoney(completedReceipt.total)}</span>
+                  </div>
+                </div>
+
+                <hr className="pos-receipt-divider" />
+
+                <div style={{ textAlign: 'center', padding: '4px 0', fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
+                  ★ TRANSACTION ENCAISSÉE ★
+                </div>
+
+                <hr className="pos-receipt-divider" />
+
+                <div className="pos-receipt-footer">
+                  Merci pour votre confiance.<br />
+                  À bientôt chez Maison Lián !<br />
+                  <span style={{ fontSize: 9.5, opacity: 0.8 }}>
+                    Échange possible sous 14 jours sur présentation du ticket.
+                  </span>
+                </div>
+
+                {/* CODE QR AU BAS DU TICKET */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 14 }}>
+                  <div style={{ background: '#ffffff', padding: 6, borderRadius: 6, border: '1px solid #e2e8f0', display: 'inline-block' }}>
+                    <QRCode
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/compte/commandes?ref=${completedReceipt.reference}`}
+                      size={86}
+                      viewBox="0 0 256 256"
+                      style={{ height: 'auto', maxWidth: '100%', width: 86 }}
+                    />
+                  </div>
+                  <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 6, textAlign: 'center' }}>
+                    Scannez pour retrouver votre commande
+                  </div>
+                  <div style={{ fontSize: 9, fontFamily: 'monospace', color: '#64748b', marginTop: 2 }}>
+                    {completedReceipt.reference}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <button type="button" className="btn-admin primary" style={{ width: '100%', marginTop: 16, borderRadius: 14, padding: '14px 12px', fontWeight: 800 }} onClick={submitSale} disabled={busy}>
-              {busy ? 'Validation…' : 'Valider la vente'}
-            </button>
-
-            {saleMessage && (
-              <div style={{ marginTop: 14, padding: 10, borderRadius: 12, background: saleMessage.includes('succès') ? '#ECFDF5' : '#FFF7ED', color: saleMessage.includes('succès') ? '#166534' : '#9A4D00', fontWeight: 600 }}>
-                {saleMessage}
-              </div>
-            )}
-          </Panel>
+            {/* BOUTONS D'ACTION (MASQUÉS À L'IMPRESSION) */}
+            <div className="pos-receipt-modal-actions">
+              <button
+                type="button"
+                className="pos-receipt-btn-print"
+                onClick={() => window.print()}
+              >
+                🖨️ Imprimer le ticket
+              </button>
+              <button
+                type="button"
+                className="pos-receipt-btn-close"
+                onClick={() => setCompletedReceipt(null)}
+              >
+                ✓ Nouvelle vente
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
+

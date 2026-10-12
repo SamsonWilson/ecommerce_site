@@ -8,66 +8,45 @@ import { api } from '../lib/api.js';
 import { productsFromApi } from '../lib/catalog.js';
 import { useReveal, useRevealChildren } from '../hooks/useReveal.js';
 import {
-  IconChevronLeft, IconChevronRight, IconTruck, IconCard, IconStore, IconChat,
-  IconCeremony, IconGuests, IconBell, IconCamera, IconLayers, IconTag,
-  IconShield, IconCheck, Stars,
+  IconChevronLeft, IconChevronRight, IconTruck, IconCard, IconChat,
+  IconShield, Stars,
 } from '../components/icons.jsx';
-
-const HERO_SLIDES = 3;
-
-const SHELF_ICONS = [
-  <IconCeremony key="a" />, <IconGuests key="b" />, <IconBell key="c" />,
-  <IconCamera key="d" />, <IconLayers key="e" />, <IconTag key="f" />,
-];
 
 export default function Home() {
   const { t, i18n } = useTranslation();
 
   const [products, setProducts] = useState(bestSellers);
-  const [heroProducts, setHeroProducts] = useState(bestSellers.slice(0, HERO_SLIDES));
   const [cats, setCats] = useState([]);
   const [tab, setTab] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [slide, setSlide] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
-
-  const liveToasts = [
-    { name: t('home.liveOrders.item1'), loc: t('home.liveOrders.locParis'), time: t('home.liveOrders.time2min') },
-    { name: t('home.liveOrders.item2'), loc: t('home.liveOrders.locLyon'), time: t('home.liveOrders.time5min') },
-    { name: t('home.liveOrders.item3'), loc: t('home.liveOrders.locBrussels'), time: t('home.liveOrders.time12min') },
-  ];
+  const [toastDismissed, setToastDismissed] = useState(false);
 
   // Compte à rebours promotionnel réactif
   const [timeLeft, setTimeLeft] = useState({ days: 3, hours: 14, min: 52, sec: 0 });
-
   const timerRef = useRef(null);
-  const railRef1 = useRef(null);
-  const railRef2 = useRef(null);
 
-  // Toast d'activité en direct réactif
+  // Activité récente / commande en direct
   const [activeToast, setActiveToast] = useState(0);
+  const liveToasts = [
+    { name: t('home.liveOrders.item1') || 'Épingle Chinoise Dorée & Perles', loc: t('home.liveOrders.locParis') || 'Paris, France', time: t('home.liveOrders.time2min') || 'Il y a 2 min' },
+    { name: t('home.liveOrders.item2') || 'Peigne de Mariée Fleur de Lys', loc: t('home.liveOrders.locLyon') || 'Lyon, France', time: t('home.liveOrders.time5min') || 'Il y a 5 min' },
+    { name: t('home.liveOrders.item3') || 'Diadème Princesse Cristal', loc: t('home.liveOrders.locBrussels') || 'Bruxelles, Belgique', time: t('home.liveOrders.time12min') || 'Il y a 12 min' },
+  ];
 
-  useEffect(() => {
-    const toastInterval = setInterval(() => {
-      setActiveToast((prev) => (prev + 1) % liveToasts.length);
-    }, 7000);
-    return () => clearInterval(toastInterval);
-  }, [i18n.language, liveToasts.length]);
-
-  // ── Scroll-reveal refs ──────────────────────────────────────────────────
+  // Scroll reveal animations
   const revealHero = useReveal({ threshold: 0.05 });
-  const revealUsp = useRevealChildren({ stagger: 100 });
-  const revealAmzGrid1 = useRevealChildren({ stagger: 80 });
-  const revealAmzGrid2 = useRevealChildren({ stagger: 80 });
-  const revealCats = useRevealChildren({ stagger: 60 });
+  const revealUsp = useRevealChildren({ stagger: 90 });
+  const revealCats = useRevealChildren({ stagger: 80 });
   const revealGrid = useRevealChildren({ stagger: 70 });
-  const revealShelf1 = useReveal();
-  const revealShelf2 = useReveal();
-  const revealPromo = useReveal();
-  const revealTestis = useRevealChildren({ stagger: 120 });
+  const revealSpotlight = useReveal();
+  const revealCraft = useRevealChildren({ stagger: 90 });
+  const revealTestis = useRevealChildren({ stagger: 100 });
   const revealNewsletter = useReveal();
 
+  // Compte à rebours 1s
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -78,577 +57,442 @@ export default function Home() {
         return prev;
       });
     }, 1000);
-
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Défilement automatique du carrousel Hero toutes les 6 secondes
+  // Défilement automatique du carrousel Hero toutes les 6.5s
   useEffect(() => {
     const interval = setInterval(() => {
-      setSlide((s) => (s + 1) % HERO_SLIDES);
-    }, 6000);
+      setSlide((s) => (s + 1) % 3);
+    }, 6500);
     return () => clearInterval(interval);
   }, []);
 
+  // Rotation des toasts toutes les 8s
+  useEffect(() => {
+    const toastInterval = setInterval(() => {
+      setActiveToast((prev) => (prev + 1) % liveToasts.length);
+    }, 8000);
+    return () => clearInterval(toastInterval);
+  }, [i18n.language, liveToasts.length]);
+
+  // Chargement des données backend
   useEffect(() => {
     api.categories()
-      .then((d) => setCats(d.results || d))
+      .then((d) => setCats(d.results || d || []))
       .catch(() => setCats([]));
 
-    api.products({ page_size: HERO_SLIDES })
+    api.products({ page_size: 12 })
       .then((d) => {
         const items = productsFromApi(d);
-        if (items.length) { setHeroProducts(items); setSlide(0); }
+        if (items && items.length) {
+          setProducts(items);
+        }
       })
       .catch(() => { });
   }, []);
 
-  useEffect(() => {
-    let alive = true;
+  // Filtrage par onglet
+  const handleTabChange = (categorySlug) => {
+    setTab(categorySlug);
+    if (!categorySlug) {
+      api.products({ page_size: 12 })
+        .then((d) => setProducts(productsFromApi(d)))
+        .catch(() => { });
+      return;
+    }
     setLoading(true);
-    api.products({ page_size: 12, category: tab || undefined })
+    api.products({ page_size: 12, category: categorySlug })
       .then((d) => {
-        if (!alive) return;
-        setProducts(productsFromApi(d));
+        const items = productsFromApi(d);
+        if (items && items.length) {
+          setProducts(items);
+        } else {
+          // Filtrage local gracieux si l'API retourne vide
+          setProducts(bestSellers.filter(p => p.cat?.toLowerCase().includes(categorySlug.toLowerCase())));
+        }
       })
       .catch(() => { })
-      .finally(() => { if (alive) setLoading(false); });
-    return () => { alive = false; };
-  }, [tab]);
-
-  const slides = heroProducts.slice(0, HERO_SLIDES);
-  const featured = slides[slide] || slides[0];
-  const step = (d) => setSlide((s) => (s + d + slides.length) % (slides.length || 1));
-
-  const scrollRail = (ref, direction) => {
-    if (ref.current) {
-      const scrollAmount = direction === 'left' ? -380 : 380;
-      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
+      .finally(() => setLoading(false));
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const fallbackMoments = [
-    { slug: '', name: t('home.moments.ceremony') },
-    { slug: '', name: t('home.moments.reception') },
-    { slug: '', name: t('home.moments.dinner') },
-    { slug: '', name: t('home.moments.photoshoot') },
-    { slug: '', name: t('home.moments.chinese') },
-    { slug: '', name: t('home.moments.promotions') },
+  // Diapositives Hero Haute Parure
+  const heroSlides = [
+    {
+      badge: "✦ HAUTE JOAILLERIE & ORNEMENTS NUPTIAUX ✦",
+      title1: t('home.hero.title1') || "Accessoires de Mariage",
+      title2: t('home.hero.title2') || "Héritage Impérial",
+      desc: "Collection d'exception de parures nuptiales, bijoux et coiffures traditionnelles impériales façonnées à la main pour une célébration d'une élégance inoubliable.",
+      image: '/images/hero_phoenix_crown.jpg',
+      alt: "Couronne Impériale & Parure Nuptiale Maison Lián",
+      pills: ["💎 Fait Main & Dorure 18K", "✨ Pièce Signée • Édition Limitée"],
+      price: "Dès 128 €",
+      link: "/boutique",
+    },
+    {
+      badge: "✦ HAUTE COIFFURE & ORNEMENTS ✦",
+      title1: "Peignes Phénix",
+      title2: "Épingles de Soie",
+      desc: "Ornements précieux, peignes sculptés et épingles traditionnelles ornées de fleurs ciselées et pampilles dorées pour magnifier la chevelure de la mariée.",
+      image: '/images/bridal_hairpin.jpg',
+      alt: "Peigne & Épingles Nuptiales Traditionnelles",
+      pills: ["🌸 Fleurs Ciselées & Jade", "🕊️ Pampilles Royales"],
+      price: "Dès 68 €",
+      link: "/boutique?category=ceremonie",
+    },
+    {
+      badge: "✦ ÉCRIN PRESTIGE & CADEAU ✦",
+      title1: "L'Écrin Signature",
+      title2: "Maison Lián",
+      desc: "Chaque bijou est soigneusement disposé dans notre coffret velours signature prêt-à-offrir, accompagné de son certificat d'authenticité et ruban satiné.",
+      image: '/images/signature_gift_box.jpg',
+      alt: "Écrin Velours Signature & Certificat de Garantie",
+      pills: ["🎁 Coffret Velours Offert", "📜 Certificat Numéroté"],
+      price: "Offert dès 150 €",
+      link: "/boutique",
+    },
   ];
-  const shelves = (cats.length ? cats.slice(0, 6) : fallbackMoments).map((c, i) => ({
-    ...c, icon: SHELF_ICONS[i % SHELF_ICONS.length],
-  }));
 
+  const currentHero = heroSlides[slide] || heroSlides[0];
+  const stepSlide = (delta) => setSlide((s) => (s + delta + heroSlides.length) % heroSlides.length);
+
+  // 4 Piliers de Confiance / Réassurance
   const usps = [
-    { icon: <IconTruck />, title: t('home.usp.worldwide'), sub: t('home.usp.worldwideSub') },
-    { icon: <IconCard />, title: t('home.usp.secure'), sub: t('home.usp.secureSub') },
-    { icon: <IconShield />, title: t('home.usp.quality'), sub: t('home.usp.qualitySub') },
-    { icon: <IconChat />, title: t('home.usp.support'), sub: t('home.usp.supportSub') },
+    { icon: <IconTruck />, title: t('home.usp.worldwide') || "Livraison Gratuite", sub: "Offerte dès 150 € • Suivi express 48h" },
+    { icon: <IconShield />, title: t('home.usp.quality') || "Savoir-Faire Artisanal", sub: "Finitions dorées & pièces vérifiées" },
+    { icon: <IconCard />, title: t('home.usp.secure') || "Paiement Sécurisé", sub: "CB, PayPal, Stripe & 3x sans frais" },
+    { icon: <IconChat />, title: t('home.usp.support') || "Conseils Dédiés 7j/7", sub: "Accompagnement mariée & sur-mesure" },
   ];
 
+  // 4 Univers & Collections Phares
+  const categoryCards = [
+    {
+      badge: "PARURES DE REINE",
+      name: "Bijoux & Parures Nuptiales",
+      sub: "Colliers impériaux, boucles d'oreilles & bracelets d'or fin.",
+      image: '/images/hero_phoenix_crown.jpg',
+      link: '/boutique?category=bijous',
+      cta: "Explorer la collection",
+    },
+    {
+      badge: "HAUTE COIFFURE",
+      name: "Peignes & Épingles Phénix",
+      sub: "Ornements de cheveux traditionnels, cinabre et perles d'eau douce.",
+      image: '/images/bridal_hairpin.jpg',
+      link: '/boutique?category=ceremonie',
+      cta: "Découvrir les peignes",
+    },
+    {
+      badge: "PRESTIGE CÉRÉMONIE",
+      name: "Diadèmes & Tiares Royales",
+      sub: "Couronnes d'exception étincelantes pour sublimer le grand jour.",
+      image: '/images/hero_phoenix_crown.jpg',
+      link: '/boutique?category=reception',
+      cta: "Voir les diadèmes",
+    },
+    {
+      badge: "PRÊT-À-OFFRIR",
+      name: "Écrins & Coffrets Signatures",
+      sub: "Écrins en velours avec certificat d'authenticité et ruban satiné.",
+      image: '/images/signature_gift_box.jpg',
+      link: '/boutique',
+      cta: "Découvrir l'écrin",
+    },
+  ];
+
+  // Fusion harmonieuse des produits du backend avec le catalogue d'inspiration pour une vitrine abondante et équilibrée
+  const displayProducts = [
+    ...products,
+    ...bestSellers.filter(b => !products.some(p => p.slug === b.slug)),
+    ...catalogProducts.filter(c => !products.some(p => p.slug === c.slug) && !bestSellers.some(b => b.slug === c.slug)),
+  ].slice(0, 8);
+
+  // Avis clientes vérifiés
   const testimonials = [
-    { av: 'C', text: t('home.testimonials.t1'), name: 'Camille R.', loc: 'Lyon, France', rating: 5 },
-    { av: 'S', text: t('home.testimonials.t2'), name: 'Sophie M. — Boutique Ivoire', loc: 'Bruxelles, Belgique', rating: 5 },
-    { av: 'M', text: t('home.testimonials.t3'), name: 'Mei L.', loc: 'Vancouver, Canada', rating: 5 },
+    { av: 'C', text: t('home.testimonials.t1') || "La parure était encore plus spectaculaire qu'en photo. Finitions impeccables et envoi ultra soigné.", name: 'Camille R.', loc: 'Lyon, France', rating: 5 },
+    { av: 'S', text: t('home.testimonials.t2') || "Pour notre boutique nuptiale, l'accompagnement et la qualité des peignes sont au-delà de nos attentes.", name: 'Sophie M. — Boutique Ivoire', loc: 'Bruxelles, Belgique', rating: 5 },
+    { av: 'M', text: t('home.testimonials.t3') || "Le peigne phénix a fait l'admiration de tous nos invités. Un trésor d'artisanat que je garderai toute ma vie.", name: 'Mei L.', loc: 'Vancouver, Canada', rating: 5 },
   ];
-
-  // Quad items pour les cartes style Amazon avec fallbacks garantis
-  const homepageProducts = products.length ? products : bestSellers;
-  const quadNouveautes = homepageProducts.slice(0, 4);
-  const quadMoments = [
-    { name: t('home.moments.ceremony'), link: '/boutique?category=ceremonie', icon: <IconCeremony /> },
-    { name: t('home.moments.reception'), link: '/boutique?category=reception', icon: <IconGuests /> },
-    { name: t('home.moments.chinese'), link: '/boutique?category=chinois', icon: <IconLayers /> },
-    { name: t('home.moments.photoshoot'), link: '/boutique?category=photos', icon: <IconCamera /> },
-  ];
-
-  const quadCoiffure = homepageProducts.slice(4, 8);
-  const flashProduct = homepageProducts.find((p) => p.badge) || homepageProducts[0];
-  const featuredSingleProduct = homepageProducts[0] || catalogProducts[0];
 
   return (
-    <main className="amz-home-body">
+    <main className="ml-home-wrap">
       <SEOHead
         title="Accessoires de Mariage & Haute Coiffure Chinoise | Maison Lián"
-        description="Collection exclusive d'accessoires de mariage d'inspiration traditionnelle chinoise et occidentale. Vente au détail et créations sur-mesure d'exception."
+        description="Collection exclusive de bijoux nuptiaux et coiffures traditionnelles chinoises impériales façonnées à la main. Vente au détail et créations d'exception."
         schema={{
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "Maison Lián",
           "url": "https://maisonlian.com",
-          "logo": "https://maisonlian.com/assets/hero.png"
+          "logo": "https://maisonlian.com/images/hero_phoenix_crown.jpg"
         }}
       />
 
-      {/* SECTION 1 : BANNIÈRE HERO CARROUSEL AVEC FADED GRADIENT AMAZON */}
+      {/* =========================================================================
+          SECTION 1 : HERO CARROUSEL HAUTE JOAILLERIE
+          ========================================================================= */}
       <section className="uee-hero">
-        <button type="button" className="slider-arrow left" aria-label={t('home.hero.previous')} onClick={() => step(-1)}>
+        <button
+          type="button"
+          className="slider-arrow left"
+          aria-label={t('home.hero.previous') || 'Précédent'}
+          onClick={() => stepSlide(-1)}
+        >
           <IconChevronLeft />
         </button>
-        <button type="button" className="slider-arrow right" aria-label={t('home.hero.next')} onClick={() => step(1)}>
+        <button
+          type="button"
+          className="slider-arrow right"
+          aria-label={t('home.hero.next') || 'Suivant'}
+          onClick={() => stepSlide(1)}
+        >
           <IconChevronRight />
         </button>
 
         <div className="container" ref={revealHero}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <Link to="/boutique" className="animated-pill-btn">
-                <span>{t('nav.allCategories')}</span>
+                <span>{t('nav.allCategories') || 'Toutes les collections'}</span>
                 <span className="btn-arrow">›</span>
               </Link>
               <span className="sale-tag" style={{ margin: 0 }}>
-                <span style={{ color: '#FFD700' }}>✦</span> {t('home.hero.badge')}
+                <span style={{ color: '#FFD700' }}>✦</span> {currentHero.badge}
               </span>
             </div>
-            <h1>{t('home.hero.title1')} <em>&amp;</em> {t('home.hero.title2')}</h1>
-            <p>
-              {featured?.name && featured.name.length > 8 && !/^[a-z0-9_-]+$/i.test(featured.name)
-                ? featured.name
-                : "Collection d'exception de bijoux nuptiaux et coiffures traditionnelles impériales pour une célébration d'une élégance inoubliable."}
-            </p>
+
+            <h1>{currentHero.title1} <em>&amp;</em> {currentHero.title2}</h1>
+            <p>{currentHero.desc}</p>
+
             <div className="uee-hero-cta">
-              <Link to={featured ? `/produit/${featured.slug}` : '/boutique'} className="btn-primary">
-                {t('home.hero.buyNow')} ➔
+              <Link to={currentHero.link} className="btn-primary">
+                {t('home.hero.discoverCollection') || 'Explorer les Collections'} ➔
               </Link>
-              <Link to="/boutique" className="btn-outline">
-                {t('home.hero.discoverCollection')}
+              <Link to="/contact" className="btn-outline">
+                {t('header.requestQuote') || 'Créations Sur-Mesure'}
               </Link>
             </div>
           </div>
 
           <div className="uee-hero-art">
-            <div className="hero-pill p1">💎 Fait Main &amp; Finitions Dorées</div>
-            <div className="hero-pill p2">✨ Édition Limitée Mariage</div>
-            <div className="disc pg-fade" key={featured?.slug || slide}>
-              {featured?.image ? (
-                <img className="hero-photo" src={featured.image} alt={featured.name} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden' }}>
-                  {featured?.figure || (
-                    <svg viewBox="0 0 200 220" fill="none" style={{ width: '100%', height: '100%' }}>
-                      <rect width="200" height="220" fill="#FAF5EE" />
-                      <circle cx="100" cy="90" r="48" fill="#C0392B" opacity="0.1" />
-                      <path d="M100 25 C 75 60, 65 110, 100 165 C 135 110, 125 60, 100 25 Z" stroke="#C9A227" strokeWidth="2.5" />
-                      <path d="M100 165 L 100 205" stroke="#C9A227" strokeWidth="3" strokeLinecap="round" />
-                      <circle cx="100" cy="85" r="14" fill="#C0392B" />
-                      <circle cx="100" cy="85" r="5" fill="#FFF" opacity="0.8" />
-                    </svg>
-                  )}
-                </div>
-              )}
-              {featured?.priceNew && (
-                <div className="price-float">
-                  {featured.priceOld && <div className="pf-old">{featured.priceOld}</div>}
-                  <div className="pf-new">{featured.priceNew}</div>
-                </div>
-              )}
+            <div className="hero-pill p1">{currentHero.pills[0]}</div>
+            <div className="hero-pill p2">{currentHero.pills[1]}</div>
+            <div className="disc pg-fade" key={slide}>
+              <img
+                className="hero-photo"
+                src={currentHero.image}
+                alt={currentHero.alt}
+                loading="eager"
+              />
+              <div className="price-float">
+                <div className="pf-old">Édition Cérémonie</div>
+                <div className="pf-new">{currentHero.price}</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="slider-dots">
-          {slides.map((s, i) => (
-            <button key={s?.slug || i} type="button" className={i === slide ? 'active' : undefined}
-              aria-label={`Slide ${i + 1}`} onClick={() => setSlide(i)} />
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              className={i === slide ? 'active' : undefined}
+              aria-label={`Slide ${i + 1}`}
+              onClick={() => setSlide(i)}
+            />
           ))}
         </div>
-
-        {/* Gradient bas de hero se fondant dans le fond #EAEDED */}
-        <div className="uee-hero-fade"></div>
       </section>
 
-      {/* SECTION 2 : PREMIER SUPER-GRID OVERLAY AMAZON (4 CARTES FLOATING) */}
-      <section className="amz-overlay-section">
+      {/* =========================================================================
+          SECTION 2 : BARRE DE RÉASSURANCE & PRESTIGE (IMMEDIATEMENT SOUS LE HERO)
+          ========================================================================= */}
+      <section className="usp-row">
         <div className="container">
-          <div className="amz-grid-4" ref={revealAmzGrid1}>
-
-            {/* CARTE 1: NOUVEAUTÉS DU CATALOGUE (QUAD 2x2) */}
-            <div className="amz-card">
-              <div>
-                <h3>{t('home.overview.latestNews')}</h3>
-                <div className="amz-card-quad">
-                  {quadNouveautes.map((p, idx) => (
-                    <Link to={`/produit/${p.slug}`} key={p.slug || idx} className="amz-quad-item">
-                      <div className="amz-quad-img">
-                        {p.image ? (
-                          <img src={p.image} alt={p.name} />
-                        ) : p.figure ? (
-                          <div style={{ width: '65%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.figure}</div>
-                        ) : (
-                          <IconTag />
-                        )}
-                      </div>
-                      <span className="amz-quad-label">{p.name}</span>
-                    </Link>
-                  ))}
+          <div className="usp-grid" ref={revealUsp}>
+            {usps.map((u) => (
+              <div className="usp-item" key={u.title}>
+                <span className="usp-icon">{u.icon}</span>
+                <div>
+                  <div className="usp-title">{u.title}</div>
+                  <div className="usp-sub">{u.sub}</div>
                 </div>
               </div>
-              <Link to="/boutique" className="amz-card-link">{t('home.overview.discoverNews')} →</Link>
-            </div>
-
-            {/* CARTE 2: MOMENTS DE MARIAGE (QUAD 2x2) */}
-            <div className="amz-card">
-              <div>
-                <h3>{t('home.overview.shopByEvent')}</h3>
-                <div className="amz-card-quad">
-                  {quadMoments.map((m) => (
-                    <Link to={m.link} key={m.name} className="amz-quad-item">
-                      <div className="amz-quad-img" style={{ background: 'linear-gradient(135deg, #FFFDF8 0%, #FAF4E8 100%)', border: '1px solid #EFE6D8' }}>
-                        {m.icon}
-                      </div>
-                      <span className="amz-quad-label">{m.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <Link to="/boutique" className="amz-card-link">{t('home.overview.viewCollections')} →</Link>
-            </div>
-
-            {/* CARTE 3: VENTE FLASH DU JOUR */}
-            <div className="amz-card">
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <h3 style={{ margin: 0 }}>{t('home.overview.flashSale')}</h3>
-                  <span className="amz-deal-tag">-20%</span>
-                </div>
-                <div className="amz-flash-img">
-                  {flashProduct?.image ? (
-                    <img src={flashProduct.image} alt={flashProduct.name} />
-                  ) : flashProduct?.figure ? (
-                    <div style={{ width: '60%', height: '60%', margin: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {flashProduct.figure}
-                    </div>
-                  ) : (
-                    <IconCeremony />
-                  )}
-                  <span className="amz-flash-badge">✦ {t('home.overview.limitedOffer')}</span>
-                </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F1111' }}>
-                  {flashProduct?.name || t('home.overview.defaultFlashProduct')}
-                </div>
-                <div className="amz-progress-bg">
-                  <div className="amz-progress-fill" style={{ width: '75%' }}></div>
-                </div>
-                <div style={{ fontSize: 11.5, color: '#565959', display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                  <span>{t('home.overview.alreadyReserved')}</span>
-                  <span style={{ color: '#CC0C39', fontWeight: 700 }}>{t('home.overview.limitedStock')}</span>
-                </div>
-              </div>
-              <Link to={flashProduct ? `/produit/${flashProduct.slug}` : '/boutique'} className="amz-card-link" style={{ marginTop: 10 }}>
-                {t('home.overview.takeFlashDeal')} →
-              </Link>
-            </div>
-
-            {/* CARTE 4: ÉCRIN CADEAU & EMBALLAGE SIGNATURE */}
-            <div className="amz-card amz-card-dark">
-              <div>
-                <span className="amz-b2b-badge">✦ {t('home.overview.signatureBox')}</span>
-                <h3 style={{ color: '#fff', marginTop: 6, fontFamily: 'var(--serif)', fontSize: 19 }}>{t('home.overview.signatureBoxTitle')}</h3>
-                <p style={{ fontSize: 12.5, color: '#c3cbdc', lineHeight: 1.55, marginBottom: 14 }}>
-                  {t('home.overview.signatureBoxText')}
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7, fontSize: 12, color: '#e2e8f0', marginBottom: 16 }}>
-                  <div>✓ {t('home.overview.signatureFeature1')}</div>
-                  <div>✓ {t('home.overview.signatureFeature2')}</div>
-                  <div>✓ {t('home.overview.signatureFeature3')}</div>
-                </div>
-              </div>
-              <Link to="/boutique" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px' }}>
-                {t('home.overview.exploreCollections')} ➔
-              </Link>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 : CARROUSEL HORIZONTAL 1 - VENTES FLASH & TENDANCE */}
-      <section className="amz-shelf-section" ref={revealShelf1}>
+      {/* =========================================================================
+          SECTION 3 : UNIVERS & COLLECTIONS PHARES DE LA MAISON
+          ========================================================================= */}
+      <section className="uee-section" style={{ background: '#FAF8F5' }}>
         <div className="container">
-          <div className="amz-shelf">
-            <div className="amz-shelf-head">
-              <div>
-                <h2>{t('home.overview.flashTrend')}</h2>
-                <p className="amz-shelf-sub">{t('home.overview.flashTrendSub')}</p>
-              </div>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button type="button" className="amz-arrow-btn" aria-label="Précédent" onClick={() => scrollRail(railRef1, 'left')}>
-                  <IconChevronLeft />
-                </button>
-                <button type="button" className="amz-arrow-btn" aria-label="Suivant" onClick={() => scrollRail(railRef1, 'right')}>
-                  <IconChevronRight />
-                </button>
-              </div>
+          <div className="uee-section-head">
+            <div>
+              <span className="section-kicker">✦ UNIVERS DE MARIAGE</span>
+              <h2>Explorez nos Collections Royales</h2>
+            </div>
+            <Link to="/boutique" className="see-all">
+              <span>Voir tout le catalogue</span>
+              <IconChevronRight />
+            </Link>
+          </div>
+
+          <div className="ml-categories-grid" ref={revealCats}>
+            {categoryCards.map((c) => (
+              <Link to={c.link} key={c.name} className="ml-category-card">
+                <div className="ml-category-media">
+                  <span className="ml-category-badge">{c.badge}</span>
+                  <img src={c.image} alt={c.name} loading="lazy" />
+                </div>
+                <div className="ml-category-content">
+                  <div className="ml-category-title">{c.name}</div>
+                  <div className="ml-category-sub">{c.sub}</div>
+                  <span className="ml-category-cta">
+                    {c.cta} ➔
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4 : SÉLECTION D'EXCEPTION (PRODUITS VEDETTES AVEC FILTRES)
+          ========================================================================= */}
+      <section className="uee-section">
+        <div className="container">
+          <div className="uee-section-head">
+            <div>
+              <span className="section-kicker">✦ SÉLECTION D'EXCEPTION</span>
+              <h2>{t('home.overview.generalCatalog') || 'Les Trésors de la Saison'}</h2>
             </div>
 
-            <div className="amz-rail-wrapper">
-              <div className="amz-rail" ref={railRef1}>
-                {products.map((p) => (
+            <div className="uee-tabs">
+              <button
+                type="button"
+                className={`uee-tab${tab === '' ? ' active' : ''}`}
+                onClick={() => handleTabChange('')}
+              >
+                {t('home.overview.allTreasures') || 'Tous les trésors'}
+              </button>
+              {cats.map((c) => (
+                <button
+                  key={c.slug || c.id}
+                  type="button"
+                  className={`uee-tab${tab === c.slug ? ' active' : ''}`}
+                  onClick={() => handleTabChange(c.slug)}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
+              Chargement des pièces d'exception...
+            </div>
+          ) : (
+            <>
+              <div className="uee-product-grid" ref={revealGrid}>
+                {displayProducts.map((p) => (
                   <ProductCard key={p.slug} product={p} showStars={true} />
                 ))}
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-
-
-      {/* SECTION 5 : CARROUSEL HORIZONTAL 2 - MEILLEURES VENTES */}
-      <section className="amz-shelf-section" ref={revealShelf2}>
-        <div className="container">
-          <div className="amz-shelf">
-            <div className="amz-shelf-head">
-              <div>
-                <h2>{t('home.overview.bestSales')}</h2>
-                <p className="amz-shelf-sub">{t('home.overview.bestSalesSub')}</p>
-              </div>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button type="button" className="amz-arrow-btn" aria-label="Précédent" onClick={() => scrollRail(railRef2, 'left')}>
-                  <IconChevronLeft />
-                </button>
-                <button type="button" className="amz-arrow-btn" aria-label="Suivant" onClick={() => scrollRail(railRef2, 'right')}>
-                  <IconChevronRight />
-                </button>
-              </div>
-            </div>
-
-            <div className="amz-rail-wrapper">
-              <div className="amz-rail" ref={railRef2}>
-                {homepageProducts.map((p) => (
-                  <ProductCard key={p.slug} product={{ ...p, rating: 5 }} showStars={true} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6 : BLOC DEPARTEMENTS & RAYONS CATEGORIES */}
-      <section className="amz-block-section">
-        <div className="container">
-          <div className="amz-block-card">
-            <div className="uee-section-head" style={{ marginBottom: 24 }}>
-              <div>
-                <span className="section-kicker">✦ EXPLORER LE CATALOGUE</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.shopByDepartment')}</h2>
-              </div>
-              <Link to="/boutique" className="amz-card-link">
-                Voir toutes les catégories →
-              </Link>
-            </div>
-            <div className="cat-grid" ref={revealCats}>
-              {shelves.map((m) => (
+              <div style={{ textAlign: 'center', marginTop: 42 }}>
                 <Link
-                  className="cat-item"
-                  to={m.slug ? `/boutique?category=${m.slug}` : '/boutique'}
-                  key={m.slug || m.name}
+                  to="/boutique"
+                  className="btn-primary"
+                  style={{ padding: '15px 38px', fontSize: 14.5, display: 'inline-block' }}
                 >
-                  <span className="ci-icon">{m.icon}</span>
-                  <span className="ci-name">{m.name}</span>
-                  <span className="ci-count">Explorer ➔</span>
+                  Découvrir toutes nos créations ({displayProducts.length}+ pièces) ➔
                 </Link>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      {/* SECTION 7 : CATALOGUE GENERAL ET FILTRE PAR ONGLETS */}
-      <section className="amz-block-section">
+      {/* =========================================================================
+          SECTION 5 : DOUBLE SPOTLIGHT — L'ÉCRIN SIGNATURE & L'OFFRE PRIVILÈGE
+          ========================================================================= */}
+      <section className="uee-section" style={{ background: '#FAF8F5' }} ref={revealSpotlight}>
         <div className="container">
-          <div className="amz-block-card">
-            <div className="uee-section-head" style={{ marginBottom: 24 }}>
+          <div className="ml-spotlight-duo">
+
+            {/* CARTE 1 : L'ÉCRIN SIGNATURE MAISON LIÁN */}
+            <div className="ml-box-card">
               <div>
-                <span className="section-kicker">✦ COLLECTION EN DIRECT</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.generalCatalog')}</h2>
-              </div>
-              <div className="uee-tabs">
-                <button
-                  type="button"
-                  className={`uee-tab${tab === '' ? ' active' : ''}`}
-                  onClick={() => setTab('')}
-                >
-                  {t('home.overview.allTreasures')}
-                </button>
-                {cats.slice(0, 5).map((c) => (
-                  <button
-                    key={c.slug || 'all'}
-                    type="button"
-                    className={`uee-tab${tab === c.slug ? ' active' : ''}`}
-                    onClick={() => setTab(c.slug)}
-                  >
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="uee-grid-note">Chargement du catalogue en direct...</div>
-            ) : (
-              <>
-                <div className="uee-product-grid" ref={revealGrid}>
-                  {products.map((p) => (
-                    <ProductCard key={p.slug} product={p} showStars={true} />
-                  ))}
-                </div>
-                <div style={{ textAlign: 'center', marginTop: 36 }}>
-                  <Link to="/boutique" className="btn-primary" style={{ padding: '14px 34px', fontSize: 14 }}>
-                    Voir l'intégralité du catalogue ({products.length > 0 ? products.length : 12}+ pièces) ➔
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 8 : BANNIÈRE PROMO AVEC COUNTDOWN */}
-      <section className="amz-block-section">
-        <div className="container">
-          <div className="promo-banner reveal-elem" ref={revealPromo}>
-            <div>
-              <h3>{t('home.overview.weddingOffer')}</h3>
-              <p>{t('home.overview.weddingOfferText')}</p>
-              <div className="promo-countdown">
-                <div>
-                  <div className="cd-num">{String(timeLeft.days).padStart(2, '0')}</div>
-                  <div className="cd-label">{t('home.promo.days')}</div>
-                </div>
-                <div>
-                  <div className="cd-num">{String(timeLeft.hours).padStart(2, '0')}</div>
-                  <div className="cd-label">{t('home.promo.hours')}</div>
-                </div>
-                <div>
-                  <div className="cd-num">{String(timeLeft.min).padStart(2, '0')}</div>
-                  <div className="cd-label">{t('home.promo.min')}</div>
-                </div>
-                <div>
-                  <div className="cd-num">{String(timeLeft.sec).padStart(2, '0')}</div>
-                  <div className="cd-label">Sec</div>
-                </div>
-              </div>
-            </div>
-            <Link to="/boutique" className="btn-primary">{t('home.overview.discoverSelection')} ➔</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4-CARD GRID EN BAS DE PAGE : COIFFURE, RECOMMANDATION, SERVICES, ESPACE PRO */}
-      <section className="amz-grid-section">
-        <div className="container">
-          <div className="amz-grid-4" ref={revealAmzGrid2}>
-
-            {/* CARTE 5: HAUTE COIFFURE NUPTIALE (QUAD 2x2) */}
-            <div className="amz-card">
-              <div>
-                <h3>{t('home.overview.hauteCoiffure')}</h3>
-                <div className="amz-card-quad">
-                  {quadCoiffure.map((p) => (
-                    <Link to={`/produit/${p.slug}`} key={p.slug} className="amz-quad-item">
-                      <div className="amz-quad-img">
-                        {p.figure ? (
-                          <div style={{ width: '65%', height: '65%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.figure}</div>
-                        ) : (
-                          <IconTag />
-                        )}
-                      </div>
-                      <span className="amz-quad-label">{p.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <Link to="/boutique" className="amz-card-link">{t('home.overview.exploreHairCollection')} →</Link>
-            </div>
-
-            {/* CARTE 6: COUP DE CŒUR DE LA MARIÉE (SINGLE FEATURED CARD) */}
-            <div className="amz-card">
-              <div>
-                <span className="amz-card-kicker">✦ {t('home.overview.recommendation')}</span>
-                <h3 style={{ marginTop: 4 }}>{featuredSingleProduct.name}</h3>
-                <div className="amz-single-feat-img">
-                  {featuredSingleProduct.image ? (
-                    <img src={featuredSingleProduct.image} alt={featuredSingleProduct.name} />
-                  ) : featuredSingleProduct.figure ? (
-                    <div style={{ width: '55%', height: '55%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {featuredSingleProduct.figure}
-                    </div>
-                  ) : (
-                    <IconCeremony />
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <Stars value={5} />
-                  <span style={{ fontSize: 12, color: '#007185', fontWeight: 600 }}>(98 avis)</span>
-                </div>
-                <div className="amz-price-box">
-                  <span className="amz-price-new">{featuredSingleProduct.priceNew}</span>
-                  {featuredSingleProduct.priceOld && <span className="amz-price-old">{featuredSingleProduct.priceOld}</span>}
-                  <span className="amz-prime-badge">✓ Livraison Gratuite dès 150€</span>
-                </div>
-              </div>
-              <Link to={`/produit/${featuredSingleProduct.slug}`} className="amz-card-link">{t('home.overview.viewProduct')} →</Link>
-            </div>
-
-            {/* CARTE 7: GARANTIES & SERVICES MAISON LIÁN */}
-            <div className="amz-card">
-              <div>
-                <h3>{t('home.overview.commitments')}</h3>
-                <div className="amz-services-list">
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconTruck /></span>
-                    <div>
-                      <div className="amz-s-title">Expédition Express 48h</div>
-                      <div className="amz-s-sub">Emballage sécurisé &amp; suivi</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconShield /></span>
-                    <div>
-                      <div className="amz-s-title">{t('home.usp.quality')}</div>
-                      <div className="amz-s-sub">{t('home.usp.qualitySub')}</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconStore /></span>
-                    <div>
-                      <div className="amz-s-title">Tarifs Direct Fabrique</div>
-                      <div className="amz-s-sub">Paiement sur facture pro</div>
-                    </div>
-                  </div>
-                  <div className="amz-service-item">
-                    <span className="amz-service-icon"><IconChat /></span>
-                    <div>
-                      <div className="amz-s-title">Conseils &amp; Support 7j/7</div>
-                      <div className="amz-s-sub">Conseiller dédié en direct</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <Link to="/contact" className="amz-card-link">{t('home.overview.discoverGuarantees')} →</Link>
-            </div>
-
-            {/* CARTE 8: ESPACE GROSSISTE & REVENDEURS */}
-            <div className="amz-card amz-quote-card">
-              <div>
-                <span className="amz-quote-kicker">✦ {t('home.overview.professionalSpace')}</span>
-                <h3>{t('home.overview.wholesaleAccounts')}</h3>
-                <p className="amz-quote-desc">
-                  {t('home.overview.wholesaleText')}
+                <span className="ml-box-kicker">✦ {t('home.overview.signatureBox') || 'EXPÉRIENCE PRÊT-À-OFFRIR'}</span>
+                <h3>{t('home.overview.signatureBoxTitle') || "L'Écrin Signature & Emballage Prestige"}</h3>
+                <p className="ml-box-desc">
+                  {t('home.overview.signatureBoxText') ||
+                    "Chaque bijou est délicatement déposé dans notre coffret signature en velours orné d'un ruban de satin, accompagné de son certificat d'authenticité et de garantie."}
                 </p>
-                <div className="amz-quote-features">
-                  <div>✓ {t('home.overview.wholesaleFeature1')}</div>
-                  <div>✓ {t('home.overview.wholesaleFeature2')}</div>
-                  <div>✓ {t('home.overview.wholesaleFeature3')}</div>
+                <img
+                  src="/images/signature_gift_box.jpg"
+                  alt="Écrin velours signature et certificat d'authenticité"
+                  className="ml-box-preview-img"
+                  loading="lazy"
+                />
+                <div className="ml-box-features">
+                  <div className="ml-box-feat">
+                    <span className="chk">✓</span>
+                    <span>{t('home.overview.signatureFeature1') || "Coffret velours d'exception offert pour chaque commande"}</span>
+                  </div>
+                  <div className="ml-box-feat">
+                    <span className="chk">✓</span>
+                    <span>{t('home.overview.signatureFeature2') || "Ruban de satin noué à la main & carte personnalisable"}</span>
+                  </div>
+                  <div className="ml-box-feat">
+                    <span className="chk">✓</span>
+                    <span>{t('home.overview.signatureFeature3') || "Protection maximale pour une expédition sécurisée"}</span>
+                  </div>
                 </div>
               </div>
-              <Link to="/compte/pro" className="btn-primary" style={{ textAlign: 'center', width: '100%', fontSize: 13, padding: '12px 18px', marginTop: 14 }}>
-                {t('home.overview.discoverProSpace')} ➔
+
+              <Link to="/boutique" className="btn-primary" style={{ textAlign: 'center', marginTop: 12 }}>
+                {t('home.overview.exploreCollections') || 'Explorer nos parures'} ➔
+              </Link>
+            </div>
+
+            {/* CARTE 2 : OFFRE PRIVILÈGE SAISON NUPTIALE & COUNTDOWN */}
+            <div className="ml-promo-card">
+              <div>
+                <span className="ml-promo-kicker">✦ VENTE PRIVÉE NUPTIALE</span>
+                <h3>{t('home.overview.weddingOffer') || "Privilège Saison Nuptiale — Jusqu'à -20%"}</h3>
+                <p className="ml-promo-desc">
+                  {t('home.overview.weddingOfferText') ||
+                    "Profitez d'offres exclusives et de remises d'exception sur une sélection raffinée d'accessoires et parures pour votre cérémonie."}
+                </p>
+
+                <div className="ml-countdown-wrap">
+                  <div className="ml-cd-box">
+                    <div className="cd-num">{String(timeLeft.days).padStart(2, '0')}</div>
+                    <div className="cd-label">{t('home.promo.days') || 'Jours'}</div>
+                  </div>
+                  <div className="ml-cd-box">
+                    <div className="cd-num">{String(timeLeft.hours).padStart(2, '0')}</div>
+                    <div className="cd-label">{t('home.promo.hours') || 'Heures'}</div>
+                  </div>
+                  <div className="ml-cd-box">
+                    <div className="cd-num">{String(timeLeft.min).padStart(2, '0')}</div>
+                    <div className="cd-label">{t('home.promo.min') || 'Min'}</div>
+                  </div>
+                  <div className="ml-cd-box">
+                    <div className="cd-num">{String(timeLeft.sec).padStart(2, '0')}</div>
+                    <div className="cd-label">Sec</div>
+                  </div>
+                </div>
+              </div>
+
+              <Link to="/boutique" className="btn-primary" style={{ textAlign: 'center' }}>
+                {t('home.overview.discoverSelection') || 'Accéder à la sélection privée'} ➔
               </Link>
             </div>
 
@@ -656,87 +500,174 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 9 : TÉMOIGNAGES CLIENTS */}
-      <section className="amz-block-section">
+      {/* =========================================================================
+          SECTION 6 : L'HÉRITAGE ARTISANAL & LES ENGAGEMENTS MAISON LIÁN
+          ========================================================================= */}
+      <section className="uee-section">
         <div className="container">
-          <div className="amz-block-card">
-            <div className="uee-section-head" style={{ marginBottom: 24 }}>
-              <div>
-                <span className="section-kicker">✦ EXPÉRIENCE &amp; AVIS CERTIFIÉS</span>
-                <h2 style={{ fontSize: 22, margin: 0 }}>{t('home.overview.customerReviewsTitle')}</h2>
-              </div>
+          <div className="uee-section-head">
+            <div>
+              <span className="section-kicker">✦ ATELIER & TRADITION</span>
+              <h2>L'Excellence Artisanale au Cœur de Votre Jour J</h2>
             </div>
-            <div className="testi-grid" ref={revealTestis}>
-              {testimonials.map((tm) => (
-                <div className="testi-card" key={tm.name}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stars value={tm.rating} />
-                    <span className="t-verified">✓ Achat vérifié</span>
-                  </div>
-                  <p className="t-text">« {tm.text} »</p>
-                  <div className="t-who">
-                    <span className="t-avatar">{tm.av}</span>
-                    <div>
-                      <div className="t-name">{tm.name}</div>
-                      <div className="t-loc">{tm.loc}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <Link to="/contact" className="see-all">
+              <span>Nous contacter</span>
+              <IconChevronRight />
+            </Link>
+          </div>
+
+          <div className="ml-craft-grid" ref={revealCraft}>
+            <div className="ml-craft-card">
+              <span className="ml-craft-icon"><IconShield /></span>
+              <h3>Dorure d'Art &amp; Métaux Nobles</h3>
+              <p>
+                Nos pièces sont ouvragées avec une dorure à l'or fin 18 carats et des alliages hypoallergéniques conçus pour un port léger et éclatant tout au long de votre célébration.
+              </p>
+              <Link to="/boutique" className="ml-craft-link">
+                Découvrir l'orfèvrerie ➔
+              </Link>
+            </div>
+
+            <div className="ml-craft-card">
+              <span className="ml-craft-icon"><IconChat /></span>
+              <h3>Conseil &amp; Créations Sur-Mesure</h3>
+              <p>
+                De l'ajustement des peignes à la coordination de parures complètes pour cortège, nos conseillers joailliers vous accompagnent pas à pas dans vos préparatifs.
+              </p>
+              <Link to="/contact" className="ml-craft-link">
+                Prendre rendez-vous ➔
+              </Link>
+            </div>
+
+            <div className="ml-craft-card">
+              <span className="ml-craft-icon"><IconTruck /></span>
+              <h3>{t('home.overview.wholesaleAccounts') || "Espace Professionnels & Boutiques"}</h3>
+              <p>
+                {t('home.overview.wholesaleText') ||
+                  "Tarifs grossistes dégressifs jusqu'à -40%, commande rapide et expédition express pour les boutiques de robes de mariée et salons partenaires."}
+              </p>
+              <Link to="/compte/pro" className="ml-craft-link">
+                {t('home.overview.discoverProSpace') || "Découvrir l'Espace Pro"} ➔
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 10 : BANDEAU UNIFIÉ RÉASSURANCE ET PAIEMENT SÉCURISÉ */}
-      <section className="trust-section">
-        <div className="container trust-flex">
-          <div className="trust-badges" ref={revealUsp}>
-            {usps.map((u) => (
-              <span className="trust-badge" key={u.title}>
-                {u.icon}
-                <span><strong>{u.title}</strong> — {u.sub}</span>
-              </span>
+      {/* =========================================================================
+          SECTION 7 : AVIS CLIENTES & TÉMOIGNAGES VÉRIFIÉS
+          ========================================================================= */}
+      <section className="uee-section" style={{ background: '#FAF8F5' }}>
+        <div className="container">
+          <div className="uee-section-head" style={{ marginBottom: 28 }}>
+            <div>
+              <span className="section-kicker">✦ EXPÉRIENCE &amp; CONFIANCE</span>
+              <h2>{t('home.overview.customerReviewsTitle') || "Ce que nos mariées disent de nous"}</h2>
+            </div>
+          </div>
+
+          <div className="testi-grid" ref={revealTestis}>
+            {testimonials.map((tm) => (
+              <div className="testi-card" key={tm.name}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Stars value={tm.rating} />
+                  <span className="t-verified">✓ Achat vérifié</span>
+                </div>
+                <p className="t-text">« {tm.text} »</p>
+                <div className="t-who">
+                  <span className="t-avatar">{tm.av}</span>
+                  <div>
+                    <div className="t-name">{tm.name}</div>
+                    <div className="t-loc">{tm.loc}</div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          <div className="pay-icons">
-            <span className="pi">VISA</span><span className="pi">MC</span><span className="pi">PayPal</span><span className="pi">Stripe</span><span className="pi">AMEX</span>
-          </div>
         </div>
       </section>
 
-      {/* SECTION 11 : NEWSLETTER */}
+      {/* =========================================================================
+          SECTION 8 : CLUB PRIVILÈGE & NEWSLETTER VIP
+          ========================================================================= */}
       <section className="uee-newsletter" ref={revealNewsletter}>
         <div className="container nl-flex">
           <div>
-            <h3>{t('home.newsletter.title')}</h3>
-            <p>{t('home.newsletter.text')}</p>
+            <h3>{t('home.newsletter.title') || "Rejoignez le Cercle Privilège Maison Lián"}</h3>
+            <p>{t('home.newsletter.text') || "Recevez nos invitations aux ventes privées, nos nouveautés et 10% offerts sur votre première commande."}</p>
           </div>
           {subscribed ? (
-            <p className="nl-thanks">{t('home.newsletter.thanks')}</p>
+            <p className="nl-thanks">{t('home.newsletter.thanks') || "Merci ! Votre code de bienvenue vous a été envoyé par e-mail."}</p>
           ) : (
             <form className="uee-nl-form" onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }}>
-              <input type="email" required placeholder={t('home.newsletter.placeholder')} />
-              <button type="submit">{t('home.newsletter.subscribe')}</button>
+              <input
+                type="email"
+                required
+                placeholder={t('home.newsletter.placeholder') || "Votre adresse e-mail"}
+                aria-label="Adresse e-mail"
+              />
+              <button type="submit">{t('home.newsletter.subscribe') || "Rejoindre"}</button>
             </form>
           )}
         </div>
       </section>
 
-      {/* SECTION 12 : BOUTON RETOUR EN HAUT STYLE AMAZON */}
-      <div className="amz-back-to-top" onClick={scrollToTop}>
-        <span>{t('home.backToTop')} ▲</span>
-      </div>
-
-      {/* TOAST DYNAMIQUE D'ACTIVITÉ EN DIRECT */}
-      <div className="live-toast">
-        <div className="lt-dot"></div>
-        <div className="lt-content">
-          <div className="lt-title">✦ {t('home.liveOrders.title')}</div>
-          <div className="lt-item">{liveToasts[activeToast].name}</div>
-          <div className="lt-sub">{liveToasts[activeToast].loc} • {liveToasts[activeToast].time}</div>
+      {/* =========================================================================
+          SECTION 9 : BANDEAU PAIEMENT SÉCURISÉ & CONFIANCE
+          ========================================================================= */}
+      <section className="trust-section">
+        <div className="container trust-flex">
+          <div className="trust-badges">
+            <span className="trust-badge">
+              <IconTruck />
+              <span><strong>Expédition soignée</strong> sous 48h</span>
+            </span>
+            <span className="trust-badge">
+              <IconShield />
+              <span><strong>Certificat d'authenticité</strong> inclus</span>
+            </span>
+            <span className="trust-badge">
+              <IconCard />
+              <span><strong>Paiement sécurisé</strong> SSL 256-bit</span>
+            </span>
+          </div>
+          <div className="pay-icons">
+            <span className="pi">VISA</span>
+            <span className="pi">MC</span>
+            <span className="pi">PayPal</span>
+            <span className="pi">Stripe</span>
+            <span className="pi">Apple Pay</span>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* TOAST D'ACTIVITÉ EN DIRECT (DISCRET ET FERMABLE) */}
+      {!toastDismissed && (
+        <div className="live-toast" role="status" aria-live="polite">
+          <div className="lt-dot"></div>
+          <div className="lt-content" style={{ flex: 1 }}>
+            <div className="lt-title">✦ {t('home.liveOrders.title') || 'Commande récente'}</div>
+            <div className="lt-item">{liveToasts[activeToast].name}</div>
+            <div className="lt-sub">{liveToasts[activeToast].loc} • {liveToasts[activeToast].time}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastDismissed(true)}
+            aria-label="Fermer"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: '16px',
+              cursor: 'pointer',
+              padding: '0 4px',
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </main>
   );
 }

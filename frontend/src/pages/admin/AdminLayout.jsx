@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/auth.js';
 import { I } from './icons.jsx';
+import { useTheme } from './ThemeContext.jsx';
 import { api } from '../../lib/api.js';
 import { eur } from '../../data/cart.jsx';
 
@@ -13,6 +14,7 @@ export default function AdminLayout() {
   const logout = useAuth((s) => s.logout);
 
   const currentLang = (i18n.resolvedLanguage || 'fr').toUpperCase();
+  const { toggleTheme, isDark } = useTheme();
 
   // GESTION DES NOTIFICATIONS DE COMMANDES & DEVIS
   const [notifications, setNotifications] = useState([]);
@@ -116,7 +118,6 @@ export default function AdminLayout() {
       items: [
         { to: '/gestion/commandes', icon: I.bag, nameKey: 'admin.nav.orders', defaultName: 'Commandes', section: 'orders' },
         { to: '/gestion/ventes', icon: I.euro, nameKey: 'admin.nav.sales', defaultName: 'Ventes', section: 'orders' },
-        { to: '/gestion/comptabilite', icon: I.quote, nameKey: 'admin.nav.accounting', defaultName: 'Comptabilité', section: 'orders' },
         { to: '/gestion/clients', icon: I.users, nameKey: 'admin.nav.customers', defaultName: 'Clients', section: 'customers' },
         { to: '/gestion/promotions', icon: I.percent, nameKey: 'admin.nav.promotions', defaultName: 'Promotions', section: 'promotions' },
       ],
@@ -169,7 +170,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="admin-shell">
+    <div className={`admin-shell ${isDark ? 'dark-theme' : ''}`}>
       {sidebarOpen && (
         <div
           className="admin-sidebar-overlay"
@@ -264,6 +265,18 @@ export default function AdminLayout() {
             >
               🌐 {currentLang}
             </span>
+
+            {/* BOUTON MODE CLAIR / SOMBRE */}
+            <button
+              type="button"
+              className="admin-theme-btn"
+              onClick={toggleTheme}
+              title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            >
+              <span className="admin-theme-icon">{isDark ? I.sun : I.moon}</span>
+              <span className="admin-theme-label">{isDark ? 'Clair' : 'Sombre'}</span>
+            </button>
 
             {/* BOUTON DE NOTIFICATION CLIQUEABLE */}
             <div

@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { I } from './icons.jsx';
 import { PageHead, Panel } from './ui.jsx';
+import { useTheme } from './ThemeContext.jsx';
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { toggleTheme, isDark } = useTheme();
 
   const kpis = [
     { icon: I.euro, bg: '#FDE9E8', label: t('admin.dashboard.revenue', "Chiffre d'affaires"), value: '48 260 €', trend: '+12,4%', period: 'vs mois dernier', dir: 'up' },
@@ -32,6 +34,15 @@ export default function Dashboard() {
   return (
     <>
       <PageHead title={t('admin.dashboard.title', 'Tableau de bord')} subtitle={t('admin.dashboard.subtitle', "Aperçu de l'activité commerciale")}>
+        <button
+          type="button"
+          className="btn-admin ghost admin-theme-page-btn"
+          onClick={toggleTheme}
+          title={isDark ? 'Basculer en mode clair' : 'Basculer en mode sombre'}
+        >
+          {isDark ? I.sun : I.moon}
+          <span>{isDark ? t('admin.theme.light', 'Mode clair') : t('admin.theme.dark', 'Mode sombre')}</span>
+        </button>
         <button className="btn-admin ghost">{I.pdf}{t('admin.dashboard.export', 'Exporter')}</button>
         <Link className="btn-admin primary" to="/gestion/produits">{I.plus}{t('admin.dashboard.addProduct', 'Ajouter un produit')}</Link>
       </PageHead>

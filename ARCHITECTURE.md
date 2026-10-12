@@ -368,7 +368,7 @@ GET  /api/v1/auth/me/                  profil + statut B2B + tier tarifaire
 POST /api/v1/auth/password-reset/
 ```
 
-### Panier et commande
+### Panier et command
 
 ```
 GET|POST|PATCH|DELETE /api/v1/cart/items/

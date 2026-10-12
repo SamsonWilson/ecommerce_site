@@ -98,106 +98,161 @@ export default function StockManagement() {
         </button>
       </PageHead>
 
-      {/* CARTES KPI HAUT DE GAMME */}
+      {/* CARTES KPI THEMATISÉES */}
       <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 26 }}>
-        <div className="stat-card" style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid #E6E9EF', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <div className="stat-card" style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="stat-label" style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>
               {t('admin.stock.totalSkus', 'Références (SKU)')}
             </div>
-            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(30,58,95,0.08)', borderRadius: 8, color: 'var(--navy)' }}>📦</span>
+            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(30,58,95,0.12)', borderRadius: 8, color: 'var(--text-head)' }}>📦</span>
           </div>
-          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)', marginTop: 8 }}>{totalSkus}</div>
+          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-head)', marginTop: 8 }}>{totalSkus}</div>
           <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Variantes enregistrées</span>
         </div>
 
-        <div className="stat-card" style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(192,57,43,0.25)', boxShadow: '0 4px 16px rgba(192,57,43,0.06)' }}>
+        <div className="stat-card" style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(192,57,43,0.3)', boxShadow: 'var(--shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="stat-label" style={{ fontSize: 12, color: '#C0392B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            <div className="stat-label" style={{ fontSize: 12, color: '#E1251B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
               {t('admin.stock.outOfStock', 'Ruptures de Stock')}
             </div>
-            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(192,57,43,0.1)', borderRadius: 8, color: '#C0392B' }}>⚠️</span>
+            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(225,37,27,0.12)', borderRadius: 8, color: '#E1251B' }}>⚠️</span>
           </div>
-          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#C0392B', marginTop: 8 }}>
+          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#E1251B', marginTop: 8 }}>
             {outOfStockCount}
           </div>
-          <span style={{ fontSize: 11, color: outOfStockCount > 0 ? '#C0392B' : 'var(--muted)', fontWeight: 600, marginTop: 4, display: 'block' }}>
+          <span style={{ fontSize: 11, color: outOfStockCount > 0 ? '#E1251B' : 'var(--muted)', fontWeight: 600, marginTop: 4, display: 'block' }}>
             {outOfStockCount > 0 ? 'Réapprovisionnement urgent requis' : 'Aucune rupture'}
           </span>
         </div>
 
-        <div className="stat-card" style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(212,175,55,0.35)', boxShadow: '0 4px 16px rgba(212,175,55,0.06)' }}>
+        <div className="stat-card" style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(212,175,55,0.35)', boxShadow: 'var(--shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="stat-label" style={{ fontSize: 12, color: '#B8972A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            <div className="stat-label" style={{ fontSize: 12, color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
               {t('admin.stock.lowStock', 'Stock Faible (≤ 5)')}
             </div>
-            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(212,175,55,0.12)', borderRadius: 8, color: '#B8972A' }}>⏳</span>
+            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(212,175,55,0.15)', borderRadius: 8, color: '#D4AF37' }}>⏳</span>
           </div>
-          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#B8972A', marginTop: 8 }}>
+          <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#D4AF37', marginTop: 8 }}>
             {lowStockCount}
           </div>
-          <span style={{ fontSize: 11, color: '#B8972A', fontWeight: 600, marginTop: 4, display: 'block' }}>
+          <span style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginTop: 4, display: 'block' }}>
             Seuil critique atteint
           </span>
         </div>
 
-        <div className="stat-card" style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(39,174,96,0.25)', boxShadow: '0 4px 16px rgba(39,174,96,0.06)' }}>
+        <div className="stat-card" style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(39,174,96,0.3)', boxShadow: 'var(--shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="stat-label" style={{ fontSize: 12, color: '#27AE60', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
               {t('admin.stock.totalUnits', 'Volume Total')}
             </div>
-            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(39,174,96,0.1)', borderRadius: 8, color: '#27AE60' }}>📊</span>
+            <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(39,174,96,0.12)', borderRadius: 8, color: '#27AE60' }}>📊</span>
           </div>
           <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#27AE60', marginTop: 8 }}>{totalUnits}</div>
           <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Unités physiques disponibles</span>
         </div>
       </div>
 
-      {/* MODAL D'AJUSTEMENT DE LUXE */}
+      {/* MODAL D'AJUSTEMENT DU STOCK THEMATISÉ ET ULTRA LISIBLE */}
       {adjustModal && (
         <div className="admin-modal-backdrop" onClick={() => setAdjustModal(null)}>
-          <div className="admin-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, borderRadius: 18, padding: 28, background: '#fff', boxShadow: '0 20px 50px rgba(0,0,0,0.25)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
-              <h3 style={{ margin: 0, fontSize: 18, color: 'var(--navy)' }}>⚡ {t('admin.stock.adjustTitle', 'Ajustement du Stock')}</h3>
-              <button onClick={() => setAdjustModal(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
+          <div className="stock-adjust-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="stock-adjust-header">
+              <h3>
+                <span style={{ color: 'var(--gold, #B08A34)' }}>⚡</span>
+                <span>{t('admin.stock.adjustTitle', 'Ajustement du Stock')}</span>
+              </h3>
+              <button
+                type="button"
+                className="stock-adjust-close"
+                onClick={() => setAdjustModal(null)}
+                aria-label="Fermer"
+              >
+                ✕
+              </button>
             </div>
 
-            <div style={{ background: '#F8F7F4', borderRadius: 10, padding: 14, marginBottom: 18, border: '1px solid #EAEAE8' }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--navy)' }}>
+            <div className="stock-product-card">
+              <div className="stock-product-name">
                 {adjustModal.product_name || adjustModal.sku}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                <span>SKU: {adjustModal.sku}</span>
-                <span>Stock Actuel: <strong style={{ color: 'var(--navy)' }}>{adjustModal.stock} pièce(s)</strong></span>
+              <div className="stock-product-meta">
+                <span>
+                  SKU : <span className="stock-sku-badge">{adjustModal.sku}</span>
+                </span>
+                <span>
+                  Stock actuel : <strong style={{ color: 'var(--text-head)', fontWeight: 700 }}>{adjustModal.stock} pièce(s)</strong>
+                </span>
               </div>
             </div>
 
             <form onSubmit={handleAdjustSubmit} className="admin-form">
               <div className="field">
-                <label>{t('admin.stock.adjustType', 'Variation (+ ou -)')}</label>
-                <input
-                  type="number"
-                  value={adjustDelta}
-                  onChange={(e) => setAdjustDelta(Number(e.target.value))}
-                  placeholder="ex: +10 ou -2"
-                  style={{ fontSize: 16, fontWeight: 700, textAlign: 'center', background: '#FAF9F6', borderRadius: 10 }}
-                  required
-                />
-                <div style={{ marginTop: 8, padding: '8px 12px', background: adjustDelta > 0 ? '#E6F7EF' : adjustDelta < 0 ? '#FDE9E8' : '#F2F4F7', borderRadius: 8, fontSize: 12, color: adjustDelta > 0 ? '#1FA971' : adjustDelta < 0 ? '#E1251B' : 'var(--muted)', textAlign: 'center', fontWeight: 600 }}>
-                  Nouveau stock estimé : {Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0))} pièce(s)
+                <label htmlFor="adjust-delta">{t('admin.stock.adjustType', 'Variation (+ ou -)')}</label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-admin ghost"
+                    style={{ width: 42, height: 42, padding: 0, fontSize: 20, fontWeight: 700, borderRadius: 8 }}
+                    onClick={() => setAdjustDelta((d) => d - 1)}
+                    title="Diminuer de 1"
+                  >
+                    −
+                  </button>
+                  <input
+                    id="adjust-delta"
+                    type="number"
+                    value={adjustDelta}
+                    onChange={(e) => setAdjustDelta(Number(e.target.value))}
+                    placeholder="0"
+                    style={{ fontSize: 18, fontWeight: 700, textAlign: 'center', borderRadius: 8, flex: 1 }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="btn-admin ghost"
+                    style={{ width: 42, height: 42, padding: 0, fontSize: 20, fontWeight: 700, borderRadius: 8 }}
+                    onClick={() => setAdjustDelta((d) => d + 1)}
+                    title="Augmenter de 1"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="stock-quick-buttons">
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d - 10)}>-10</button>
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d - 5)}>-5</button>
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta(0)}>Reset (0)</button>
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d + 5)}>+5</button>
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d + 10)}>+10</button>
+                </div>
+
+                <div className={`stock-preview-badge ${adjustDelta > 0 ? 'positive' : adjustDelta < 0 ? 'negative' : 'neutral'}`}>
+                  Nouveau stock estimé : <strong>{Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0))} pièce(s)</strong>
+                  {adjustDelta !== 0 && (
+                    <span style={{ marginLeft: 6, fontSize: 11.5, opacity: 0.85 }}>
+                      ({adjustDelta > 0 ? `+${adjustDelta}` : adjustDelta})
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="field" style={{ marginTop: 14 }}>
-                <label>{t('admin.stock.reason', 'Raison du mouvement')}</label>
-                <select value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)} style={{ borderRadius: 8 }}>
+                <label htmlFor="adjust-reason">{t('admin.stock.reason', 'Raison du mouvement')}</label>
+                <select
+                  id="adjust-reason"
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  style={{ borderRadius: 8 }}
+                >
                   <option value="RESTOCK">{REASON_LABELS.RESTOCK}</option>
                 </select>
               </div>
 
               <div className="field" style={{ marginTop: 14 }}>
-                <label>{t('admin.stock.reference', 'Note / Référence du bon')}</label>
+                <label htmlFor="adjust-ref">{t('admin.stock.reference', 'Note / Référence du bon')}</label>
                 <input
+                  id="adjust-ref"
                   type="text"
                   placeholder="ex: BL-2026-09 ou Inventaire de printemps"
                   value={adjustRef}
@@ -206,11 +261,21 @@ export default function StockManagement() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
-                <button type="button" className="btn-admin ghost" onClick={() => setAdjustModal(null)} style={{ borderRadius: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 22 }}>
+                <button
+                  type="button"
+                  className="btn-admin ghost"
+                  onClick={() => setAdjustModal(null)}
+                  style={{ minWidth: 100 }}
+                >
                   {t('common.cancel', 'Annuler')}
                 </button>
-                <button type="submit" className="btn-admin primary" disabled={busy || adjustDelta === 0} style={{ borderRadius: 20, padding: '10px 24px' }}>
+                <button
+                  type="submit"
+                  className="btn-admin primary"
+                  disabled={busy || adjustDelta === 0}
+                  style={{ minWidth: 160 }}
+                >
                   {busy ? t('common.saving', 'Enregistrement…') : t('common.confirm', 'Valider le mouvement')}
                 </button>
               </div>
@@ -220,7 +285,7 @@ export default function StockManagement() {
       )}
 
       {/* BARRE D'ONGLETS PULL-TAB */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, borderBottom: '2px solid #EAEAE8', paddingBottom: 2 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, borderBottom: '2px solid var(--line)', paddingBottom: 2 }}>
         <button
           onClick={() => setActiveTab('inventory')}
           style={{
@@ -289,10 +354,10 @@ export default function StockManagement() {
                 const stock = v.stock ?? 0;
                 return (
                   <tr key={v.id}>
-                    <td className="cell-sub" style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--navy)' }}>{v.sku}</td>
+                    <td className="cell-sub" style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--text-head)' }}>{v.sku}</td>
                     <td className="cell-main" style={{ fontWeight: 600 }}>{v.product_name || v.product?.name || '—'}</td>
                     <td style={{ fontWeight: 500 }}>{v.retail_price ? `${parseFloat(v.retail_price).toFixed(2)} €` : '—'}</td>
-                    <td style={{ color: 'var(--navy)', fontWeight: 700 }}>
+                    <td style={{ color: 'var(--text-head)', fontWeight: 700 }}>
                       {v.wholesale_price ? `${parseFloat(v.wholesale_price).toFixed(2)} €` : '—'}
                     </td>
                     <td>

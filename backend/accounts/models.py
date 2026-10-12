@@ -22,13 +22,12 @@ class User(AbstractUser):
     )
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []  # email + password suffisent (createsuperuser)
+    REQUIRED_FIELDS = []  
 
     objects = UserManager()
 
     def __str__(self):
         return self.email
-
 
 class CustomerProfile(models.Model):
     """Profil client B2C / B2B (cf. ARCHITECTURE.md §5.1)."""
