@@ -21,6 +21,7 @@ class OrderSerializer(serializers.ModelSerializer):
     items_count = serializers.SerializerMethodField()
 
     delivery_driver_name = serializers.SerializerMethodField()
+    cashier_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -30,6 +31,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "email",
             "customer",
             "customer_name",
+            "cashier_name",
             "order_type",
             "order_type_display",
             "status",
@@ -54,6 +56,11 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_delivery_driver_name(self, obj):
         if obj.delivery_driver:
             return obj.delivery_driver.get_full_name() or obj.delivery_driver.email
+        return None
+
+    def get_cashier_name(self, obj):
+        if isinstance(obj.shipping_address, dict):
+            return obj.shipping_address.get("cashier_name") or obj.shipping_address.get("cashier")
         return None
 
     def get_customer_name(self, obj):

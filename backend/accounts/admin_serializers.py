@@ -51,6 +51,7 @@ class AdminStaffSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(source="user.is_active", required=False)
     role_display = serializers.CharField(source="get_role_display", read_only=True)
     sections = serializers.ListField(read_only=True)
+    custom_sections = serializers.ListField(child=serializers.CharField(), required=False, allow_empty=True)
     last_login = serializers.DateTimeField(source="user.last_login", read_only=True)
     created_by_email = serializers.EmailField(source="created_by.email", read_only=True, default=None)
 
@@ -58,7 +59,7 @@ class AdminStaffSerializer(serializers.ModelSerializer):
         model = StaffProfile
         fields = (
             "id", "email", "first_name", "last_name", "is_active",
-            "role", "role_display", "sections",
+            "role", "role_display", "sections", "custom_sections",
             "phone", "job_title", "delivery_zone", "vehicle",
             "last_login", "created_at", "created_by_email",
         )
@@ -87,6 +88,7 @@ class AdminStaffCreateSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=StaffProfile.Role.choices)
+    custom_sections = serializers.ListField(child=serializers.CharField(), required=False, default=list)
     phone = serializers.CharField(max_length=40, required=False, allow_blank=True)
     job_title = serializers.CharField(max_length=120, required=False, allow_blank=True)
     delivery_zone = serializers.CharField(max_length=120, required=False, allow_blank=True)

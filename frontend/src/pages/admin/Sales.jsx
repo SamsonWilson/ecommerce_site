@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { api } from '../../lib/api.js';
 import { useAuth } from '../../store/auth.js';
 import { I } from './icons.jsx';
-import { PageHead } from './ui.jsx';
+import { PageHead, Panel } from './ui.jsx';
 
 const DEFAULT_CUSTOMER_NAME = 'XXXXXXXXXXXX';
 
@@ -51,14 +51,19 @@ const sampleProducts = [
 export default function Sales() {
   const { t } = useTranslation();
   const user = useAuth((s) => s.user);
-  const cashierName = user
+  const defaultCashierName = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
     : 'Administrateur';
+
+  const [staffList, setStaffList] = useState([]);
+  const [selectedCashier, setSelectedCashier] = useState('');
+  const cashierName = selectedCashier || defaultCashierName;
 
   const [products, setProducts] = useState(sampleProducts);
   const [loading, setLoading] = useState(true);
   const [productQuery, setProductQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
+  const [viewMode, setViewMode] = useState('table'); // 'table' ou 'grid'
 
   const [customers, setCustomers] = useState([DEFAULT_CUSTOMER]);
   const [selectedCustomer, setSelectedCustomer] = useState(DEFAULT_CUSTOMER);
@@ -70,6 +75,14 @@ export default function Sales() {
   const [saleMessage, setSaleMessage] = useState({ text: '', type: '', receipt: null });
   const [completedReceipt, setCompletedReceipt] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  // Historique des ventes & encaissements
+  const [recentSales, setRecentSales] = useState([]);
+  const [loadingSales, setLoadingSales] = useState(false);
+  const [historySearch, setHistorySearch] = useState('');
+  const [cashierFilter, setCashierFilter] = useState('ALL');
+  const [paymentFilter, setPaymentFilter] = useState('ALL');
+  const [periodFilter, setPeriodFilter] = useState('ALL');
 
   const getPaymentLabel = (method) => {
     switch (method) {
@@ -108,10 +121,123 @@ export default function Sales() {
     }
   }, []);
 
+  const loadRecentSales = useCallback(async () => {
+    setLoadingSales(true);
+    try {
+      const data = await api.adminOrders({ page: 1 });
+      const rows = Array.isArray(data) ? data : (data.results || []);
+      setRecentSales(rows);
+    } catch {
+      setRecentSales([]);
+    } finally {
+      setLoadingSales(false);
+    }
+  }, []);
+
+  const loadStaff = useCallback(async () => {
+    try {
+      const data = await api.adminStaff();
+      const rows = Array.isArray(data) ? data : (data.results || []);
+      setStaffList(rows);
+    } catch {
+      setStaffList([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadProducts();
     loadCustomers();
-  }, [loadProducts, loadCustomers]);
+    loadRecentSales();
+    loadStaff();
+  }, [loadProducts, loadCustomers, loadRecentSales, loadStaff]);
+
+  // Liste de tous les caissiers identifiés (personnel + historiques + caissier actuel)
+  const availableCashiers = useMemo(() => {
+    const names = new Set();
+    if (defaultCashierName) names.add(defaultCashierName.trim());
+    if (selectedCashier) names.add(selectedCashier.trim());
+    staffList.forEach((s) => {
+      const name = [s.first_name, s.last_name].filter(Boolean).join(' ') || s.email;
+      if (name) names.add(name.trim());
+    });
+    recentSales.forEach((sale) => {
+      const c = sale.cashier_name || sale.shipping_address?.cashier_name || sale.shipping_address?.cashier;
+      if (c && typeof c === 'string') names.add(c.trim());
+    });
+    return Array.from(names).filter(Boolean).sort();
+  }, [defaultCashierName, selectedCashier, staffList, recentSales]);
+
+  // Filtrage intelligent de l'historique des ventes
+  const filteredSales = useMemo(() => {
+    return recentSales.filter((sale) => {
+      const saleCashier =
+        sale.cashier_name ||
+        sale.shipping_address?.cashier_name ||
+        sale.shipping_address?.cashier ||
+        (sale.payment_method === 'cash' || sale.shipping_address?.method === 'pickup'
+          ? defaultCashierName || 'Caisse Boutique'
+          : 'Boutique en ligne');
+
+      if (cashierFilter !== 'ALL' && saleCashier !== cashierFilter) {
+        return false;
+      }
+
+      if (paymentFilter !== 'ALL' && (sale.payment_method || 'card') !== paymentFilter) {
+        return false;
+      }
+
+      if (periodFilter !== 'ALL' && sale.created_at) {
+        const saleDate = new Date(sale.created_at);
+        const now = new Date();
+        if (periodFilter === 'TODAY') {
+          if (saleDate.toDateString() !== now.toDateString()) return false;
+        } else if (periodFilter === 'WEEK') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+          if (saleDate < weekAgo) return false;
+        } else if (periodFilter === 'MONTH') {
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+          if (saleDate < monthAgo) return false;
+        }
+      }
+
+      if (historySearch.trim()) {
+        const q = historySearch.trim().toLowerCase();
+        const client = (sale.shipping_address?.name || sale.customer_name || sale.email || '').toLowerCase();
+        const ref = (sale.reference || '').toLowerCase();
+        const cashier = saleCashier.toLowerCase();
+        const payment = (sale.payment_method || '').toLowerCase();
+        const items = (sale.items || []).map((i) => `${i.product_name || ''} ${i.sku || ''}`).join(' ').toLowerCase();
+        return ref.includes(q) || client.includes(q) || cashier.includes(q) || payment.includes(q) || items.includes(q);
+      }
+
+      return true;
+    });
+  }, [recentSales, cashierFilter, paymentFilter, periodFilter, historySearch, defaultCashierName]);
+
+  const handleViewReceiptFromOrder = (order) => {
+    const finalCustomerName = order.shipping_address?.name || order.customer_name || order.email || DEFAULT_CUSTOMER_NAME;
+    const orderCashier =
+      order.cashier_name ||
+      order.shipping_address?.cashier_name ||
+      order.shipping_address?.cashier ||
+      cashierName;
+    const items = (order.items || []).map((i) => ({
+      productName: i.product_name,
+      sku: i.sku || 'SKU',
+      unitPrice: Number(i.unit_price || 0),
+      quantity: i.quantity || 1,
+    }));
+    const receiptData = {
+      reference: order.reference,
+      date: order.created_at || new Date(),
+      customerName: finalCustomerName,
+      cashierName: orderCashier,
+      paymentMethod: order.payment_method || 'card',
+      items: items.length > 0 ? items : [{ productName: `Commande ${order.reference}`, sku: 'REF', unitPrice: Number(order.total_amount || 0), quantity: 1 }],
+      total: Number(order.total_amount || 0),
+    };
+    setCompletedReceipt(receiptData);
+  };
 
   // Extract categories for chips
   const categories = useMemo(() => {
@@ -215,9 +341,11 @@ export default function Sales() {
         email: finalCustomerEmail,
         payment_method: paymentMethod,
         mark_paid: true,
+        cashier_name: cashierName,
         shipping_address: {
           method: 'pickup',
           name: finalCustomerName,
+          cashier_name: cashierName,
           city: 'Paris',
           postal_code: '75000',
           country: 'FR',
@@ -258,6 +386,7 @@ export default function Sales() {
       setCustomerName('');
       setCustomerEmail('');
       loadProducts();
+      loadRecentSales();
 
       // Déclenchement automatique de l'impression du ticket
       setTimeout(() => {
@@ -282,9 +411,27 @@ export default function Sales() {
           title={t('admin.sales.title', 'Caisse & Vente directe')}
           subtitle="Enregistrez et encaissez rapidement les commandes en boutique physique."
         >
-          <button type="button" className="btn-admin ghost" onClick={loadProducts}>
-            {I.check} Actualiser le stock
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card-bg)', border: '1px solid var(--line)', padding: '5px 12px', borderRadius: 8 }}>
+              <span style={{ fontSize: 13 }}>👤</span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.1 }}>Caissier actif</span>
+                <select
+                  value={selectedCashier || defaultCashierName}
+                  onChange={(e) => setSelectedCashier(e.target.value)}
+                  style={{ border: 'none', background: 'transparent', fontWeight: 700, color: 'var(--text-head)', fontSize: 13, cursor: 'pointer', outline: 'none', padding: 0 }}
+                  title="Sélectionner le caissier actif pour les prochaines ventes"
+                >
+                  {availableCashiers.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button type="button" className="btn-admin ghost" onClick={() => { loadProducts(); loadRecentSales(); }}>
+              {I.check} Actualiser
+            </button>
+          </div>
         </PageHead>
 
         <div className="pos-layout">
@@ -311,6 +458,26 @@ export default function Sales() {
                     </button>
                   )}
                 </div>
+
+                <div className="pos-view-toggle">
+                  <button
+                    type="button"
+                    className={`pos-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                    onClick={() => setViewMode('table')}
+                    title="Vue Tableau défilant"
+                  >
+                    📋 Tableau
+                  </button>
+                  <button
+                    type="button"
+                    className={`pos-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                    onClick={() => setViewMode('grid')}
+                    title="Vue Grille de cartes"
+                  >
+                    🔲 Grille
+                  </button>
+                </div>
+
                 <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap', fontWeight: 600 }}>
                   {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
                 </span>
@@ -332,7 +499,7 @@ export default function Sales() {
               )}
             </div>
 
-            {/* Grille des produits */}
+            {/* Grille ou Tableau des produits */}
             {loading ? (
               <div className="admin-empty" style={{ padding: 40 }}>
                 Chargement des produits…
@@ -341,95 +508,191 @@ export default function Sales() {
               <div className="admin-empty" style={{ padding: 40 }}>
                 Aucun produit ne correspond à votre recherche.
               </div>
+            ) : viewMode === 'table' ? (
+              <div className="admin-table-scroll" style={{ maxHeight: 480 }}>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 48 }}>Photo</th>
+                      <th>Produit</th>
+                      <th>Catégorie</th>
+                      <th>SKU</th>
+                      <th>Stock</th>
+                      <th>Prix</th>
+                      <th style={{ textAlign: 'right' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => {
+                      const variant = product.variants?.[0];
+                      const price = Number(variant?.price ?? variant?.retail_price ?? 0);
+                      const stock = Number(variant?.stock ?? 0);
+                      const isOutOfStock = stock <= 0;
+                      const isLowStock = stock > 0 && stock <= 5;
+                      const image = buildMediaUrl(
+                        Array.isArray(product.media)
+                          ? (product.media.find((m) => m.media_type === 'IMAGE' || m.media_type === 'image')?.file || product.media[0]?.file || '')
+                          : ''
+                      );
+                      const colors = getProductColors(product);
+
+                      return (
+                        <tr key={product.id}>
+                          <td>
+                            <div style={{ width: 38, height: 38, borderRadius: 6, overflow: 'hidden', background: 'var(--bg)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {image ? (
+                                <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span style={{ fontSize: 10, color: 'var(--muted)' }}>-</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="cell-main" style={{ fontWeight: 600 }}>{product.name}</div>
+                            {colors.length > 0 && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                {colors.slice(0, 3).map((c) => (
+                                  <span
+                                    key={c.name}
+                                    title={c.name}
+                                    style={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: '50%',
+                                      backgroundColor: c.hex_code || '#ddd',
+                                      display: 'inline-block',
+                                    }}
+                                  />
+                                ))}
+                                <span className="cell-sub" style={{ fontSize: 11 }}>{colors.map((c) => c.name).join(', ')}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="tag-pill tier-1" style={{ fontSize: 11 }}>
+                              {product.category || 'Général'}
+                            </span>
+                          </td>
+                          <td className="cell-sub">
+                            <code>{variant?.sku || '-'}</code>
+                          </td>
+                          <td>
+                            <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
+                              {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restants` : `🟢 ${stock} en stock`}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: 700, color: 'var(--gold, #B08A34)', fontSize: 13.5 }}>
+                            {formatMoney(price)}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              className="pos-add-btn"
+                              onClick={() => addToCart(product)}
+                              disabled={isOutOfStock}
+                              style={{ display: 'inline-flex', padding: '6px 12px', fontSize: 12 }}
+                              title={isOutOfStock ? 'Article en rupture' : 'Ajouter au ticket'}
+                            >
+                              {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             ) : (
-              <div className="pos-products-grid">
-                {filteredProducts.map((product) => {
-                  const variant = product.variants?.[0];
-                  const price = Number(variant?.price ?? variant?.retail_price ?? 0);
-                  const stock = Number(variant?.stock ?? 0);
-                  const isOutOfStock = stock <= 0;
-                  const isLowStock = stock > 0 && stock <= 5;
-                  const image = buildMediaUrl(
-                    Array.isArray(product.media)
-                      ? (product.media.find((m) => m.media_type === 'IMAGE' || m.media_type === 'image')?.file || product.media[0]?.file || '')
-                      : ''
-                  );
-                  const colors = getProductColors(product);
+              <div className="pos-products-scroll">
+                <div className="pos-products-grid">
+                  {filteredProducts.map((product) => {
+                    const variant = product.variants?.[0];
+                    const price = Number(variant?.price ?? variant?.retail_price ?? 0);
+                    const stock = Number(variant?.stock ?? 0);
+                    const isOutOfStock = stock <= 0;
+                    const isLowStock = stock > 0 && stock <= 5;
+                    const image = buildMediaUrl(
+                      Array.isArray(product.media)
+                        ? (product.media.find((m) => m.media_type === 'IMAGE' || m.media_type === 'image')?.file || product.media[0]?.file || '')
+                        : ''
+                    );
+                    const colors = getProductColors(product);
 
-                  return (
-                    <article key={product.id} className="pos-product-card">
-                      <div className="pos-product-image">
-                        {image ? (
-                          <img src={image} alt={product.name} loading="lazy" />
-                        ) : (
-                          <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>Sans image</span>
-                        )}
-                        <span
-                          className={`pos-product-stock-tag ${
-                            isOutOfStock ? 'out-of-stock' : isLowStock ? 'low-stock' : 'in-stock'
-                          }`}
-                        >
-                          {isOutOfStock ? '● Rupture' : isLowStock ? `● ${stock} restants` : `● ${stock} en stock`}
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <span className="tag-pill tier-1" style={{ fontSize: 10 }}>
-                          {product.category || 'Général'}
-                        </span>
-                        {variant?.sku && (
-                          <span className="pos-product-sku" style={{ margin: 0 }}>
-                            {variant.sku}
+                    return (
+                      <article key={product.id} className="pos-product-card">
+                        <div className="pos-product-image">
+                          {image ? (
+                            <img src={image} alt={product.name} loading="lazy" />
+                          ) : (
+                            <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>Sans image</span>
+                          )}
+                          <span
+                            className={`pos-product-stock-tag ${
+                              isOutOfStock ? 'out-of-stock' : isLowStock ? 'low-stock' : 'in-stock'
+                            }`}
+                          >
+                            {isOutOfStock ? '● Rupture' : isLowStock ? `● ${stock} restants` : `● ${stock} en stock`}
                           </span>
-                        )}
-                      </div>
-
-                      <h4 className="pos-product-title" title={product.name}>
-                        {product.name}
-                      </h4>
-
-                      {colors.length > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-                          {colors.slice(0, 4).map((c) => (
-                            <span
-                              key={c.name}
-                              title={c.name}
-                              style={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                backgroundColor: c.hex_code || '#ddd',
-                                display: 'inline-block',
-                                border: '1px solid rgba(0,0,0,0.15)',
-                              }}
-                            />
-                          ))}
                         </div>
-                      )}
 
-                      {/* LIGNE DE STOCK DÉDIÉE BIEN VISIBLE */}
-                      <div className="pos-product-stock-row">
-                        <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Stock :</span>
-                        <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
-                          {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restant${stock > 1 ? 's' : ''}` : `🟢 ${stock} en stock`}
-                        </span>
-                      </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                          <span className="tag-pill tier-1" style={{ fontSize: 10 }}>
+                            {product.category || 'Général'}
+                          </span>
+                          {variant?.sku && (
+                            <span className="pos-product-sku" style={{ margin: 0 }}>
+                              {variant.sku}
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="pos-product-footer">
-                        <div className="pos-product-price">{formatMoney(price)}</div>
-                        <button
-                          type="button"
-                          className="pos-add-btn"
-                          onClick={() => addToCart(product)}
-                          disabled={isOutOfStock}
-                          title={isOutOfStock ? 'Article en rupture' : 'Ajouter au panier'}
-                        >
-                          {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
+                        <h4 className="pos-product-title" title={product.name}>
+                          {product.name}
+                        </h4>
+
+                        {colors.length > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+                            {colors.slice(0, 4).map((c) => (
+                              <span
+                                key={c.name}
+                                title={c.name}
+                                style={{
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: '50%',
+                                  backgroundColor: c.hex_code || '#ddd',
+                                  display: 'inline-block',
+                                  border: '1px solid rgba(0,0,0,0.15)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {/* LIGNE DE STOCK DÉDIÉE BIEN VISIBLE */}
+                        <div className="pos-product-stock-row">
+                          <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Stock :</span>
+                          <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
+                            {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restant${stock > 1 ? 's' : ''}` : `🟢 ${stock} en stock`}
+                          </span>
+                        </div>
+
+                        <div className="pos-product-footer">
+                          <div className="pos-product-price">{formatMoney(price)}</div>
+                          <button
+                            type="button"
+                            className="pos-add-btn"
+                            onClick={() => addToCart(product)}
+                            disabled={isOutOfStock}
+                            title={isOutOfStock ? 'Article en rupture' : 'Ajouter au panier'}
+                          >
+                            {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </section>
@@ -671,6 +934,219 @@ export default function Sales() {
               </div>
             )}
           </aside>
+        </div>
+
+        {/* HISTORIQUE DES VENTES & ENCAISSEMENTS RÉCENTS */}
+        <div style={{ marginTop: 28 }}>
+          <Panel
+            title="Historique des ventes & encaissements"
+            action={
+              <button
+                type="button"
+                className="btn-admin ghost"
+                onClick={loadRecentSales}
+                disabled={loadingSales}
+                style={{ fontSize: 12 }}
+              >
+                {I.check} {loadingSales ? 'Actualisation…' : 'Actualiser'}
+              </button>
+            }
+          >
+            {/* BARRE DE RECHERCHE ET FILTRES D'HISTORIQUE */}
+            <div className="admin-toolbar" style={{ flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+              {/* Champ de recherche */}
+              <div className="admin-field" style={{ flex: '1 1 260px', minWidth: 220 }}>
+                {I.search}
+                <input
+                  type="text"
+                  placeholder="Rechercher par référence, client, caissier, article…"
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                />
+                {historySearch && (
+                  <button
+                    type="button"
+                    onClick={() => setHistorySearch('')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 2 }}
+                  >
+                    {I.cross}
+                  </button>
+                )}
+              </div>
+
+              {/* Filtre par Caissier */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                  Caissier :
+                </span>
+                <select
+                  className="admin-select"
+                  value={cashierFilter}
+                  onChange={(e) => setCashierFilter(e.target.value)}
+                  style={{ minWidth: 150 }}
+                >
+                  <option value="ALL">Tous les caissiers</option>
+                  {availableCashiers.map((c) => (
+                    <option key={c} value={c}>
+                      👤 {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtre par Mode de paiement */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                  Paiement :
+                </span>
+                <select
+                  className="admin-select"
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  style={{ minWidth: 130 }}
+                >
+                  <option value="ALL">Tous les modes</option>
+                  <option value="card">💳 Carte bancaire</option>
+                  <option value="cash">💵 Espèces</option>
+                  <option value="transfer">🏦 Virement</option>
+                </select>
+              </div>
+
+              {/* Filtre par Période */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                  Période :
+                </span>
+                <select
+                  className="admin-select"
+                  value={periodFilter}
+                  onChange={(e) => setPeriodFilter(e.target.value)}
+                  style={{ minWidth: 130 }}
+                >
+                  <option value="ALL">Toutes dates</option>
+                  <option value="TODAY">Aujourd'hui</option>
+                  <option value="WEEK">7 derniers jours</option>
+                  <option value="MONTH">Ce mois-ci</option>
+                </select>
+              </div>
+
+              {/* Compteur & Réinitialisation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
+                <span className="admin-count">
+                  {filteredSales.length} / {recentSales.length} vente{filteredSales.length > 1 ? 's' : ''}
+                </span>
+                {(historySearch || cashierFilter !== 'ALL' || paymentFilter !== 'ALL' || periodFilter !== 'ALL') && (
+                  <button
+                    type="button"
+                    className="btn-admin ghost"
+                    style={{ fontSize: 11, padding: '3px 8px', color: 'var(--red)' }}
+                    onClick={() => {
+                      setHistorySearch('');
+                      setCashierFilter('ALL');
+                      setPaymentFilter('ALL');
+                      setPeriodFilter('ALL');
+                    }}
+                  >
+                    Effacer filtres
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {loadingSales ? (
+              <div className="admin-empty" style={{ padding: '24px 0' }}>
+                Chargement de l'historique des ventes…
+              </div>
+            ) : recentSales.length === 0 ? (
+              <div className="admin-empty" style={{ padding: '24px 0' }}>
+                Aucune vente enregistrée pour le moment.
+              </div>
+            ) : filteredSales.length === 0 ? (
+              <div className="admin-empty" style={{ padding: '24px 0' }}>
+                Aucune vente ne correspond à vos filtres de recherche.
+              </div>
+            ) : (
+              <div className="admin-table-scroll">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Référence</th>
+                      <th>Date & Heure</th>
+                      <th>Caissier / Vendeur</th>
+                      <th>Client</th>
+                      <th>Articles</th>
+                      <th>Mode de règlement</th>
+                      <th>Total encaissé</th>
+                      <th>Statut</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSales.map((sale) => {
+                      const orderCashier =
+                        sale.cashier_name ||
+                        sale.shipping_address?.cashier_name ||
+                        sale.shipping_address?.cashier ||
+                        (sale.payment_method === 'cash' || sale.shipping_address?.method === 'pickup'
+                          ? defaultCashierName || 'Caisse Boutique'
+                          : 'Boutique en ligne');
+
+                      return (
+                        <tr key={sale.id || sale.reference}>
+                          <td className="cell-main">
+                            <strong>{sale.reference}</strong>
+                          </td>
+                          <td className="cell-sub">
+                            {sale.created_at ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(sale.created_at)) : '-'}
+                          </td>
+                          <td>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--line)', fontSize: 12, fontWeight: 600 }}>
+                              <span style={{ fontSize: 12 }}>👤</span>
+                              <span>{orderCashier}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="cell-main">
+                              {sale.shipping_address?.name || sale.customer_name || sale.email || DEFAULT_CUSTOMER_NAME}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="tag-pill tier-1" style={{ fontSize: 11 }}>
+                              {sale.items?.length || 1} article{(sale.items?.length || 1) > 1 ? 's' : ''}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ fontSize: 12, fontWeight: 600 }}>
+                              {sale.payment_method === 'card' ? '💳 Carte' : sale.payment_method === 'cash' ? '💵 Espèces' : sale.payment_method === 'transfer' ? '🏦 Virement' : (sale.payment_method || 'Comptoir')}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: 700, color: 'var(--gold, #B08A34)', fontSize: 13.5 }}>
+                            {formatMoney(sale.total_amount)}
+                          </td>
+                          <td>
+                            <span className={`status ${sale.status === 'PAID' ? 'paid' : sale.status === 'SHIPPED' ? 'shipped' : 'pending'}`}>
+                              {sale.status === 'PAID' ? 'Payée' : sale.status === 'SHIPPED' ? 'Expédiée' : (sale.status || 'Validée')}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              className="btn-admin ghost"
+                              style={{ padding: '4px 10px', fontSize: 11.5 }}
+                              onClick={() => handleViewReceiptFromOrder(sale)}
+                              title="Consulter et réimprimer le ticket"
+                            >
+                              🖨️ Ticket
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
         </div>
       </div>
 

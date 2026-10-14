@@ -101,6 +101,9 @@ class StaffProfile(models.Model):
     delivery_zone = models.CharField(_("zone de livraison"), max_length=120, blank=True)
     vehicle = models.CharField(_("véhicule"), max_length=60, blank=True)
 
+    # Pages / sections autorisées personnalisées (si vide, hérite du rôle)
+    custom_sections = models.JSONField(_("accès personnalisés aux sections"), default=list, blank=True)
+
     created_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name="staff_created"
     )
@@ -116,7 +119,9 @@ class StaffProfile(models.Model):
 
     @property
     def sections(self):
-        """Sections du back-office autorisées pour ce rôle."""
+        """Sections du back-office autorisées pour ce rôle / employé."""
         if self.user.is_superuser:
             return list(self.ROLE_SECTIONS[self.Role.ADMIN])
+        if self.custom_sections and isinstance(self.custom_sections, list):
+            return list(self.custom_sections)
         return list(self.ROLE_SECTIONS.get(self.role, ()))

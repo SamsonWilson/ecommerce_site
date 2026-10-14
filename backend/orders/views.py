@@ -57,8 +57,14 @@ class CheckoutView(views.APIView):
         data = request.data
         email = data.get("email") or (request.user.email if request.user.is_authenticated else None)
         shipping_address = data.get("shipping_address", {})
-        if isinstance(shipping_address, dict) and "payment_method" not in shipping_address:
-            shipping_address["payment_method"] = data.get("payment_method", "card")
+        if isinstance(shipping_address, dict):
+            if "payment_method" not in shipping_address:
+                shipping_address["payment_method"] = data.get("payment_method", "card")
+            cashier = data.get("cashier_name") or data.get("cashier")
+            if not cashier and request.user.is_authenticated and getattr(request.user, "is_staff", False):
+                cashier = request.user.get_full_name() or request.user.email
+            if cashier:
+                shipping_address["cashier_name"] = cashier
         raw_items = data.get("items", [])
         raw_mark_paid = data.get("mark_paid")
         if raw_mark_paid in ("true", "True", "1", 1, True):

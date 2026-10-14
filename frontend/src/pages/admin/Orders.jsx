@@ -209,7 +209,8 @@ export default function Orders() {
           <span className="admin-count">{orders.length} {t('admin.orders.results', 'résultat(s)')}</span>
         </Toolbar>
 
-        <table className="admin-table">
+        <div className="admin-table-scroll">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>{t('admin.orders.tableRef', 'Référence')}</th>
@@ -300,7 +301,8 @@ export default function Orders() {
               </tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
         <Pagination pages={1} current={1} />
       </Panel>
 
@@ -515,7 +517,7 @@ export default function Orders() {
                 <h4 style={{ margin: '0 0 12px 0', fontSize: 15, color: '#0F172A', fontWeight: 700 }}>
                   Articles commandés ({selectedOrder.items?.length || 0})
                 </h4>
-                <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
+                <div className="admin-table-scroll" style={{ border: '1px solid #E2E8F0', borderRadius: 10, maxHeight: 280 }}>
                   <table className="admin-table" style={{ margin: 0, background: '#fff' }}>
                     <thead>
                       <tr style={{ background: '#F8FAFC' }}>

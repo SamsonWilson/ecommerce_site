@@ -83,7 +83,8 @@ export default function ProAccounts() {
 
         {error && <p className="admin-login-error">{error}</p>}
 
-        <table className="admin-table">
+        <div className="admin-table-scroll">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>{t('admin.proAccounts.tableAccount', 'Compte')}</th>
@@ -153,7 +154,8 @@ export default function ProAccounts() {
             )}
             {loading && <tr><td colSpan="6" className="admin-empty">{t('common.loading', 'Chargement…')}</td></tr>}
           </tbody>
-        </table>
+          </table>
+        </div>
       </Panel>
     </>
   );

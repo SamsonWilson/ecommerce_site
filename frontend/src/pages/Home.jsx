@@ -119,35 +119,32 @@ export default function Home() {
   // Diapositives Hero Haute Parure
   const heroSlides = [
     {
-      badge: "✦ HAUTE JOAILLERIE & ORNEMENTS NUPTIAUX ✦",
       title1: t('home.hero.title1') || "Accessoires de Mariage",
       title2: t('home.hero.title2') || "Héritage Impérial",
       desc: "Collection d'exception de parures nuptiales, bijoux et coiffures traditionnelles impériales façonnées à la main pour une célébration d'une élégance inoubliable.",
       image: '/images/hero_phoenix_crown.jpg',
       alt: "Couronne Impériale & Parure Nuptiale Maison Lián",
-      pills: ["💎 Fait Main & Dorure 18K", "✨ Pièce Signée • Édition Limitée"],
+      pills: [],
       price: "Dès 128 €",
       link: "/boutique",
     },
     {
-      badge: "✦ HAUTE COIFFURE & ORNEMENTS ✦",
       title1: "Peignes Phénix",
       title2: "Épingles de Soie",
       desc: "Ornements précieux, peignes sculptés et épingles traditionnelles ornées de fleurs ciselées et pampilles dorées pour magnifier la chevelure de la mariée.",
       image: '/images/bridal_hairpin.jpg',
       alt: "Peigne & Épingles Nuptiales Traditionnelles",
-      pills: ["🌸 Fleurs Ciselées & Jade", "🕊️ Pampilles Royales"],
+      pills: [],
       price: "Dès 68 €",
       link: "/boutique?category=ceremonie",
     },
     {
-      badge: "✦ ÉCRIN PRESTIGE & CADEAU ✦",
       title1: "L'Écrin Signature",
       title2: "Maison Lián",
       desc: "Chaque bijou est soigneusement disposé dans notre coffret velours signature prêt-à-offrir, accompagné de son certificat d'authenticité et ruban satiné.",
       image: '/images/signature_gift_box.jpg',
       alt: "Écrin Velours Signature & Certificat de Garantie",
-      pills: ["🎁 Coffret Velours Offert", "📜 Certificat Numéroté"],
+      pills: [],
       price: "Offert dès 150 €",
       link: "/boutique",
     },
@@ -256,9 +253,6 @@ export default function Home() {
                 <span>{t('nav.allCategories') || 'Toutes les collections'}</span>
                 <span className="btn-arrow">›</span>
               </Link>
-              <span className="sale-tag" style={{ margin: 0 }}>
-                <span style={{ color: '#FFD700' }}>✦</span> {currentHero.badge}
-              </span>
             </div>
 
             <h1>{currentHero.title1} <em>&amp;</em> {currentHero.title2}</h1>
@@ -275,8 +269,6 @@ export default function Home() {
           </div>
 
           <div className="uee-hero-art">
-            <div className="hero-pill p1">{currentHero.pills[0]}</div>
-            <div className="hero-pill p2">{currentHero.pills[1]}</div>
             <div className="disc pg-fade" key={slide}>
               <img
                 className="hero-photo"

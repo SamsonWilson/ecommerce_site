@@ -90,37 +90,41 @@ export default function Dashboard() {
 
       <div className="admin-row cols-2-1">
         <Panel title={t('admin.dashboard.recentOrders', 'Dernières commandes')} action={<Link className="see-all" to="/gestion/commandes">{t('admin.dashboard.seeAll', 'Voir tout →')}</Link>}>
-          <table className="admin-table">
-            <thead><tr><th>{t('admin.dashboard.order', 'Commande')}</th><th>{t('admin.dashboard.customer', 'Client')}</th><th>{t('admin.dashboard.amount', 'Montant')}</th><th>{t('admin.dashboard.status', 'Statut')}</th></tr></thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o.id}>
-                  <td className="cell-main">{o.id}</td>
-                  <td>{o.who} <span className="cell-sub">{o.sub}</span></td>
-                  <td>{o.amount}</td>
-                  <td><span className={`status ${o.status[0]}`}>{o.status[1]}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead><tr><th>{t('admin.dashboard.order', 'Commande')}</th><th>{t('admin.dashboard.customer', 'Client')}</th><th>{t('admin.dashboard.amount', 'Montant')}</th><th>{t('admin.dashboard.status', 'Statut')}</th></tr></thead>
+              <tbody>
+                {orders.map((o) => (
+                  <tr key={o.id}>
+                    <td className="cell-main">{o.id}</td>
+                    <td>{o.who} <span className="cell-sub">{o.sub}</span></td>
+                    <td>{o.amount}</td>
+                    <td><span className={`status ${o.status[0]}`}>{o.status[1]}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel title={t('admin.dashboard.topProducts', 'Produits les plus vendus')} action={<Link className="see-all" to="/gestion/produits">{t('admin.dashboard.seeAll', 'Voir tout →')}</Link>}>
-          <table className="admin-table">
-            <tbody>
-              {topProducts.map((p) => (
-                <tr key={p.name}>
-                  <td>
-                    <div className="cell-flex">
-                      <span className="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{p.thumb}</svg></span>
-                      <div><div className="cell-main">{p.name}</div><div className="cell-sub">{p.cat}</div></div>
-                    </div>
-                  </td>
-                  <td className="cell-sub" style={{ textAlign: 'right' }}>{p.sales}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <tbody>
+                {topProducts.map((p) => (
+                  <tr key={p.name}>
+                    <td>
+                      <div className="cell-flex">
+                        <span className="cell-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{p.thumb}</svg></span>
+                        <div><div className="cell-main">{p.name}</div><div className="cell-sub">{p.cat}</div></div>
+                      </div>
+                    </td>
+                    <td className="cell-sub" style={{ textAlign: 'right' }}>{p.sales}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </>

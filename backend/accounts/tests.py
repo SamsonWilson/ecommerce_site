@@ -47,3 +47,39 @@ class AccountsTestCase(TestCase):
         url = f"/api/v1/admin/customers/{self.customer_user.profile.id}/approve/"
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_staff_sections_catalog(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = "/api/v1/admin/staff/sections/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keys = [item["key"] for item in response.data]
+        self.assertIn("dashboard", keys)
+        self.assertIn("orders", keys)
+        self.assertIn("catalog", keys)
+        self.assertIn("staff", keys)
+
+    def test_staff_set_custom_sections_and_reset(self):
+        self.client.force_authenticate(user=self.admin_user)
+        # Create an employee with SUPPORT role (default sections: ['dashboard', 'orders', 'customers'])
+        emp_user = User.objects.create_user(email="support@example.com", password="Password123!", is_staff=True)
+        staff_prof = StaffProfile.objects.create(user=emp_user, role=StaffProfile.Role.SUPPORT)
+        self.assertEqual(staff_prof.sections, ["dashboard", "orders", "customers"])
+
+        # Admin assigns custom pages: dashboard, orders, catalog
+        url = f"/api/v1/admin/staff/{staff_prof.id}/set-sections/"
+        response = self.client.post(url, {"sections": ["dashboard", "orders", "catalog"]}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["sections"], ["dashboard", "orders", "catalog"])
+        self.assertEqual(response.data["custom_sections"], ["dashboard", "orders", "catalog"])
+
+        staff_prof.refresh_from_db()
+        self.assertEqual(staff_prof.sections, ["dashboard", "orders", "catalog"])
+        self.assertEqual(staff_prof.custom_sections, ["dashboard", "orders", "catalog"])
+
+        # Resetting with empty sections restores role defaults
+        response = self.client.post(url, {"sections": []}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["sections"], ["dashboard", "orders", "customers"])
+        self.assertEqual(response.data["custom_sections"], [])
+

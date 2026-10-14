@@ -455,7 +455,7 @@ export default function Promotions() {
           </span>
         </Toolbar>
 
-        <div className="table-responsive">
+        <div className="table-responsive admin-table-scroll">
           <table className="admin-table">
             <thead>
               <tr>

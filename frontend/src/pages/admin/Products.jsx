@@ -510,7 +510,7 @@ export default function Products() {
               <span className="admin-count">{filteredRows.length} {t('admin.products.results', 'résultat(s)')}</span>
             </Toolbar>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div className="admin-table-scroll">
               <table className="admin-table">
                 <thead>
                   <tr>

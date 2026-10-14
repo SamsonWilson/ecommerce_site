@@ -28,7 +28,7 @@ FRONTEND_LOG="/tmp/marmite-frontend.log"
 
 # 4. Lancement du Backend Django (mode non-bufferise -u pour logs en direct)
 echo "[INFO] Demarrage du Backend sur http://127.0.0.1:8000..."
-(cd "$BACKEND_DIR" && "$VENV_PYTHON" -u manage.py runserver 0.0.0.0:8000 --noreload) > "$BACKEND_LOG" 2>&1 &
+(cd "$BACKEND_DIR" && "$VENV_PYTHON" -u manage.py runserver 0.0.0.0:8000) > "$BACKEND_LOG" 2>&1 &
 BACKEND_PID=$!
 
 # 5. Lancement du Frontend Vite

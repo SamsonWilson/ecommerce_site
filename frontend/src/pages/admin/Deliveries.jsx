@@ -81,7 +81,8 @@ export default function Deliveries() {
           <span className="admin-count">{orders.length} {t('admin.deliveries.runsCount', 'course(s)')}</span>
         </Toolbar>
 
-        <table className="admin-table">
+        <div className="admin-table-scroll">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>{t('admin.deliveries.tableOrder', 'Commande')}</th>
@@ -131,7 +132,8 @@ export default function Deliveries() {
               <tr><td colSpan="5" className="admin-empty">{t('admin.deliveries.empty', 'Aucune course pour ce filtre.')}</td></tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </Panel>
     </>
   );

@@ -338,6 +338,7 @@ export default function StockManagement() {
 
           {error && <p className="admin-login-error">{error}</p>}
 
+        <div className="admin-table-scroll">
           <table className="admin-table">
             <thead>
               <tr>
@@ -389,10 +390,12 @@ export default function StockManagement() {
               )}
             </tbody>
           </table>
-        </Panel>
+        </div>
+      </Panel>
       ) : (
         <Panel>
-          <table className="admin-table">
+          <div className="admin-table-scroll">
+            <table className="admin-table">
             <thead>
               <tr>
                 <th>{t('admin.stock.colDate', 'Date & Heure')}</th>
@@ -443,7 +446,8 @@ export default function StockManagement() {
               )}
             </tbody>
           </table>
-        </Panel>
+        </div>
+      </Panel>
       )}
     </>
   );

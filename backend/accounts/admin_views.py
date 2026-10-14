@@ -164,6 +164,35 @@ class AdminStaffViewSet(viewsets.ModelViewSet):
         _revoke_tokens(profile.user)
         return Response({"password": raw}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["post"], url_path="set-sections")
+    def set_sections(self, request, pk=None):
+        """Attribue la liste des sections/pages autorisées pour l'employé."""
+        profile = self.get_object()
+        sections_data = request.data.get("sections")
+        if sections_data is None:
+            # Réinitialisation vers les sections par défaut du rôle
+            profile.custom_sections = []
+        elif isinstance(sections_data, list):
+            profile.custom_sections = [str(s).strip() for s in sections_data if str(s).strip()]
+        else:
+            return Response({"sections": "Une liste de sections est attendue."}, status=status.HTTP_400_BAD_REQUEST)
+        profile.save(update_fields=["custom_sections"])
+        return Response(AdminStaffSerializer(profile, context={"request": request}).data)
+
+    @action(detail=False, methods=["get"])
+    def sections(self, request):
+        """Liste de toutes les pages / sections configurables de l'administration."""
+        return Response([
+            {"key": "dashboard", "label": "Tableau de bord", "route": "/gestion", "desc": "Vue d'ensemble et statistiques"},
+            {"key": "orders", "label": "Commandes & Ventes (Caisse)", "route": "/gestion/commandes", "desc": "Gestion des commandes et poste d'encaissement"},
+            {"key": "customers", "label": "Clients", "route": "/gestion/clients", "desc": "Fichier des clients B2C et B2B"},
+            {"key": "promotions", "label": "Promotions", "route": "/gestion/promotions", "desc": "Codes promo et offres commerciales"},
+            {"key": "b2b", "label": "Comptes Pro & Paliers", "route": "/gestion/comptes-pro", "desc": "Espace grossistes et remises B2B"},
+            {"key": "catalog", "label": "Catalogue & Stocks", "route": "/gestion/produits", "desc": "Produits, stocks, inventaire, catégories et langues"},
+            {"key": "deliveries", "label": "Courses & Livraisons", "route": "/gestion/livraisons", "desc": "Tournées et statut des expéditions"},
+            {"key": "staff", "label": "Équipe interne", "route": "/gestion/equipe", "desc": "Gestion des comptes employés et droits d'accès"},
+        ])
+
     @action(detail=False, methods=["get"])
     def roles(self, request):
         """Catalogue des rôles disponibles, pour alimenter le formulaire."""

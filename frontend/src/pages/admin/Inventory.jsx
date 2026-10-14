@@ -324,7 +324,8 @@ export default function Inventory() {
           </span>
         </Toolbar>
 
-        <table className="admin-table">
+        <div className="admin-table-scroll">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>SKU / Réf</th>
@@ -404,7 +405,8 @@ export default function Inventory() {
               </tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </Panel>
     </>
   );

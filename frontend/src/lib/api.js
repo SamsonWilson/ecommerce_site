@@ -86,10 +86,13 @@ export const api = {
   // Équipe interne — réservé au rôle ADMIN (cf. accounts.permissions.IsStaffAdmin)
   adminStaff: (params) => request(`/admin/staff/${qs(params)}`, { auth: true }),
   adminStaffRoles: () => request('/admin/staff/roles/', { auth: true }),
+  adminStaffSections: () => request('/admin/staff/sections/', { auth: true }),
   adminCreateStaff: (d) => request('/admin/staff/', { method: 'POST', body: d, auth: true }),
   adminUpdateStaff: (id, d) => request(`/admin/staff/${id}/`, { method: 'PATCH', body: d, auth: true }),
   adminSetStaffRole: (id, role) =>
     request(`/admin/staff/${id}/set-role/`, { method: 'POST', body: { role }, auth: true }),
+  adminSetStaffSections: (id, sections) =>
+    request(`/admin/staff/${id}/set-sections/`, { method: 'POST', body: { sections }, auth: true }),
   adminActivateStaff: (id) => request(`/admin/staff/${id}/activate/`, { method: 'POST', auth: true }),
   adminDeactivateStaff: (id) => request(`/admin/staff/${id}/deactivate/`, { method: 'POST', auth: true }),
   // `password` vide => le backend en génère un et le renvoie (une seule fois).

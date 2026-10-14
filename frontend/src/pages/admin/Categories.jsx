@@ -37,13 +37,42 @@ export default function Categories() {
 
   const saveCat = async (e) => {
     e.preventDefault();
-    setError(''); setBusy(true);
+    setError('');
+
+    const trimmedName = (catForm.name || '').trim();
+    if (!trimmedName) {
+      setError(t('admin.categories.nameRequired', 'Le nom de la catégorie est obligatoire.'));
+      return;
+    }
+
+    const normalizedName = trimmedName.toLowerCase();
+    const duplicate = cats.find(
+      (c) => c.id !== catForm.id && c.name?.trim().toLowerCase() === normalizedName
+    );
+    if (duplicate) {
+      setError(t('admin.categories.duplicateNameError', 'Cette catégorie existe déjà (nom identique).'));
+      return;
+    }
+
+    const trimmedSlug = (catForm.slug || '').trim();
+    if (trimmedSlug) {
+      const normalizedSlug = trimmedSlug.toLowerCase();
+      const duplicateSlug = cats.find(
+        (c) => c.id !== catForm.id && c.slug?.trim().toLowerCase() === normalizedSlug
+      );
+      if (duplicateSlug) {
+        setError(t('admin.categories.duplicateSlugError', 'Une catégorie avec ce slug existe déjà.'));
+        return;
+      }
+    }
+
+    setBusy(true);
     try {
-      const body = { name: catForm.name, slug: catForm.slug };
+      const body = { name: trimmedName, slug: trimmedSlug };
       if (catForm.id) await api.adminUpdateCategory(catForm.id, body);
       else await api.adminCreateCategory(body);
       setCatForm({ ...EMPTY_CAT });
-      load();
+      await load();
     } catch (err) {
       setError(readErr(err, t('admin.categories.saveCatError', "L'enregistrement de la catégorie a échoué.")));
     } finally { setBusy(false); }
@@ -64,13 +93,30 @@ export default function Categories() {
 
   const saveColor = async (e) => {
     e.preventDefault();
-    setError(''); setBusy(true);
+    setError('');
+
+    const trimmedName = (colorForm.name || '').trim();
+    if (!trimmedName) {
+      setError(t('admin.categories.colorNameRequired', 'Le nom du coloris est obligatoire.'));
+      return;
+    }
+
+    const normalizedName = trimmedName.toLowerCase();
+    const duplicate = colors.find(
+      (k) => k.id !== colorForm.id && k.name?.trim().toLowerCase() === normalizedName
+    );
+    if (duplicate) {
+      setError(t('admin.categories.duplicateColorError', 'Ce coloris existe déjà (nom identique).'));
+      return;
+    }
+
+    setBusy(true);
     try {
-      const body = { name: colorForm.name, slug: colorForm.slug, hex_code: colorForm.hex_code };
+      const body = { name: trimmedName, slug: (colorForm.slug || '').trim(), hex_code: colorForm.hex_code };
       if (colorForm.id) await api.adminUpdateColor(colorForm.id, body);
       else await api.adminCreateColor(body);
       setColorForm({ ...EMPTY_COLOR });
-      load();
+      await load();
     } catch (err) {
       setError(readErr(err, t('admin.categories.saveColorError', "L'enregistrement du coloris a échoué.")));
     } finally { setBusy(false); }
@@ -99,49 +145,51 @@ export default function Categories() {
 
       <div className="admin-row cols-2-1">
         <Panel title={t('admin.categories.categories', 'Catégories')}>
-          <table className="admin-table">
-            <thead><tr><th>{t('admin.categories.tableName', 'Nom')}</th><th>{t('admin.categories.tableSlug', 'Slug (URL)')}</th><th>{t('admin.categories.tableProducts', 'Produits')}</th><th>{t('admin.categories.tableActions', 'Actions')}</th></tr></thead>
-            <tbody>
-              {cats.map((c) => (
-                <tr key={c.id} className={catForm.id === c.id ? 'row-editing' : undefined}>
-                  <td className="cell-main">{c.name}</td>
-                  <td className="cell-sub">/{c.slug}</td>
-                  <td>
-                    <span className={c.product_count ? 'status paid' : 'status pending'}>
-                      {c.product_count}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <span className="icon-btn" title={t('admin.categories.edit', 'Modifier')}
-                        onClick={() => { setCatForm({ id: c.id, name: c.name, slug: c.slug }); setError(''); }}>
-                        {I.pencil}
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead><tr><th>{t('admin.categories.tableName', 'Nom')}</th><th>{t('admin.categories.tableSlug', 'Slug (URL)')}</th><th>{t('admin.categories.tableProducts', 'Produits')}</th><th>{t('admin.categories.tableActions', 'Actions')}</th></tr></thead>
+              <tbody>
+                {cats.map((c) => (
+                  <tr key={c.id} className={catForm.id === c.id ? 'row-editing' : undefined}>
+                    <td className="cell-main">{c.name}</td>
+                    <td className="cell-sub">/{c.slug}</td>
+                    <td>
+                      <span className={c.product_count ? 'status paid' : 'status pending'}>
+                        {c.product_count}
                       </span>
-                      <span className="icon-btn reject" title={t('admin.categories.delete', 'Supprimer')} onClick={() => deleteCat(c)}>
-                        {I.trash}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {loading && <tr><td colSpan="4" className="admin-empty">{t('common.loading', 'Chargement…')}</td></tr>}
-              {!loading && cats.length === 0 && (
-                <tr><td colSpan="4" className="admin-empty">{t('admin.categories.emptyCat', 'Aucune catégorie. Créez-en une ci-contre.')}</td></tr>
-              )}
-            </tbody>
-          </table>
+                    </td>
+                    <td>
+                      <div className="row-actions">
+                        <span className="icon-btn" title={t('admin.categories.edit', 'Modifier')}
+                          onClick={() => { setCatForm({ id: c.id, name: c.name, slug: c.slug }); setError(''); }}>
+                          {I.pencil}
+                        </span>
+                        <span className="icon-btn reject" title={t('admin.categories.delete', 'Supprimer')} onClick={() => deleteCat(c)}>
+                          {I.trash}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {loading && <tr><td colSpan="4" className="admin-empty">{t('common.loading', 'Chargement…')}</td></tr>}
+                {!loading && cats.length === 0 && (
+                  <tr><td colSpan="4" className="admin-empty">{t('admin.categories.emptyCat', 'Aucune catégorie. Créez-en une ci-contre.')}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel title={catForm.id ? t('admin.categories.editCat', 'Modifier la catégorie') : t('admin.categories.newCat', 'Nouvelle catégorie')}>
           <form className="admin-form" onSubmit={saveCat}>
             <label htmlFor="c-name">{t('admin.categories.tableName', 'Nom')}</label>
             <input id="c-name" required value={catForm.name}
-              onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
+              onChange={(e) => { setCatForm({ ...catForm, name: e.target.value }); if (error) setError(''); }}
               placeholder="Ex. Colliers" />
 
             <label htmlFor="c-slug" style={{ marginTop: 12 }}>{t('admin.categories.slugOptional', 'Slug (facultatif)')}</label>
             <input id="c-slug" value={catForm.slug}
-              onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })}
+              onChange={(e) => { setCatForm({ ...catForm, slug: e.target.value }); if (error) setError(''); }}
               placeholder="généré depuis le nom" />
             <p className="cell-sub" style={{ marginTop: 6, lineHeight: 1.5 }}>
               {t('admin.categories.slugHint', "Le slug apparaît dans l'URL. Le modifier change l'adresse de la page.")}
@@ -163,48 +211,50 @@ export default function Categories() {
 
       <div className="admin-row cols-2-1">
         <Panel title={t('admin.categories.colors', 'Coloris')}>
-          <table className="admin-table">
-            <thead><tr><th>{t('admin.categories.tableColor', 'Coloris')}</th><th>{t('admin.categories.tableCode', 'Code')}</th><th>{t('admin.categories.tableProducts', 'Produits')}</th><th>{t('admin.categories.tableActions', 'Actions')}</th></tr></thead>
-            <tbody>
-              {colors.map((c) => (
-                <tr key={c.id} className={colorForm.id === c.id ? 'row-editing' : undefined}>
-                  <td>
-                    <div className="cell-flex">
-                      <span className="color-dot" style={{ background: c.hex_code }} />
-                      <span className="cell-main">{c.name}</span>
-                    </div>
-                  </td>
-                  <td className="cell-sub">{c.hex_code}</td>
-                  <td>
-                    <span className={c.product_count ? 'status paid' : 'status pending'}>
-                      {c.product_count}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <span className="icon-btn" title={t('admin.categories.edit', 'Modifier')}
-                        onClick={() => { setColorForm({ id: c.id, name: c.name, slug: c.slug, hex_code: c.hex_code }); setError(''); }}>
-                        {I.pencil}
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead><tr><th>{t('admin.categories.tableColor', 'Coloris')}</th><th>{t('admin.categories.tableCode', 'Code')}</th><th>{t('admin.categories.tableProducts', 'Produits')}</th><th>{t('admin.categories.tableActions', 'Actions')}</th></tr></thead>
+              <tbody>
+                {colors.map((c) => (
+                  <tr key={c.id} className={colorForm.id === c.id ? 'row-editing' : undefined}>
+                    <td>
+                      <div className="cell-flex">
+                        <span className="color-dot" style={{ background: c.hex_code }} />
+                        <span className="cell-main">{c.name}</span>
+                      </div>
+                    </td>
+                    <td className="cell-sub">{c.hex_code}</td>
+                    <td>
+                      <span className={c.product_count ? 'status paid' : 'status pending'}>
+                        {c.product_count}
                       </span>
-                      <span className="icon-btn reject" title={t('admin.categories.delete', 'Supprimer')} onClick={() => deleteColor(c)}>
-                        {I.trash}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!loading && colors.length === 0 && (
-                <tr><td colSpan="4" className="admin-empty">{t('admin.categories.emptyColor', 'Aucun coloris.')}</td></tr>
-              )}
-            </tbody>
-          </table>
+                    </td>
+                    <td>
+                      <div className="row-actions">
+                        <span className="icon-btn" title={t('admin.categories.edit', 'Modifier')}
+                          onClick={() => { setColorForm({ id: c.id, name: c.name, slug: c.slug, hex_code: c.hex_code }); setError(''); }}>
+                          {I.pencil}
+                        </span>
+                        <span className="icon-btn reject" title={t('admin.categories.delete', 'Supprimer')} onClick={() => deleteColor(c)}>
+                          {I.trash}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {!loading && colors.length === 0 && (
+                  <tr><td colSpan="4" className="admin-empty">{t('admin.categories.emptyColor', 'Aucun coloris.')}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel title={colorForm.id ? t('admin.categories.editColor', 'Modifier le coloris') : t('admin.categories.newColor', 'Nouveau coloris')}>
           <form className="admin-form" onSubmit={saveColor}>
             <label htmlFor="k-name">{t('admin.categories.tableName', 'Nom')}</label>
             <input id="k-name" required value={colorForm.name}
-              onChange={(e) => setColorForm({ ...colorForm, name: e.target.value })}
+              onChange={(e) => { setColorForm({ ...colorForm, name: e.target.value }); if (error) setError(''); }}
               placeholder="Ex. Rouge cinabre" />
 
             <label htmlFor="k-hex" style={{ marginTop: 12 }}>{t('admin.categories.colorHex', 'Couleur')}</label>

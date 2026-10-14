@@ -41,7 +41,8 @@ export default function Customers() {
 
         {error && <p className="admin-login-error">{error}</p>}
 
-        <table className="admin-table">
+        <div className="admin-table-scroll">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>{t('admin.customers.tableCustomer', 'Client')}</th>
@@ -67,7 +68,8 @@ export default function Customers() {
               <tr><td colSpan="4" className="admin-empty">{t('admin.customers.empty', 'Aucun client pour cette recherche.')}</td></tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </Panel>
     </>
   );

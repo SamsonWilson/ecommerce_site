@@ -130,6 +130,28 @@ class AdminCategorySerializer(_SluggedSerializer):
         fields = ("id", "name", "slug", "product_count")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
 
+    def validate_name(self, value):
+        name = (value or "").strip()
+        if not name:
+            raise serializers.ValidationError("Le nom de la catégorie est obligatoire.")
+        qs = Category.objects.filter(name__iexact=name)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Une catégorie avec ce nom existe déjà.")
+        return name
+
+    def validate_slug(self, value):
+        if not value:
+            return value
+        slug = slugify(value)
+        qs = Category.objects.filter(slug=slug)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Une catégorie avec ce slug existe déjà.")
+        return slug
+
 
 class AdminColorSerializer(_SluggedSerializer):
     product_count = serializers.IntegerField(source="products.count", read_only=True)
@@ -138,6 +160,17 @@ class AdminColorSerializer(_SluggedSerializer):
         model = ColorTheme
         fields = ("id", "name", "slug", "hex_code", "product_count")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
+
+    def validate_name(self, value):
+        name = (value or "").strip()
+        if not name:
+            raise serializers.ValidationError("Le nom du coloris est obligatoire.")
+        qs = ColorTheme.objects.filter(name__iexact=name)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Un coloris avec ce nom existe déjà.")
+        return name
 
 
 class AdminMomentSerializer(_SluggedSerializer):

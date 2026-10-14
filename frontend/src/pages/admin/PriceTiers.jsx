@@ -53,7 +53,8 @@ export default function PriceTiers() {
       <div className="admin-row cols-2-1">
         <Panel title={t('admin.priceTiers.existingTiers', 'Paliers existants')}>
           {error && <p className="admin-login-error">{error}</p>}
-          <table className="admin-table">
+          <div className="admin-table-scroll">
+            <table className="admin-table">
             <thead>
               <tr>
                 <th>{t('admin.priceTiers.tableTier', 'Palier')}</th>
@@ -88,7 +89,8 @@ export default function PriceTiers() {
                 <tr><td colSpan="4" className="admin-empty">{t('admin.priceTiers.empty', 'Aucun palier. Créez-en un ci-contre.')}</td></tr>
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </Panel>
 
         <Panel title={t('admin.priceTiers.newTier', 'Nouveau palier')}>

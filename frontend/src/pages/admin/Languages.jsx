@@ -184,87 +184,91 @@ export default function Languages() {
           <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
             {t('admin.languages.configuredSubtitle', 'La langue cochée avec le bouton radio est la langue active actuelle sur votre session.')}
           </p>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>{t('admin.languages.tableLang', 'Langue')}</th>
-                <th>{t('admin.languages.tableCode', 'Code')}</th>
-                <th>{t('admin.languages.tableProgress', 'Avancement')}</th>
-                <th>{t('admin.languages.tableActive', 'Langue active')}</th>
-                <th>{t('admin.languages.tablePublished', 'Publiée sur le site')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {langs.map((l) => {
-                const isActiveLang = currentLangCode === l.code;
-                return (
-                  <tr key={l.code} style={{ background: isActiveLang ? '#F0FDF4' : undefined }}>
-                    <td>
-                      <div className="cell-main" style={{ fontWeight: isActiveLang ? '700' : '500' }}>
-                        {l.name} {isActiveLang && <span style={{ fontSize: '11px', background: '#10B981', color: '#fff', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>{t('admin.languages.activeTag', 'ACTIVE')}</span>}
-                      </div>
-                      <div className="cell-sub">{l.native}</div>
-                    </td>
-                    <td className="cell-sub">{l.code}</td>
-                    <td style={{ minWidth: 140 }}>
-                      <div className="admin-progress">
-                        <span style={{ width: `${l.progress}%` }} />
-                      </div>
-                      <span className="cell-sub">{l.progress}%</span>
-                    </td>
-                    <td>
-                      <input
-                        type="radio"
-                        name="active-lang"
-                        checked={isActiveLang}
-                        onChange={() => handleSelectLanguage(l.code)}
-                        style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                      />
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className={`admin-switch ${l.active ? 'on' : ''}`}
-                        onClick={() => toggleActive(l.code)}
-                        aria-label={`Publier ${l.name}`}
-                      >
-                        <i />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>{t('admin.languages.tableLang', 'Langue')}</th>
+                  <th>{t('admin.languages.tableCode', 'Code')}</th>
+                  <th>{t('admin.languages.tableProgress', 'Avancement')}</th>
+                  <th>{t('admin.languages.tableActive', 'Langue active')}</th>
+                  <th>{t('admin.languages.tablePublished', 'Publiée sur le site')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {langs.map((l) => {
+                  const isActiveLang = currentLangCode === l.code;
+                  return (
+                    <tr key={l.code} style={{ background: isActiveLang ? '#F0FDF4' : undefined }}>
+                      <td>
+                        <div className="cell-main" style={{ fontWeight: isActiveLang ? '700' : '500' }}>
+                          {l.name} {isActiveLang && <span style={{ fontSize: '11px', background: '#10B981', color: '#fff', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>{t('admin.languages.activeTag', 'ACTIVE')}</span>}
+                        </div>
+                        <div className="cell-sub">{l.native}</div>
+                      </td>
+                      <td className="cell-sub">{l.code}</td>
+                      <td style={{ minWidth: 140 }}>
+                        <div className="admin-progress">
+                          <span style={{ width: `${l.progress}%` }} />
+                        </div>
+                        <span className="cell-sub">{l.progress}%</span>
+                      </td>
+                      <td>
+                        <input
+                          type="radio"
+                          name="active-lang"
+                          checked={isActiveLang}
+                          onChange={() => handleSelectLanguage(l.code)}
+                          style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={`admin-switch ${l.active ? 'on' : ''}`}
+                          onClick={() => toggleActive(l.code)}
+                          aria-label={`Publier ${l.name}`}
+                        >
+                          <i />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel title={t('admin.languages.scopeTitle', 'Avancement par périmètre')}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Périmètre</th>
-                <th>FR</th>
-                <th>EN</th>
-                <th>ZH</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scopes.map((s) => (
-                <tr key={s.label}>
-                  <td className="cell-main" style={{ fontWeight: 500 }}>
-                    {s.label}
-                  </td>
-                  {['fr', 'en', 'zh'].map((c) => (
-                    <td key={c}>
-                      <span className={s[c] === 100 ? 'status paid' : 'status pending'}>
-                        {s[c]}%
-                      </span>
-                    </td>
-                  ))}
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Périmètre</th>
+                  <th>FR</th>
+                  <th>EN</th>
+                  <th>ZH</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {scopes.map((s) => (
+                  <tr key={s.label}>
+                    <td className="cell-main" style={{ fontWeight: 500 }}>
+                      {s.label}
+                    </td>
+                    {['fr', 'en', 'zh'].map((c) => (
+                      <td key={c}>
+                        <span className={s[c] === 100 ? 'status paid' : 'status pending'}>
+                          {s[c]}%
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="cell-sub" style={{ marginTop: 14, lineHeight: 1.6 }}>
             {t('admin.languages.scopeSubtitle', 'Sélectionner une langue active modifie instantanément l\'interface globale via i18next.')}
           </p>

@@ -239,7 +239,7 @@ export default function StockReport() {
                   Aucun mouvement enregistré pour ce produit.
                 </div>
               ) : (
-                <div style={{ overflowX: 'auto', border: '1px solid #ECEBE7', borderRadius: 12, background: '#fff' }}>
+                <div className="admin-table-scroll" style={{ border: '1px solid #ECEBE7', borderRadius: 12, background: '#fff' }}>
                   <table className="admin-table">
                     <thead>
                       <tr>
@@ -319,7 +319,7 @@ export default function StockReport() {
             {t('admin.stockReport.empty', 'Aucun produit ne correspond à ce filtre.')}
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="admin-table-scroll">
             <table className="admin-table">
               <thead>
                 <tr>
