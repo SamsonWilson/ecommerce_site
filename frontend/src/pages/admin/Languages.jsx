@@ -245,7 +245,7 @@ export default function Languages() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Périmètre</th>
+                  <th>{t('admin.languages.tableScope', 'Scope')}</th>
                   <th>FR</th>
                   <th>EN</th>
                   <th>ZH</th>
