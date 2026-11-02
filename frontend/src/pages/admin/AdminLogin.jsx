@@ -13,6 +13,7 @@ export default function AdminLogin() {
 
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const from = location.state?.from || '/gestion';
 
@@ -57,7 +58,24 @@ export default function AdminLogin() {
 
         <div className="admin-login-field">
           <label htmlFor="password">{t('admin.login.password', 'Mot de passe')}</label>
-          <input id="password" name="password" type="password" autoComplete="current-password" required />
+          <div className="admin-password-wrap">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              className="admin-password-toggle"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? t('auth.hidePassword', 'Hide password') : t('auth.showPassword', 'Show password')}
+              title={showPassword ? t('auth.hidePassword', 'Hide password') : t('auth.showPassword', 'Show password')}
+            >
+              {showPassword ? I.eyeOff : I.eye}
+            </button>
+          </div>
         </div>
 
         {error && <p className="admin-login-error">{error}</p>}
