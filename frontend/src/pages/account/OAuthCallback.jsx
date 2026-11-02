@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api, setAccessToken } from '../../lib/api.js';
 import { useAuth } from '../../store/auth.js';
 import { OAUTH_REDIRECT } from '../../components/SocialLogins.jsx';
 
 // Retour du fournisseur OAuth : on échange le `code` contre nos propres JWT.
 export default function OAuthCallback() {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -23,10 +25,10 @@ export default function OAuthCallback() {
     sessionStorage.removeItem('oauth_state');
     sessionStorage.removeItem('oauth_provider');
 
-    if (denied) { setError('Connexion annulée.'); return; }
-    if (!code || !provider) { setError('Réponse incomplète du fournisseur.'); return; }
+    if (denied) { setError(t('auth.oauthCancelled', 'Sign-in cancelled.')); return; }
+    if (!code || !provider) { setError(t('auth.oauthIncomplete', 'Incomplete response from provider.')); return; }
     // Protection CSRF : le state doit correspondre à celui que nous avons émis.
-    if (!state || state !== expectedState) { setError('Jeton de sécurité invalide.'); return; }
+    if (!state || state !== expectedState) { setError(t('auth.oauthInvalidToken', 'Invalid security token.')); return; }
 
     api.socialLogin(provider, { code, callback_url: OAUTH_REDIRECT() })
       .then(async ({ access }) => {
@@ -35,8 +37,8 @@ export default function OAuthCallback() {
         useAuth.setState({ user, status: 'authenticated' });
         navigate('/compte', { replace: true });
       })
-      .catch((e) => setError(e.data?.detail || 'La connexion a échoué.'));
-  }, [params, navigate]);
+      .catch((e) => setError(e.data?.detail || t('auth.oauthFailed', 'Sign-in failed.')));
+  }, [params, navigate, t]);
 
   return (
     <div className="auth-wrap">
@@ -45,10 +47,10 @@ export default function OAuthCallback() {
           {error ? (
             <>
               <p className="social-error">{error}</p>
-              <Link to="/compte/connexion" className="btn-primary">Retour à la connexion</Link>
+              <Link to="/compte/connexion" className="btn-primary">{t('auth.backToLogin', 'Back to sign in')}</Link>
             </>
           ) : (
-            <p style={{ color: 'var(--muted)', fontSize: 14 }}>Connexion en cours…</p>
+            <p style={{ color: 'var(--muted)', fontSize: 14 }}>{t('auth.loggingIn', 'Signing in…')}</p>
           )}
         </div>
       </div>
