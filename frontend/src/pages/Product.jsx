@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ProductCard from '../components/ProductCard.jsx';
 import ProductGallery from '../components/ProductGallery.jsx';
 import { api } from '../lib/api.js';
@@ -9,11 +10,9 @@ import {
   catalogProducts, bestSellers, relatedProducts,
   figureBySlug, defaultFigure,
 } from '../data/products.jsx';
-import { IconHeart, IconPdf, IconShield, IconTruck, IconCheck, IconStore, Stars } from '../components/icons.jsx';
+import { IconHeart, IconPdf, IconShield, IconTruck, IconCheck, Stars } from '../components/icons.jsx';
 
 import SEOHead from '../components/SEOHead.jsx';
-
-const tabs = ['Description', 'Caractéristiques', 'Livraison', 'Avis'];
 
 // Repli local (API indisponible) : reconstruit une fiche depuis le mock.
 function localView(slug) {
@@ -42,6 +41,7 @@ function apiView(d) {
 }
 
 export default function Product() {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const location = useLocation();
   const add = useCart((s) => s.add);
@@ -57,6 +57,13 @@ export default function Product() {
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const tabs = [
+    { id: 'desc', label: t('product.tabsDescription', 'Description') },
+    { id: 'specs', label: t('product.tabsSpecs', 'Specifications') },
+    { id: 'shipping', label: t('product.tabsShipping', 'Shipping') },
+    { id: 'reviews', label: t('product.tabsReviews', 'Reviews') },
+  ];
 
   useEffect(() => {
     let alive = true;
@@ -76,7 +83,7 @@ export default function Product() {
 
   const addToCart = () => {
     if (!view) return;
-    add({ slug: view.slug, name: view.name, cat: view.cat, unit: parseEuro(view.priceCur), moq: `MOQ grossiste : ${view.moq} pièces` }, qty);
+    add({ slug: view.slug, name: view.name, cat: view.cat, unit: parseEuro(view.priceCur), moq: `MOQ : ${view.moq}` }, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };
@@ -84,19 +91,19 @@ export default function Product() {
   if (notFound) {
     return (
       <div className="empty-state" style={{ padding: '90px 20px' }}>
-        <h2>Produit introuvable</h2>
-        <p>Cette référence n'existe pas ou n'est plus disponible.</p>
-        <Link to={shopPath} className="btn-primary">Retour au catalogue</Link>
+        <h2>{t('product.notFoundTitle', 'Product not found')}</h2>
+        <p>{t('product.notFoundText', 'This item does not exist or is no longer available.')}</p>
+        <Link to={shopPath} className="btn-primary">{t('product.backToCatalog', 'Back to catalog')}</Link>
       </div>
     );
   }
-  if (!view) return <div style={{ padding: 60, textAlign: 'center' }}>Chargement…</div>;
+  if (!view) return <div style={{ padding: 60, textAlign: 'center' }}>{t('product.loading', 'Loading…')}</div>;
 
   return (
     <>
       <SEOHead
         title={view.name}
-        description={view.description || `Achetez ${view.name} chez Maison Lian. Accessoires de mariage d'exception.`}
+        description={view.description || `${view.name} - Maison Lian`}
         url={`https://maisonlian.com/produit/${view.slug}`}
         schema={{
           "@context": "https://schema.org",
@@ -113,8 +120,10 @@ export default function Product() {
       />
       <div className="uee-breadcrumb">
         <div className="container">
-          <Link to={homePath}>{isAccount ? 'Espace Client' : 'Accueil'}</Link><span className="sep">/</span>
-          <Link to={shopPath}>{view.cat || 'Boutique'}</Link><span className="sep">/</span>
+          <Link to={homePath}>{isAccount ? t('product.breadcrumbAccount', 'Customer Account') : t('product.breadcrumbHome', 'Home')}</Link>
+          <span className="sep">/</span>
+          <Link to={shopPath}>{view.cat || t('product.breadcrumbShop', 'Shop')}</Link>
+          <span className="sep">/</span>
           <span>{view.name}</span>
         </div>
       </div>
@@ -126,47 +135,47 @@ export default function Product() {
             <ProductGallery
               items={gallery}
               title={view.name}
-              badge={view.priceOld ? 'Promo' : undefined}
+              badge={view.priceOld ? t('product.badgePromo', 'Sale') : undefined}
             >
               <button
                 type="button"
                 className={`uee-wish${wished ? ' on' : ''}`}
                 style={{ top: 14, right: 14, zIndex: 4 }}
                 aria-pressed={wished}
-                aria-label={wished ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                aria-label={wished ? t('product.removeFromWishlist', 'Remove from wishlist') : t('product.addToWishlist', 'Add to wishlist')}
                 onClick={() => toggleWish({ slug: view.slug, name: view.name, cat: view.cat, priceNew: view.priceCur, priceOld: view.priceOld })}
               >
                 <IconHeart />
               </button>
             </ProductGallery>
             <div className="uee-trust-mini">
-              <span><IconShield />Paiement sécurisé</span>
-              <span><IconTruck />Expédition sous 72h</span>
-              <span><IconCheck />Retours 30 jours</span>
+              <span><IconShield />{t('product.securePayment', 'Secure payment')}</span>
+              <span><IconTruck />{t('product.shippingFast', 'Shipping within 72h')}</span>
+              <span><IconCheck />{t('product.returnsNotice', '30-day returns')}</span>
             </div>
           </div>
 
           {/* INFOS */}
           <div className="uee-pdp-info">
-            <span className="breadcrumb-cat">{view.cat} — Collection Héritage</span>
+            <span className="breadcrumb-cat">{view.cat} — {t('product.heritageCollection', 'Heritage Collection')}</span>
             <h1>{view.name}</h1>
             <div className="uee-pdp-meta">
               <Stars value={4.5} />
-              <span>4.5 (86 avis)</span>
-              {view.ref && <span>· Réf. {view.ref}</span>}
+              <span>{t('product.reviewsCount', '4.5 (86 reviews)')}</span>
+              {view.ref && <span>· {t('product.ref', 'Ref.')} {view.ref}</span>}
             </div>
 
             <div className="uee-pdp-price-block">
               <span className="cur">{view.priceCur}</span>
               {view.priceOld && <span className="old">{view.priceOld}</span>}
-              {view.priceOld && <span className="save">Tarif pro</span>}
+              {view.priceOld && <span className="save">{t('product.proPrice', 'Pro price')}</span>}
             </div>
 
             {view.description && <p className="uee-pdp-desc">{view.description}</p>}
 
             <div className="uee-tabs-line">
               {tabs.map((tb, i) => (
-                <button key={tb} className={i === activeTab ? 'active' : undefined} onClick={() => setActiveTab(i)}>{tb}</button>
+                <button key={tb.id} className={i === activeTab ? 'active' : undefined} onClick={() => setActiveTab(i)}>{tb.label}</button>
               ))}
             </div>
             {activeTab === 0 && view.culturalStory && (
@@ -176,20 +185,20 @@ export default function Product() {
             <div className="uee-purchase">
               <div className="uee-qty-row">
                 <div className="uee-qty-stepper">
-                  <button aria-label="Diminuer" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={view.stock === 0}>−</button>
-                  <input type="text" value={view.stock === 0 ? 0 : qty} aria-label="Quantité" readOnly />
-                  <button aria-label="Augmenter" onClick={() => setQty((q) => Math.min(view.stock || 1, q + 1))} disabled={view.stock === 0 || qty >= view.stock}>+</button>
+                  <button aria-label={t('product.decrease', 'Decrease quantity')} onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={view.stock === 0}>−</button>
+                  <input type="text" value={view.stock === 0 ? 0 : qty} aria-label={t('product.quantity', 'Quantity')} readOnly />
+                  <button aria-label={t('product.increase', 'Increase quantity')} onClick={() => setQty((q) => Math.min(view.stock || 1, q + 1))} disabled={view.stock === 0 || qty >= view.stock}>+</button>
                 </div>
                 <span className="uee-stock" style={{ color: view.stock > 0 ? undefined : 'var(--brand-red, #d9534f)' }}>
-                  <IconCheck />{view.stock > 0 ? `En stock (${view.stock} disponible${view.stock > 1 ? 's' : ''})` : 'Rupture de stock'}
+                  <IconCheck />{view.stock > 0 ? t('product.inStockCount', { count: view.stock, defaultValue: `In stock (${view.stock} available)` }) : t('product.outOfStock', 'Out of stock')}
                 </span>
               </div>
               <div className="uee-pdp-cta">
                 <button className="btn-primary" onClick={addToCart} disabled={view.stock === 0}>
-                  {view.stock === 0 ? 'Rupture de stock' : added ? 'Ajouté au panier ✓' : 'Ajouter au panier'}
+                  {view.stock === 0 ? t('product.outOfStock', 'Out of stock') : added ? t('product.addedToCart', 'Added to cart ✓') : t('product.addToCart', 'Add to cart')}
                 </button>
-                <span className="uee-icon-btn" aria-label="Ajouter aux favoris"><IconHeart /></span>
-                <span className="uee-icon-btn" aria-label="Télécharger la fiche PDF"><IconPdf /></span>
+                <span className="uee-icon-btn" aria-label={t('product.addToWishlist', 'Add to wishlist')}><IconHeart /></span>
+                <span className="uee-icon-btn" aria-label={t('product.downloadPdf', 'Download PDF spec sheet')}><IconPdf /></span>
               </div>
             </div>
 
@@ -201,8 +210,8 @@ export default function Product() {
       <section className="uee-section" style={{ background: '#fff' }}>
         <div className="container">
           <div className="uee-section-head">
-            <h2>Assortis à cette pièce</h2>
-            <Link className="see-all" to={shopPath}>Voir tout →</Link>
+            <h2>{t('product.matchingPieces', 'Matching pieces for this item')}</h2>
+            <Link className="see-all" to={shopPath}>{t('product.seeAll', 'View all →')}</Link>
           </div>
           <div className="uee-product-grid">
             {relatedProducts.filter((p) => p.slug !== slug).slice(0, 4).map((p) => (

@@ -122,7 +122,7 @@ export default function StockManagement() {
             {outOfStockCount}
           </div>
           <span style={{ fontSize: 11, color: outOfStockCount > 0 ? '#E1251B' : 'var(--muted)', fontWeight: 600, marginTop: 4, display: 'block' }}>
-            {outOfStockCount > 0 ? 'Réapprovisionnement urgent requis' : 'Aucune rupture'}
+            {outOfStockCount > 0 ? t('admin.stock.urgentRestock', 'Urgent replenishment required') : t('admin.stock.noOutStock', 'No out of stock')}
           </span>
         </div>
 
@@ -181,7 +181,7 @@ export default function StockManagement() {
                   SKU : <span className="stock-sku-badge">{adjustModal.sku}</span>
                 </span>
                 <span>
-                  Stock actuel : <strong style={{ color: 'var(--text-head)', fontWeight: 700 }}>{adjustModal.stock} pièce(s)</strong>
+                  {t('admin.stock.currentStock', 'Current stock:')} <strong style={{ color: 'var(--text-head)', fontWeight: 700 }}>{adjustModal.stock} {t('common.pieces', 'pieces')}</strong>
                 </span>
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function StockManagement() {
                 </div>
 
                 <div className={`stock-preview-badge ${adjustDelta > 0 ? 'positive' : adjustDelta < 0 ? 'negative' : 'neutral'}`}>
-                  Nouveau stock estimé : <strong>{Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0))} pièce(s)</strong>
+                  {t('admin.stock.estimatedNewStock', 'Estimated new stock:')} <strong>{Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0))} {t('common.pieces', 'pieces')}</strong>
                   {adjustDelta !== 0 && (
                     <span style={{ marginLeft: 6, fontSize: 11.5, opacity: 0.85 }}>
                       ({adjustDelta > 0 ? `+${adjustDelta}` : adjustDelta})
@@ -363,7 +363,7 @@ export default function StockManagement() {
                     </td>
                     <td>
                       <span className={stock === 0 ? 'status rejected' : stock <= 5 ? 'status pending' : 'status paid'} style={{ fontWeight: 700, padding: '5px 12px', borderRadius: 20 }}>
-                        {stock === 0 ? '🔴 0 (Rupture)' : stock <= 5 ? `🟡 ${stock} (Stock Faible)` : `🟢 ${stock} pièces`}
+                        {stock === 0 ? t('admin.stock.outOfStockBadge', '🔴 0 (Out of stock)') : stock <= 5 ? t('admin.stock.lowStockBadge', { count: stock, defaultValue: `🟡 ${stock} (Low stock)` }) : t('admin.stock.inStockBadge', { count: stock, defaultValue: `🟢 ${stock} pieces` })}
                       </span>
                     </td>
                     <td>

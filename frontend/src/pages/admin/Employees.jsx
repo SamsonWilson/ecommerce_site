@@ -31,7 +31,7 @@ const DEFAULT_SECTIONS_CATALOG = [
   { key: 'b2b', label: 'Comptes Pro & Paliers', route: '/gestion/comptes-pro', desc: 'Tarifs professionnels et B2B' },
   { key: 'catalog', label: 'Catalogue & Stocks', route: '/gestion/produits', desc: 'Produits, stocks, inventaire, catégories' },
   { key: 'deliveries', label: 'Livraisons & Courses', route: '/gestion/livraisons', desc: 'Tournées et statut des livraisons' },
-  { key: 'staff', label: 'Équipe', route: '/gestion/equipe', desc: 'Gestion des accès et employés' },
+  { key: 'staff', label: t('admin.employees.secStaff', 'Staff & Team'), route: '/gestion/equipe', desc: 'Gestion des accès et employés' },
 ];
 
 const EMPTY = {
@@ -603,7 +603,7 @@ export default function Employees() {
             <label htmlFor="e-job" style={{ marginTop: 12 }}>{t('admin.employees.jobTitle', 'Intitulé de poste')}</label>
             <input id="e-job" value={form.job_title}
               onChange={(e) => setForm({ ...form, job_title: e.target.value })}
-              placeholder="Ex. Chargé de clientèle" />
+              placeholder={t('admin.employees.jobTitlePlaceholder', 'E.g. Customer Relationship Specialist')} />
 
             <label htmlFor="e-phone" style={{ marginTop: 12 }}>{t('admin.employees.phone', 'Téléphone')}</label>
             <input id="e-phone" value={form.phone}
@@ -614,7 +614,7 @@ export default function Employees() {
                 <label htmlFor="e-zone" style={{ marginTop: 12 }}>{t('admin.employees.deliveryZone', 'Zone de livraison')}</label>
                 <input id="e-zone" value={form.delivery_zone}
                   onChange={(e) => setForm({ ...form, delivery_zone: e.target.value })}
-                  placeholder="Ex. Lyon et périphérie" />
+                  placeholder={t('admin.employees.zonePlaceholder', 'E.g. Lyon and suburbs')} />
 
                 <label htmlFor="e-vehicle" style={{ marginTop: 12 }}>{t('admin.employees.vehicle', 'Véhicule')}</label>
                 <input id="e-vehicle" value={form.vehicle}

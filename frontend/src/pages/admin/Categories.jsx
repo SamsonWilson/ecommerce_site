@@ -190,7 +190,7 @@ export default function Categories() {
             <label htmlFor="c-slug" style={{ marginTop: 12 }}>{t('admin.categories.slugOptional', 'Slug (facultatif)')}</label>
             <input id="c-slug" value={catForm.slug}
               onChange={(e) => { setCatForm({ ...catForm, slug: e.target.value }); if (error) setError(''); }}
-              placeholder="généré depuis le nom" />
+              placeholder={t('admin.categories.slugAutoPlaceholder', 'generated from name')} />
             <p className="cell-sub" style={{ marginTop: 6, lineHeight: 1.5 }}>
               {t('admin.categories.slugHint', "Le slug apparaît dans l'URL. Le modifier change l'adresse de la page.")}
             </p>

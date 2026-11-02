@@ -1,38 +1,47 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import fr from './locales/fr.json';
 import en from './locales/en.json';
+import fr from './locales/fr.json';
 import zh from './locales/zh.json';
 
 export const LANGUAGES = [
-  { code: 'fr', label: 'FR', name: 'Français' },
   { code: 'en', label: 'EN', name: 'English' },
+  { code: 'fr', label: 'FR', name: 'Français' },
   { code: 'zh', label: '中文', name: '中文' },
 ];
 
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') : null;
+const initialLng = savedLang && ['en', 'fr', 'zh'].includes(savedLang) ? savedLang : 'en';
+
 i18n
-  .use(LanguageDetector) // détecte la langue (localStorage puis navigateur)
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
-      fr: { translation: fr },
       en: { translation: en },
+      fr: { translation: fr },
       zh: { translation: zh },
     },
-    fallbackLng: 'fr',
-    supportedLngs: ['fr', 'en', 'zh'],
+    lng: initialLng,
+    fallbackLng: 'en',
+    supportedLngs: ['en', 'fr', 'zh'],
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'lang',
     },
-    interpolation: { escapeValue: false }, // React échappe déjà
+    interpolation: { escapeValue: false },
   });
 
-// Garde <html lang> synchronisé (SEO + accessibilité)
-const applyLang = (lng) => { document.documentElement.lang = lng; };
-applyLang(i18n.resolvedLanguage);
-i18n.on('languageChanged', applyLang);
+// Synchronisation de <html lang>
+const applyLang = (lng) => { document.documentElement.lang = lng || 'en'; };
+applyLang(i18n.resolvedLanguage || initialLng || 'en');
+i18n.on('languageChanged', (lng) => {
+  applyLang(lng);
+  try {
+    localStorage.setItem('lang', lng);
+  } catch {}
+});
 
 export default i18n;

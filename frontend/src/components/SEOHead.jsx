@@ -1,10 +1,14 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 export default function SEOHead({ title, description, image, url, schema }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     // Title
-    const fullTitle = title ? `${title} | Maison Lian` : 'Maison Lian — Accessoires de Mariage & Élégance Chinoise';
+    const defaultTitle = t('common.defaultSiteTitle', 'Maison Lian — Chinese Wedding Accessories & Elegance');
+    const fullTitle = title ? `${title} | Maison Lian` : defaultTitle;
     document.title = fullTitle;
 
     // Helper function to update or create meta tags
@@ -19,12 +23,15 @@ export default function SEOHead({ title, description, image, url, schema }) {
       el.setAttribute('content', content);
     };
 
+    const siteDesc = description || t('common.defaultSiteDescription', 'Maison Lian — Traditional Chinese bridal accessories and fine bridal jewelry.');
+    const ogDesc = description || t('common.defaultOgDescription', 'Bridal accessories & haute bridal hair.');
+
     // Standard Meta
-    setMeta('name', 'description', description || 'Maison Lian - Accessoires de mariage d’inspiration traditionnelle chinoise.');
+    setMeta('name', 'description', siteDesc);
 
     // OpenGraph Meta (Pinterest / Facebook)
     setMeta('property', 'og:title', fullTitle);
-    setMeta('property', 'og:description', description || 'Accessoires de mariage & haute coiffure.');
+    setMeta('property', 'og:description', ogDesc);
     setMeta('property', 'og:type', 'website');
     if (url) setMeta('property', 'og:url', url);
     if (image) setMeta('property', 'og:image', image);
@@ -32,7 +39,7 @@ export default function SEOHead({ title, description, image, url, schema }) {
     // Twitter Meta
     setMeta('name', 'twitter:card', 'summary_large_image');
     setMeta('name', 'twitter:title', fullTitle);
-    setMeta('name', 'twitter:description', description || 'Accessoires de mariage & haute coiffure.');
+    setMeta('name', 'twitter:description', ogDesc);
     if (image) setMeta('name', 'twitter:image', image);
 
     // JSON-LD Schema
@@ -48,7 +55,7 @@ export default function SEOHead({ title, description, image, url, schema }) {
     } else if (scriptEl) {
       scriptEl.remove();
     }
-  }, [title, description, image, url, schema]);
+  }, [title, description, image, url, schema, t]);
 
   return null;
 }

@@ -97,7 +97,7 @@ export default function PriceTiers() {
           <form className="admin-form" onSubmit={create}>
             <label htmlFor="t-name">{t('admin.priceTiers.name', 'Nom')}</label>
             <input id="t-name" required value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex. Partenaire privilégié" />
+              onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('admin.priceTiers.namePlaceholder', 'E.g. Preferred partner')} />
 
             <label htmlFor="t-disc" style={{ marginTop: 12 }}>{t('admin.priceTiers.discount', 'Remise (%)')}</label>
             <input id="t-disc" type="number" min="0" max="100" value={form.discount_percent}

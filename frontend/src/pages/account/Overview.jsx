@@ -4,7 +4,7 @@ import { useAuth } from '../../store/auth.js';
 import { useCart } from '../../store/cart.js';
 import { useWishlistCount } from '../../store/wishlist.js';
 import {
-  IconBag, IconCheck, IconHeart, IconPackage, IconShield, IconStore, IconUser, IconChat,
+  IconBag, IconCheck, IconHeart, IconPackage, IconShield, IconStore, IconChat,
 } from '../../components/icons.jsx';
 
 export default function Overview() {
@@ -15,7 +15,7 @@ export default function Overview() {
 
   const profile = user?.profile;
   const isPro = profile?.account_type === 'WHOLESALE';
-  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || (user?.email ? user.email.split('@')[0] : 'Chère Cliente');
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || (user?.email ? user.email.split('@')[0] : t('account.defaultClient', 'Client'));
 
   return (
     <div className="acc-dashboard">
@@ -24,38 +24,37 @@ export default function Overview() {
           ========================================================================= */}
       <section className="acc-hero">
         <div className="acc-hero-copy">
-          <span className="eyebrow">✦ ESPACE CONCIERGERIE NUPTIALE ✦</span>
+          <span className="eyebrow">{t('account.overview.conciergeEyebrow', '✦ BRIDAL CONCIERGE AREA ✦')}</span>
           <h1>
-            Bienvenue dans votre Espace, <span>{user?.first_name || fullName}</span>
+            {t('account.overview.welcomeTitle', { name: user?.first_name || fullName, defaultValue: `Welcome to your space, ${user?.first_name || fullName}` })}
           </h1>
           <p>
-            Retrouvez vos sélections de parures de mariage, le suivi en direct de vos commandes
-            d'exception et vos avantages privilégiés Maison Lián.
+            {t('account.overview.welcomeSub', 'Find your bridal jewelry selections, live order tracking, and exclusive Maison Lián benefits.')}
           </p>
           <div className="hero-badges">
-            <span className="hero-badge">Expédition Sécurisée 48h</span>
+            <span className="hero-badge">{t('account.overview.badgeDelivery', 'Secure 48h Shipping')}</span>
             <span className="hero-badge muted">
-              {isPro ? 'Partenaire Grossiste Certifié' : 'Compte Privilège Nuptial'}
+              {isPro ? t('account.overview.badgePro', 'Certified Wholesale Partner') : t('account.overview.badgeRetail', 'Bridal Privilege Account')}
             </span>
-            <span className="hero-badge accent">Conseillers Dédiés 7j/7</span>
+            <span className="hero-badge accent">{t('account.overview.badgeAdvisors', 'Dedicated Advisors 7d/7')}</span>
           </div>
         </div>
 
         <div className="acc-hero-panel">
           <div className="mini-pill">
             <span className="mini-dot" />
-            Compte vérifié &amp; actif
+            {t('account.overview.verifiedActive', 'Verified & active account')}
           </div>
           <div className="hero-metric">
-            <strong>{isPro ? 'B2B Pro' : 'Privilège'}</strong>
-            <span>{isPro ? 'Tarifs Grossiste Actifs' : 'Membre Maison Lián'}</span>
+            <strong>{isPro ? t('account.overview.statusB2B', 'Wholesale B2B') : t('account.overview.privilegeClientBadge', 'Privilege Customer')}</strong>
+            <span>{isPro ? t('account.overview.proRateActive', 'Wholesale Rates Active') : t('account.overview.memberTitle', 'Maison Lián Member')}</span>
           </div>
           <div className="acc-hero-actions">
             <Link to="/compte/boutique" className="btn-premium">
-              Explorer la boutique ➔
+              {t('account.overview.exploreShopBtn', 'Explore the shop ➔')}
             </Link>
             <Link to="/compte/profil" className="btn-secondary">
-              Gérer mon profil
+              {t('account.overview.manageProfileBtn', 'Manage my profile')}
             </Link>
           </div>
         </div>
@@ -68,18 +67,18 @@ export default function Overview() {
         <Link to="/compte/boutique" className="acc-stat-card stat-cart">
           <div className="stat-icon"><IconBag /></div>
           <div className="stat-copy">
-            <span className="stat-label">Panier en cours</span>
+            <span className="stat-label">{t('account.overview.cartLabel', 'Current Cart')}</span>
             <strong>{cartCount}</strong>
-            <small>{cartCount > 0 ? `${cartCount} article(s) à valider` : 'Votre panier est vide'}</small>
+            <small>{cartCount > 0 ? t('account.overview.cartItemsToValidate', { count: cartCount, defaultValue: `${cartCount} item(s) to checkout` }) : t('account.overview.cartEmpty', 'Your cart is empty')}</small>
           </div>
         </Link>
 
         <Link to="/compte/favoris" className="acc-stat-card stat-fav">
           <div className="stat-icon"><IconHeart /></div>
           <div className="stat-copy">
-            <span className="stat-label">Mes Favoris</span>
+            <span className="stat-label">{t('account.overview.wishlistLabel', 'My Wishlist')}</span>
             <strong>{wishCount}</strong>
-            <small>{wishCount > 0 ? `${wishCount} pièce(s) sauvegardée(s)` : 'Aucun favori enregistré'}</small>
+            <small>{wishCount > 0 ? t('account.overview.wishlistSaved', { count: wishCount, defaultValue: `${wishCount} piece(s) saved` }) : t('account.overview.noWishlist', 'No favorites saved')}</small>
           </div>
         </Link>
 
@@ -88,18 +87,18 @@ export default function Overview() {
             <IconPackage />
           </div>
           <div className="stat-copy">
-            <span className="stat-label">Mes Commandes</span>
-            <strong>Suivi</strong>
-            <small>Historique &amp; livraisons</small>
+            <span className="stat-label">{t('account.overview.ordersLabel', 'My Orders')}</span>
+            <strong>{t('account.overview.ordersTrack', 'Tracking')}</strong>
+            <small>{t('account.overview.ordersHistory', 'History & deliveries')}</small>
           </div>
         </Link>
 
         <Link to={isPro ? '/compte/pro' : '/compte/profil'} className="acc-stat-card stat-account">
           <div className="stat-icon"><IconShield /></div>
           <div className="stat-copy">
-            <span className="stat-label">Statut Client</span>
-            <strong style={{ fontSize: 16 }}>{isPro ? 'Grossiste B2B' : 'Particulier'}</strong>
-            <small>{isPro ? 'Remises jusqu’à -40%' : 'Avantages cérémonie'}</small>
+            <span className="stat-label">{t('account.overview.statusLabel', 'Client Status')}</span>
+            <strong style={{ fontSize: 16 }}>{isPro ? t('account.overview.statusB2B', 'Wholesale B2B') : t('account.overview.statusRetail', 'Retail Customer')}</strong>
+            <small>{isPro ? t('account.overview.discountsUpTo40', 'Discounts up to -40%') : t('account.overview.ceremonyPerks', 'Ceremony benefits')}</small>
           </div>
         </Link>
       </div>
@@ -111,9 +110,9 @@ export default function Overview() {
         {/* CARTE PROFIL & COORDONNÉES */}
         <div className="acc-card acc-card-main">
           <div className="card-head">
-            <h2>Profil &amp; Coordonnées</h2>
+            <h2>{t('account.overview.profileDetailsTitle', 'Profile & Details')}</h2>
             <span className={`pill ${isPro ? 'ship' : 'paid'}`}>
-              {isPro ? 'Compte Professionnel B2B' : 'Client Privilège'}
+              {isPro ? t('account.overview.proAccountBadge', 'B2B Wholesale Account') : t('account.overview.privilegeClientBadge', 'Privilege Customer')}
             </span>
           </div>
 
@@ -123,30 +122,30 @@ export default function Overview() {
             </div>
             <div>
               <h3>{fullName}</h3>
-              <p>{user?.email || 'Aucune adresse e-mail'}</p>
+              <p>{user?.email || '—'}</p>
             </div>
           </div>
 
           <div className="info-grid compact-grid" style={{ marginTop: 24 }}>
             <div className="info-item">
-              <div className="lbl">Nom du compte</div>
+              <div className="lbl">{t('account.overview.accountName', 'Account Name')}</div>
               <div className="vlu">{fullName}</div>
             </div>
             <div className="info-item">
-              <div className="lbl">Adresse e-mail</div>
+              <div className="lbl">{t('account.overview.emailAddress', 'Email address')}</div>
               <div className="vlu">{user?.email || '—'}</div>
             </div>
             <div className="info-item">
-              <div className="lbl">Méthode de connexion</div>
-              <div className="vlu">{user?.auth_provider === 'GOOGLE' ? 'Compte Google vérifié' : 'E-mail & mot de passe'}</div>
+              <div className="lbl">{t('account.overview.loginMethod', 'Login method')}</div>
+              <div className="vlu">{user?.auth_provider === 'GOOGLE' ? t('account.overview.googleVerified', 'Verified Google Account') : t('account.overview.emailPassword', 'Email & password')}</div>
             </div>
             <div className="info-item">
-              <div className="lbl">Statut d'accès</div>
-              <div className="vlu">{isPro ? 'Professionnel (Remises appliquées)' : 'Particulier (Vente au détail)'}</div>
+              <div className="lbl">{t('account.overview.accessStatus', 'Access status')}</div>
+              <div className="vlu">{isPro ? t('account.overview.proApplied', 'Professional (Discounts applied)') : t('account.overview.retailStandard', 'Retail customer (Standard)')}</div>
             </div>
             {isPro && (
               <div className="info-item full-width">
-                <div className="lbl">Société / Boutique</div>
+                <div className="lbl">{t('account.overview.companyLabel', 'Company / Boutique')}</div>
                 <div className="vlu">{profile?.company_name || '—'}</div>
               </div>
             )}
@@ -154,7 +153,7 @@ export default function Overview() {
 
           <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #ECE7DE' }}>
             <Link to="/compte/profil" className="ml-category-cta">
-              Modifier mes informations personnelles ➔
+              {t('account.overview.editProfileLink', 'Edit my personal details ➔')}
             </Link>
           </div>
         </div>
@@ -162,39 +161,39 @@ export default function Overview() {
         {/* CARTE ACTIONS RAPIDES */}
         <div className="acc-card acc-card-side">
           <div className="card-head">
-            <h2>Actions Conciergerie</h2>
+            <h2>{t('account.overview.conciergeActionsTitle', 'Concierge Actions')}</h2>
           </div>
 
           <div className="quick-list">
             <Link to="/compte/commandes" className="quick-item">
               <span className="quick-icon"><IconPackage /></span>
               <span>
-                <strong>Mes Commandes &amp; Livraisons</strong>
-                <small>Suivre l'acheminement et factures</small>
+                <strong>{t('account.overview.actionOrdersTitle', 'My Orders & Deliveries')}</strong>
+                <small>{t('account.overview.actionOrdersSub', 'Track shipments and invoices')}</small>
               </span>
             </Link>
 
             <Link to="/compte/boutique" className="quick-item">
               <span className="quick-icon"><IconStore /></span>
               <span>
-                <strong>Catalogue de la Maison</strong>
-                <small>Explorer nos nouvelles créations</small>
+                <strong>{t('account.overview.actionCatalogTitle', 'Maison Lián Catalog')}</strong>
+                <small>{t('account.overview.actionCatalogSub', 'Explore our new creations')}</small>
               </span>
             </Link>
 
             <Link to="/contact" className="quick-item">
               <span className="quick-icon"><IconChat /></span>
               <span>
-                <strong>Contacter l'Atelier</strong>
-                <small>Conseils mariée &amp; sur-mesure</small>
+                <strong>{t('account.overview.actionContactTitle', 'Contact the Atelier')}</strong>
+                <small>{t('account.overview.actionContactSub', 'Bridal advice & custom orders')}</small>
               </span>
             </Link>
 
             <Link to="/compte/pro" className="quick-item">
               <span className="quick-icon"><IconShield /></span>
               <span>
-                <strong>Espace Grossiste &amp; B2B</strong>
-                <small>{isPro ? 'Grilles tarifaires actives' : 'Créer un compte revendeur'}</small>
+                <strong>{t('account.overview.actionProTitle', 'Wholesale & B2B Space')}</strong>
+                <small>{isPro ? t('account.overview.actionProSubActive', 'Active wholesale pricing') : t('account.overview.actionProSubCreate', 'Create a reseller account')}</small>
               </span>
             </Link>
           </div>
@@ -206,32 +205,32 @@ export default function Overview() {
           ========================================================================= */}
       <div className="acc-card acc-card-bottom">
         <div className="card-head">
-          <h2>Garanties &amp; Engagements Maison Lián</h2>
-          <span className="muted-badge">Sérénité Cérémonie</span>
+          <h2>{t('account.overview.guaranteesTitle', 'Maison Lián Guarantees & Commitments')}</h2>
+          <span className="muted-badge">{t('account.overview.serenityBadge', 'Ceremony Peace of Mind')}</span>
         </div>
 
         <div className="checklist">
           <div className="check-item">
             <span className="check-icon"><IconCheck /></span>
             <div>
-              <strong>Écrin Signature &amp; Emballage Cadeau Offert</strong>
-              <small>Chaque bijou est soigneusement disposé dans son coffret en velours prêt-à-offrir avec ruban de satin.</small>
+              <strong>{t('account.overview.g1Title', 'Complimentary Signature Gift Box & Wrapping')}</strong>
+              <small>{t('account.overview.g1Text', 'Each piece of jewelry is carefully arranged in its ready-to-gift velvet presentation box with a satin ribbon.')}</small>
             </div>
           </div>
 
           <div className="check-item">
             <span className="check-icon"><IconCheck /></span>
             <div>
-              <strong>Certificat d'Authenticité &amp; Dorure 18K</strong>
-              <small>Chaque pièce est contrôlée méticuleusement à l'atelier avant expédition sous 48h.</small>
+              <strong>{t('account.overview.g2Title', 'Certificate of Authenticity & 18K Gilding')}</strong>
+              <small>{t('account.overview.g2Text', 'Each piece is meticulously inspected in our workshop before dispatch within 48h.')}</small>
             </div>
           </div>
 
           <div className="check-item">
             <span className="check-icon"><IconCheck /></span>
             <div>
-              <strong>Retours &amp; Échanges sous 30 Jours</strong>
-              <small>Ajustez en toute tranquillité vos accessoires pour harmoniser votre tenue et coiffure de mariée.</small>
+              <strong>{t('account.overview.g3Title', '30-Day Returns & Exchanges')}</strong>
+              <small>{t('account.overview.g3Text', 'Adjust your accessories in complete peace of mind to harmonize your wedding dress and bridal hairstyle.')}</small>
             </div>
           </div>
         </div>

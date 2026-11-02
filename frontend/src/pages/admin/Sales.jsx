@@ -87,11 +87,11 @@ export default function Sales() {
   const getPaymentLabel = (method) => {
     switch (method) {
       case 'card':
-        return 'Carte bancaire';
+        return t('admin.sales.paymentCard', 'Credit Card');
       case 'cash':
-        return 'Espèces';
+        return t('admin.sales.paymentCash', 'Cash');
       case 'transfer':
-        return 'Virement';
+        return t('admin.sales.paymentTransfer', 'Bank Transfer');
       default:
         return 'Carte bancaire';
     }
@@ -375,7 +375,7 @@ export default function Sales() {
       };
 
       setSaleMessage({
-        text: `Vente validée avec succès ! Référence : ${orderRef}`,
+        text: t('admin.sales.saleSuccess', { ref: orderRef, defaultValue: `Sale completed successfully! Reference: ${orderRef}` }),
         type: 'success',
         receipt: receiptData,
       });
@@ -397,7 +397,7 @@ export default function Sales() {
         }
       }, 400);
     } catch (error) {
-      const detail = error?.data?.detail || error?.message || 'La vente a échoué.';
+      const detail = error?.data?.detail || error?.message || t('admin.sales.saleFailed', 'Sale failed.');
       setSaleMessage({ text: detail, type: 'error', receipt: null });
     } finally {
       setBusy(false);
@@ -409,18 +409,18 @@ export default function Sales() {
       <div className="no-print">
         <PageHead
           title={t('admin.sales.title', 'Caisse & Vente directe')}
-          subtitle="Enregistrez et encaissez rapidement les commandes en boutique physique."
+          subtitle={t('admin.sales.subtitle', 'Quickly record and process in-store boutique orders.')}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card-bg)', border: '1px solid var(--line)', padding: '5px 12px', borderRadius: 8 }}>
               <span style={{ fontSize: 13 }}>👤</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.1 }}>Caissier actif</span>
+                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.1 }}>{t('admin.sales.activeCashier', 'Active Cashier')}</span>
                 <select
                   value={selectedCashier || defaultCashierName}
                   onChange={(e) => setSelectedCashier(e.target.value)}
                   style={{ border: 'none', background: 'transparent', fontWeight: 700, color: 'var(--text-head)', fontSize: 13, cursor: 'pointer', outline: 'none', padding: 0 }}
-                  title="Sélectionner le caissier actif pour les prochaines ventes"
+                  title={t('admin.sales.selectCashierTitle', 'Select the active cashier for upcoming sales')}
                 >
                   {availableCashiers.map((c) => (
                     <option key={c} value={c}>{c}</option>

@@ -109,7 +109,7 @@ export default function Inventory() {
     e.preventDefault();
     // Le code PIN par défaut est 1234 ou 0000
     if (managerPin !== '1234' && managerPin !== '0000') {
-      setPinError('Code PIN Responsable incorrect. (Code par défaut: 1234)');
+      setPinError(t('admin.inventory.pinRequiredError', 'Manager PIN code is incorrect. (Default code: 1234)'));
       return;
     }
 
@@ -159,11 +159,11 @@ export default function Inventory() {
             fontWeight: 600,
           }}
         >
-          {blindMode ? '👁️ Mode Normal' : '🙈 Mode Comptage à Aveugle'}
+          {blindMode ? t('admin.inventory.modeNormal', '👁️ Normal Mode') : t('admin.inventory.modeBlind', '🙈 Blind Count Mode')}
         </button>
 
         <button className="btn-admin ghost no-print" onClick={resetPhysicalToTheoretical} style={{ borderRadius: 20 }}>
-          🔄 Réinitialiser
+          🔄 {t('admin.inventory.resetBtn', 'Reset')}
         </button>
 
         <button className="btn-admin ghost no-print" onClick={() => window.print()} style={{ borderRadius: 20 }}>
@@ -195,7 +195,7 @@ export default function Inventory() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
               <h3 style={{ margin: 0, fontSize: 18, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                🔒 Validation d'Inventaire Sécurisée
+                🔒 {t('admin.inventory.secureValidationTitle', 'Secure Inventory Validation')}
               </h3>
               <button onClick={() => setSecurityModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
             </div>
@@ -246,7 +246,7 @@ export default function Inventory() {
                   Annuler
                 </button>
                 <button type="submit" className="btn-admin primary" disabled={saving || !managerPin} style={{ borderRadius: 20, padding: '10px 24px', background: 'var(--brand-red, #C0392B)' }}>
-                  🔓 Signer & Clôturer l'Inventaire
+                  {t('admin.inventory.signAndClose', '🔓 Sign & Finalize Inventory')}
                 </button>
               </div>
             </form>
@@ -272,7 +272,7 @@ export default function Inventory() {
             {totalDiscrepancies}
           </div>
           <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>
-            {totalDiscrepancies === 0 ? 'Inventaire 100% conforme ✅' : 'Révisions requises'}
+            {totalDiscrepancies === 0 ? t('admin.inventory.fullyConform', '100% compliant inventory ✅') : t('admin.inventory.revisionsRequired', 'Revisions required')}
           </span>
         </div>
 
@@ -316,11 +316,11 @@ export default function Inventory() {
             style={{ borderRadius: 8 }}
           >
             <option value="ALL">Tous les produits</option>
-            <option value="DIFF">Seulement les écarts (différences)</option>
-            <option value="MATCH">Stocks concordants (0 écart)</option>
+            <option value="DIFF">{t('admin.inventory.filterDiff', 'Only discrepancies')}</option>
+            <option value="MATCH">{t('admin.inventory.filterMatch', 'Matching stocks (0 discrepancy)')}</option>
           </select>
           <span className="admin-count">
-            {filteredItems.length} référence(s) affichée(s)
+            {t('admin.inventory.displayedRefsCount', { count: filteredItems.length, defaultValue: `${filteredItems.length} reference(s) displayed` })}
           </span>
         </Toolbar>
 
@@ -328,11 +328,11 @@ export default function Inventory() {
           <table className="admin-table">
           <thead>
             <tr>
-              <th>SKU / Réf</th>
+              <th>{t('admin.inventory.colSkuRef', 'SKU / Ref')}</th>
               <th>Produit</th>
-              <th>Stock Théorique (Système)</th>
+              <th>{t('admin.inventory.colTheoreticalStock', 'Theoretical Stock (System)')}</th>
               <th style={{ background: '#FAF8F5', textTransform: 'uppercase', color: 'var(--navy)', fontWeight: 700 }}>Comptage Physique</th>
-              <th>Écart (Delta)</th>
+              <th>{t('admin.inventory.colDelta', 'Discrepancy (Delta)')}</th>
               <th>Impact Valeur (€)</th>
               <th>Note d'Ajustement</th>
             </tr>
@@ -345,7 +345,7 @@ export default function Inventory() {
                 <td style={{ fontWeight: 600, textAlign: 'center' }}>
                   {blindMode ? (
                     <span style={{ padding: '4px 12px', background: '#E6E9EF', color: '#8A93A3', borderRadius: 12, fontStyle: 'italic', fontSize: 11.5 }}>
-                      🔒 Masqué (Aveugle)
+                      {t('admin.inventory.blindHidden', '🔒 Hidden (Blind)')}
                     </span>
                   ) : (
                     <span style={{ padding: '4px 10px', background: '#F2F4F7', borderRadius: 12 }}>{item.theoretical}</span>
@@ -401,7 +401,7 @@ export default function Inventory() {
 
             {!loading && filteredItems.length === 0 && (
               <tr>
-                <td colSpan="7" className="admin-empty">Aucun produit ne correspond à ces critères d'inventaire.</td>
+                <td colSpan="7" className="admin-empty">{t('admin.inventory.emptyFiltered', 'No product matches these inventory criteria.')}</td>
               </tr>
             )}
           </tbody>
