@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 // Fil d'ariane + bandeau de titre, communs aux pages de contenu.
 export default function PageHeader({ title, subtitle, crumbs = [] }) {
+  const { t } = useTranslation();
+
   return (
     <>
       <div className="uee-breadcrumb">
         <div className="container">
-          <Link to="/">Accueil</Link>
+          <Link to="/">{t('nav.home', 'Home')}</Link>
           {crumbs.map((c) => (
             <span key={c.label}>
               <span className="sep">/</span>
