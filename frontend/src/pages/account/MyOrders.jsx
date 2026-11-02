@@ -4,56 +4,48 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
 import { eur } from '../../data/cart.jsx';
 import { figureBySlug, defaultFigure } from '../../data/products.jsx';
-import { IconBag, IconPdf, IconStore } from '../../components/icons.jsx';
+import { IconPackage, IconPdf, IconCheck, IconTruck, IconStore, IconBag } from '../../components/icons.jsx';
 
 export default function MyOrders() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openOrder, setOpenOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [updating, setUpdating] = useState(false);
   const [pinInputs, setPinInputs] = useState({});
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    const fetchOrders = (silent = false) => {
-      api.myOrders()
-        .then((data) => {
-          const items = data.results || data;
-          setOrders(Array.isArray(items) ? items : []);
-        })
-        .catch(() => {
-          if (!silent) setOrders([]);
-        })
-        .finally(() => {
-          if (!silent) setLoading(false);
-        });
-    };
-    
-    fetchOrders();
-    const interval = setInterval(() => fetchOrders(true), 15000);
-    return () => clearInterval(interval);
+    let alive = true;
+    setLoading(true);
+    api.orders()
+      .then((data) => {
+        if (!alive) return;
+        setOrders(data.results || data || []);
+      })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
-  // Validation automatique par scan QR
+  // Détecter un scan QR Code (URL: /compte/commandes?confirm_ref=CMD-xxx&pin=123456)
   useEffect(() => {
     const confirmRef = searchParams.get('confirm_ref');
-    const pin = searchParams.get('pin');
-    
-    if (confirmRef && pin && !loading && !updating) {
+    const autoPin = searchParams.get('pin');
+    if (confirmRef && autoPin && !loading && orders.length > 0 && !updating) {
       const targetOrder = orders.find(o => o.reference === confirmRef);
       if (targetOrder && targetOrder.status === 'SHIPPED') {
         setUpdating(true);
-        api.confirmOrderDelivery(confirmRef, pin)
+        api.confirmOrderDelivery(confirmRef, autoPin)
           .then((updated) => {
             setOrders(prev => prev.map(o => o.reference === confirmRef ? { ...o, status: updated.status } : o));
-            alert("Votre commande a été validée avec succès !");
+            alert(t('account.orders.pinSuccess', 'Your order receipt has been verified successfully!'));
             setOpenOrder(targetOrder.id);
           })
-          .catch(err => {
+          .catch((err) => {
             console.warn('Erreur validation auto:', err);
-            alert("Échec de la validation par QR Code. Le code PIN est peut-être incorrect.");
+            alert(t('account.orders.qrFailed', 'QR Code validation failed. The PIN code may be incorrect.'));
           })
           .finally(() => {
             setUpdating(false);
@@ -61,24 +53,24 @@ export default function MyOrders() {
           });
       }
     }
-  }, [searchParams, loading, orders, updating, setSearchParams]);
+  }, [searchParams, loading, orders, updating, setSearchParams, t]);
 
   const handleConfirmDelivery = (reference) => {
     const pin = pinInputs[reference];
     if (!pin || pin.length !== 6) {
-      alert("Veuillez saisir le code PIN à 6 chiffres.");
+      alert(t('account.orders.enterPinPrompt', 'Enter the 6-digit confirmation PIN code.'));
       return;
     }
-    if (!window.confirm('Confirmez-vous avoir bien reçu cette commande ?')) return;
+    if (!window.confirm(t('account.orders.confirmPrompt', 'Do you confirm receiving this order?'))) return;
     setUpdating(true);
     api.confirmOrderDelivery(reference, pin)
       .then((updated) => {
         setOrders(prev => prev.map(o => o.reference === reference ? { ...o, status: updated.status } : o));
         setPinInputs(prev => ({ ...prev, [reference]: '' }));
       })
-      .catch(err => {
+      .catch((err) => {
         console.warn('Erreur confirmation livraison:', err);
-        alert("Code de validation incorrect. Veuillez vérifier.");
+        alert(t('account.orders.pinError', 'Invalid validation code. Please check.'));
       })
       .finally(() => setUpdating(false));
   };
@@ -95,37 +87,37 @@ export default function MyOrders() {
       case 'PAID':
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>✓</span> {label || 'Payée'}
+            <span>✓</span> {t('account.orders.paid', label || 'Paid')}
           </span>
         );
       case 'PREPARING':
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>⚡</span> {label || 'En préparation'}
+            <span>⚡</span> {t('account.orders.preparing', label || 'Preparing')}
           </span>
         );
       case 'SHIPPED':
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#E0E7FF', color: '#4338CA', border: '1px solid #C7D2FE', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>📦</span> {label || 'Expédiée'}
+            <span>📦</span> {t('account.orders.shipped', label || 'Shipped')}
           </span>
         );
       case 'DELIVERED':
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>🎉</span> {label || 'Livrée'}
+            <span>🎉</span> {t('account.orders.delivered', label || 'Delivered')}
           </span>
         );
       case 'CANCELLED':
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FCA5A5', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>✕</span> {label || 'Annulée'}
+            <span>✕</span> {t('account.orders.cancelled', label || 'Cancelled')}
           </span>
         );
       default:
         return (
           <span style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span>⏳</span> {label || 'En attente'}
+            <span>⏳</span> {t('account.orders.pending', label || 'Pending')}
           </span>
         );
     }
@@ -146,8 +138,8 @@ export default function MyOrders() {
     <div className="acc-overview">
       <div className="acc-head">
         <div className="acc-head-content">
-          <h1>{t('account.myOrders', 'Mes Commandes')}</h1>
-          <p>{t('account.myOrdersSub', 'Suivez vos expéditions en temps réel et consultez votre historique d\'achats.')}</p>
+          <h1>{t('account.layout.orders', 'My Orders')}</h1>
+          <p>{t('account.orders.subtitle', 'Track your shipments in real-time and review your purchase history.')}</p>
         </div>
       </div>
 
@@ -156,9 +148,9 @@ export default function MyOrders() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             {[
-              { id: 'ALL', label: `Toutes (${orders.length})` },
-              { id: 'PENDING', label: 'En cours' },
-              { id: 'COMPLETED', label: 'Livrées' },
+              { id: 'ALL', label: `${t('account.orders.filterAll', 'All orders')} (${orders.length})` },
+              { id: 'PENDING', label: t('account.orders.filterPending', 'In progress') },
+              { id: 'COMPLETED', label: t('account.orders.filterCompleted', 'Delivered') },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -182,7 +174,7 @@ export default function MyOrders() {
           </div>
 
           <Link to="/compte/boutique" className="btn-premium" style={{ fontSize: 13, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <IconStore /> Nouvelle commande
+            <IconStore /> {t('account.orders.newOrder', 'New order')}
           </Link>
         </div>
       )}
@@ -191,20 +183,20 @@ export default function MyOrders() {
       {loading ? (
         <div className="acc-info-card" style={{ padding: 40, textAlign: 'center' }}>
           <div className="acc-shop-spinner" style={{ margin: '0 auto 16px auto' }} />
-          <p style={{ color: '#64748B', margin: 0 }}>Chargement de vos commandes en cours…</p>
+          <p style={{ color: '#64748B', margin: 0 }}>{t('account.orders.loadingOrders', 'Loading your orders…')}</p>
         </div>
       ) : filteredOrders.length === 0 ? (
         /* AUCUNE COMMANDE */
         <div className="acc-empty">
           <div style={{ marginBottom: 16 }}><IconBag /></div>
-          <h2>{orders.length === 0 ? 'Aucune commande enregistrée' : 'Aucune commande dans cette catégorie'}</h2>
+          <h2>{orders.length === 0 ? t('account.orders.emptyTitle', 'No orders yet') : t('account.orders.noOrdersInCategory', 'No orders in this category')}</h2>
           <p>
             {orders.length === 0
-              ? 'Découvrez nos collections d\'accessoires de haute joaillerie et passez votre première commande.'
-              : 'Aucune commande ne correspond aux filtres sélectionnés.'}
+              ? t('account.orders.emptyDesc', 'You haven\'t placed any orders yet. Visit our shop to find unique bridal pieces.')
+              : t('account.orders.noOrdersInCategoryDesc', 'No orders match the selected filters.')}
           </p>
           <Link to="/compte/boutique" className="btn-premium" style={{ marginTop: 20, display: 'inline-flex' }}>
-            Découvrir la boutique
+            {t('account.orders.exploreShop', 'Explore the shop')}
           </Link>
         </div>
       ) : (
@@ -221,18 +213,18 @@ export default function MyOrders() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                       <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy,#0F172A)' }}>
-                        Commande #{o.reference}
+                        {t('account.orders.orderRef', { ref: o.reference, defaultValue: `Order #${o.reference}` })}
                       </span>
                       {getStatusBadge(o.status, o.status_display)}
                     </div>
                     <span style={{ fontSize: 13, color: '#64748B' }}>
-                      Passée le {new Date(o.created_at || Date.now()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} • {o.items_count || o.items?.length || 1} article(s)
+                      {t('account.orders.placedOn', 'Placed on')} {new Date(o.created_at || Date.now()).toLocaleDateString(i18n.language === 'en' ? 'en-US' : i18n.language === 'zh' ? 'zh-CN' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} • {t('account.orders.articlesCount', { count: o.items_count || o.items?.length || 1, defaultValue: `${o.items_count || o.items?.length || 1} item(s)` })}
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 12, color: '#64748B' }}>Montant total</div>
+                      <div style={{ fontSize: 12, color: '#64748B' }}>{t('account.orders.totalAmount', 'Total amount')}</div>
                       <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--brand-red,#E1251B)' }}>
                         {eur(o.total_amount || 0)}
                       </div>
@@ -252,7 +244,7 @@ export default function MyOrders() {
                         cursor: 'pointer',
                       }}
                     >
-                      {isOpen ? 'Masquer' : 'Détails & Suivi'}
+                      {isOpen ? t('account.orders.hide', 'Hide') : t('account.orders.detailsAndTracking', 'Details & Tracking')}
                     </button>
                   </div>
                 </div>
@@ -261,12 +253,12 @@ export default function MyOrders() {
                 <div style={{ padding: '16px 0 8px 0' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, position: 'relative' }}>
                     {[
-                      { label: 'Validation', active: step >= 1 },
-                      { label: 'Préparation', active: step >= 2 },
-                      { label: o.shipping_address?.method === 'pickup' ? 'Prête au retrait' : 'Expédition', active: step >= 3 },
-                      { label: o.shipping_address?.method === 'pickup' ? 'Retirée' : 'Livraison', active: step >= 4 },
+                      { label: t('account.orders.stepValidation', 'Validation'), active: step >= 1 },
+                      { label: t('account.orders.stepPreparation', 'Preparation'), active: step >= 2 },
+                      { label: o.shipping_address?.method === 'pickup' ? t('account.orders.stepReadyPickup', 'Ready for pickup') : t('account.orders.stepShipping', 'Shipping'), active: step >= 3 },
+                      { label: o.shipping_address?.method === 'pickup' ? t('account.orders.stepPickedUp', 'Picked up') : t('account.orders.stepDelivered', 'Delivered'), active: step >= 4 },
                     ].map((st, idx) => (
-                      <div key={st.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                         <div
                           style={{
                             width: 24,
@@ -301,19 +293,19 @@ export default function MyOrders() {
                       <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', padding: 16, borderRadius: 10, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <div>
                           <h4 style={{ margin: '0 0 4px 0', fontSize: 14, color: '#166534', fontWeight: 700 }}>
-                            {o.shipping_address?.method === 'pickup' ? 'Votre commande est prête !' : 'Votre commande est en route !'}
+                            {o.shipping_address?.method === 'pickup' ? t('account.orders.pickupReadyHeading', 'Your order is ready for pickup!') : t('account.orders.shippingReadyHeading', 'Your order is on its way!')}
                           </h4>
                           <p style={{ margin: 0, fontSize: 13, color: '#15803D' }}>
                             {o.shipping_address?.method === 'pickup'
-                              ? "Saisissez le code PIN à 6 chiffres présent sur votre bon de retrait en boutique pour valider la réception, ou scannez le QR Code."
-                              : "Saisissez le code PIN à 6 chiffres présent sur le bordereau du livreur pour valider la réception, ou scannez directement le QR Code."}
+                              ? t('account.orders.pickupPinPrompt', 'Enter the 6-digit PIN from your pickup slip or scan the QR Code.')
+                              : t('account.orders.shippingPinPrompt', 'Enter the 6-digit PIN on the delivery receipt or scan the QR Code.')}
                           </p>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                           <input
                             type="text"
                             maxLength={6}
-                            placeholder="Code PIN à 6 chiffres"
+                            placeholder={t('account.orders.pinPlaceholder', '6-digit PIN code')}
                             value={pinInputs[o.reference] || ''}
                             onChange={(e) => setPinInputs({ ...pinInputs, [o.reference]: e.target.value.replace(/[^0-9]/g, '') })}
                             disabled={updating}
@@ -335,20 +327,20 @@ export default function MyOrders() {
                             onClick={() => handleConfirmDelivery(o.reference)}
                             style={{ background: '#16A34A', border: 'none', flex: 1, minWidth: 200 }}
                           >
-                            {updating ? 'Confirmation...' : (o.shipping_address?.method === 'pickup' ? "Valider le retrait" : "Valider la réception")}
+                            {updating ? t('account.orders.confirming', 'Confirming…') : (o.shipping_address?.method === 'pickup' ? t('account.orders.validatePickup', 'Confirm pickup') : t('account.orders.validateDelivery', 'Confirm receipt'))}
                           </button>
                         </div>
                       </div>
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--navy,#0F172A)' }}>Articles commandés</h4>
+                      <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--navy,#0F172A)' }}>{t('account.orders.orderedItems', 'Ordered items')}</h4>
                       <button
                         type="button"
-                        onClick={() => alert(`Téléchargement de la facture PDF pour la commande #${o.reference}…`)}
+                        onClick={() => alert(t('account.orders.downloadingInvoice', { ref: o.reference, defaultValue: `Downloading PDF invoice for order #${o.reference}…` }))}
                         style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}
                       >
-                        <IconPdf /> Télécharger la facture (PDF)
+                        <IconPdf /> {t('account.orders.downloadInvoice', 'Download invoice (PDF)')}
                       </button>
                     </div>
 
@@ -371,10 +363,10 @@ export default function MyOrders() {
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy,#0F172A)' }}>
-                              {item.product_name || 'Pièce de joaillerie'}
+                              {item.product_name || t('account.orders.defaultItemName', 'Fine bridal jewelry')}
                             </div>
                             <div style={{ fontSize: 12, color: '#64748B' }}>
-                              SKU: {item.sku || 'SKU-001'} • Quantité: {item.quantity} × {eur(item.unit_price || 0)}
+                              SKU: {item.sku || 'SKU-001'} • {t('product.quantity', 'Quantity')}: {item.quantity} × {eur(item.unit_price || 0)}
                             </div>
                           </div>
                           <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy,#0F172A)' }}>
@@ -390,25 +382,25 @@ export default function MyOrders() {
                         <div style={{ background: '#EFF6FF', padding: 14, borderRadius: 10, border: '1px solid #BFDBFE', color: '#1E40AF' }}>
                           {o.shipping_address.method === 'pickup' ? (
                             <>
-                              📍 <strong>Retrait en Atelier Boutique :</strong><br />
+                              📍 <strong>{t('account.orders.pickupAddressTitle', 'Boutique Atelier Pickup:')}</strong><br />
                               <span style={{ fontSize: 12 }}>Maison Lián, 12 Rue de la Paix, 75002 Paris</span>
                             </>
                           ) : (
                             <>
-                              📍 <strong>Adresse de livraison :</strong><br />
+                              📍 <strong>{t('account.orders.deliveryAddressTitle', 'Shipping address:')}</strong><br />
                               <span style={{ fontSize: 12 }}>{o.shipping_address.full_name || ''} — {o.shipping_address.address || ''}, {o.shipping_address.postal_code || ''} {o.shipping_address.city || ''} ({o.shipping_address.country || 'FR'})</span>
                             </>
                           )}
                         </div>
 
                         <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 10, border: '1px solid #E2E8F0', color: '#334155' }}>
-                          💳 <strong>Mode de règlement :</strong><br />
+                          💳 <strong>{t('account.orders.paymentMethodTitle', 'Payment method:')}</strong><br />
                           <span style={{ fontSize: 12 }}>
                             {(o.payment_method || o.shipping_address.payment_method) === 'cod'
-                              ? '💵 Paiement à la livraison / au retrait'
+                              ? `💵 ${t('account.orders.paymentCod', 'Cash on delivery / at pickup')}`
                               : (o.payment_method || o.shipping_address.payment_method) === 'paypal'
-                              ? '🅿️ PayPal'
-                              : '💳 Carte Bancaire (SSL)'}
+                              ? `🅿️ ${t('account.orders.paymentPaypal', 'PayPal')}`
+                              : `💳 ${t('account.orders.paymentCard', 'Credit Card (SSL)')}`}
                           </span>
                         </div>
                       </div>
