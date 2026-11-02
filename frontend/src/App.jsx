@@ -40,8 +40,8 @@ export default function App() {
         <Route element={<SiteLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/boutique" element={<Category />} />
-          <Route path="/nouveautes" element={<Category title="Nouveautés" count={36} />} />
-          <Route path="/promotions" element={<Category title="Promotions" count={24} />} />
+          <Route path="/nouveautes" element={<Category titleKey="category.newArrivals" count={36} />} />
+          <Route path="/promotions" element={<Category titleKey="category.promotions" count={24} />} />
           <Route path="/produit/:slug" element={<Product />} />
 
           {/* Tunnel d'achat */}
