@@ -31,9 +31,9 @@ export default function Home() {
   // Activité récente / commande en direct
   const [activeToast, setActiveToast] = useState(0);
   const liveToasts = [
-    { name: t('home.liveOrders.item1') || 'Épingle Chinoise Dorée & Perles', loc: t('home.liveOrders.locParis') || 'Paris, France', time: t('home.liveOrders.time2min') || 'Il y a 2 min' },
-    { name: t('home.liveOrders.item2') || 'Peigne de Mariée Fleur de Lys', loc: t('home.liveOrders.locLyon') || 'Lyon, France', time: t('home.liveOrders.time5min') || 'Il y a 5 min' },
-    { name: t('home.liveOrders.item3') || 'Diadème Princesse Cristal', loc: t('home.liveOrders.locBrussels') || 'Bruxelles, Belgique', time: t('home.liveOrders.time12min') || 'Il y a 12 min' },
+    { name: t('home.liveOrders.item1', 'Golden Chinese Hairpin & Pearls'), loc: t('home.liveOrders.locParis', 'Paris, France'), time: t('home.liveOrders.time2min', '2 minutes ago') },
+    { name: t('home.liveOrders.item2', 'Bride Haircomb Fleur de Lys'), loc: t('home.liveOrders.locLyon', 'Lyon, France'), time: t('home.liveOrders.time5min', '5 minutes ago') },
+    { name: t('home.liveOrders.item3', 'Princess Crystal Tiara'), loc: t('home.liveOrders.locBrussels', 'Brussels, Belgium'), time: t('home.liveOrders.time12min', '12 minutes ago') },
   ];
 
   // Scroll reveal animations
@@ -232,7 +232,7 @@ export default function Home() {
         <button
           type="button"
           className="slider-arrow left"
-          aria-label={t('home.hero.previous') || 'Précédent'}
+          aria-label={t('home.hero.previous', 'Previous')}
           onClick={() => stepSlide(-1)}
         >
           <IconChevronLeft />
@@ -240,7 +240,7 @@ export default function Home() {
         <button
           type="button"
           className="slider-arrow right"
-          aria-label={t('home.hero.next') || 'Suivant'}
+          aria-label={t('home.hero.next', 'Next')}
           onClick={() => stepSlide(1)}
         >
           <IconChevronRight />
@@ -263,7 +263,7 @@ export default function Home() {
                 {t('home.hero.discoverCollection') || 'Explorer les Collections'} ➔
               </Link>
               <Link to="/contact" className="btn-outline">
-                {t('header.requestQuote') || 'Créations Sur-Mesure'}
+                {t('header.requestQuote', 'Bespoke Creations')}
               </Link>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function Home() {
                 loading="eager"
               />
               <div className="price-float">
-                <div className="pf-old">Édition Cérémonie</div>
+                <div className="pf-old">{t('home.hero.ceremonyEdition', 'Ceremony Edition')}</div>
                 <div className="pf-new">{currentHero.price}</div>
               </div>
             </div>
@@ -359,8 +359,8 @@ export default function Home() {
         <div className="container">
           <div className="uee-section-head">
             <div>
-              <span className="section-kicker">✦ SÉLECTION D'EXCEPTION</span>
-              <h2>{t('home.overview.generalCatalog') || 'Les Trésors de la Saison'}</h2>
+              <span className="section-kicker">✦ {t('home.featured.exceptionalSelection', 'EXCEPTIONAL SELECTION')}</span>
+              <h2>{t('home.featured.seasonTreasures', 'Season Treasures')}</h2>
             </div>
 
             <div className="uee-tabs">
@@ -369,7 +369,7 @@ export default function Home() {
                 className={`uee-tab${tab === '' ? ' active' : ''}`}
                 onClick={() => handleTabChange('')}
               >
-                {t('home.overview.allTreasures') || 'Tous les trésors'}
+                {t('home.featured.allTreasures', 'All treasures')}
               </button>
               {cats.map((c) => (
                 <button
@@ -386,7 +386,7 @@ export default function Home() {
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
-              Chargement des pièces d'exception...
+              {t('home.featured.loadingPieces', 'Loading exceptional pieces…')}
             </div>
           ) : (
             <>
@@ -402,7 +402,7 @@ export default function Home() {
                   className="btn-primary"
                   style={{ padding: '15px 38px', fontSize: 14.5, display: 'inline-block' }}
                 >
-                  Découvrir toutes nos créations ({displayProducts.length}+ pièces) ➔
+                  {t('home.featured.viewAllPieces', { count: displayProducts.length, defaultValue: `Explore all our creations (${displayProducts.length}+ pieces) ➔` })}
                 </Link>
               </div>
             </>
@@ -420,8 +420,8 @@ export default function Home() {
             {/* CARTE 1 : L'ÉCRIN SIGNATURE MAISON LIÁN */}
             <div className="ml-box-card">
               <div>
-                <span className="ml-box-kicker">✦ {t('home.overview.signatureBox') || 'EXPÉRIENCE PRÊT-À-OFFRIR'}</span>
-                <h3>{t('home.overview.signatureBoxTitle') || "L'Écrin Signature & Emballage Prestige"}</h3>
+                <span className="ml-box-kicker">✦ {t('home.overview.signatureBox', 'SIGNATURE GIFT BOX')}</span>
+                <h3>{t('home.overview.signatureBoxTitle', 'Gift box & packaging')}</h3>
                 <p className="ml-box-desc">
                   {t('home.overview.signatureBoxText') ||
                     "Chaque bijou est délicatement déposé dans notre coffret signature en velours orné d'un ruban de satin, accompagné de son certificat d'authenticité et de garantie."}
@@ -439,11 +439,11 @@ export default function Home() {
                   </div>
                   <div className="ml-box-feat">
                     <span className="chk">✓</span>
-                    <span>{t('home.overview.signatureFeature2') || "Ruban de satin noué à la main & carte personnalisable"}</span>
+                    <span>{t('home.overview.signatureFeature2', 'Satin ribbon & personalised card')}</span>
                   </div>
                   <div className="ml-box-feat">
                     <span className="chk">✓</span>
-                    <span>{t('home.overview.signatureFeature3') || "Protection maximale pour une expédition sécurisée"}</span>
+                    <span>{t('home.overview.signatureFeature3', 'Maximum protection during shipping')}</span>
                   </div>
                 </div>
               </div>
@@ -456,8 +456,8 @@ export default function Home() {
             {/* CARTE 2 : OFFRE PRIVILÈGE SAISON NUPTIALE & COUNTDOWN */}
             <div className="ml-promo-card">
               <div>
-                <span className="ml-promo-kicker">✦ VENTE PRIVÉE NUPTIALE</span>
-                <h3>{t('home.overview.weddingOffer') || "Privilège Saison Nuptiale — Jusqu'à -20%"}</h3>
+                <span className="ml-promo-kicker">✦ {t('home.featured.privateSaleKicker', 'BRIDAL PRIVATE SALE')}</span>
+                <h3>{t('home.featured.privateSaleTitle', 'Bridal Season Privilege — Up to -20%')}</h3>
                 <p className="ml-promo-desc">
                   {t('home.overview.weddingOfferText') ||
                     "Profitez d'offres exclusives et de remises d'exception sur une sélection raffinée d'accessoires et parures pour votre cérémonie."}
@@ -484,7 +484,7 @@ export default function Home() {
               </div>
 
               <Link to="/boutique" className="btn-primary" style={{ textAlign: 'center' }}>
-                {t('home.overview.discoverSelection') || 'Accéder à la sélection privée'} ➔
+                {t('home.featured.accessPrivateSale', 'Access private selection ➔')}
               </Link>
             </div>
 
@@ -511,18 +511,18 @@ export default function Home() {
           <div className="ml-craft-grid" ref={revealCraft}>
             <div className="ml-craft-card">
               <span className="ml-craft-icon"><IconShield /></span>
-              <h3>Dorure d'Art &amp; Métaux Nobles</h3>
+              <h3>{t('home.featured.craftsmanshipTitle', 'Artistic Gilding & Noble Metals')}</h3>
               <p>
                 Nos pièces sont ouvragées avec une dorure à l'or fin 18 carats et des alliages hypoallergéniques conçus pour un port léger et éclatant tout au long de votre célébration.
               </p>
               <Link to="/boutique" className="ml-craft-link">
-                Découvrir l'orfèvrerie ➔
+                {t('home.featured.discoverJewelry', 'Discover the craftsmanship ➔')}
               </Link>
             </div>
 
             <div className="ml-craft-card">
               <span className="ml-craft-icon"><IconChat /></span>
-              <h3>Conseil &amp; Créations Sur-Mesure</h3>
+              <h3>{t('home.featured.customAdviceTitle', 'Advice & Bespoke Creations')}</h3>
               <p>
                 De l'ajustement des peignes à la coordination de parures complètes pour cortège, nos conseillers joailliers vous accompagnent pas à pas dans vos préparatifs.
               </p>
@@ -539,7 +539,7 @@ export default function Home() {
                   "Tarifs grossistes dégressifs jusqu'à -40%, commande rapide et expédition express pour les boutiques de robes de mariée et salons partenaires."}
               </p>
               <Link to="/compte/pro" className="ml-craft-link">
-                {t('home.overview.discoverProSpace') || "Découvrir l'Espace Pro"} ➔
+                {t('home.featured.accessProSpace', 'Access B2B Pro Space ➔')}
               </Link>
             </div>
           </div>
@@ -553,8 +553,8 @@ export default function Home() {
         <div className="container">
           <div className="uee-section-head" style={{ marginBottom: 28 }}>
             <div>
-              <span className="section-kicker">✦ EXPÉRIENCE &amp; CONFIANCE</span>
-              <h2>{t('home.overview.customerReviewsTitle') || "Ce que nos mariées disent de nous"}</h2>
+              <span className="section-kicker">✦ {t('home.featured.experienceTrustKicker', 'EXPERIENCE & TRUST')}</span>
+              <h2>{t('home.overview.customerReviewsTitle', 'What our brides and partners say about us')}</h2>
             </div>
           </div>
 
@@ -563,7 +563,7 @@ export default function Home() {
               <div className="testi-card" key={tm.name}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Stars value={tm.rating} />
-                  <span className="t-verified">✓ Achat vérifié</span>
+                  <span className="t-verified">{t('home.featured.verifiedPurchase', '✓ Verified purchase')}</span>
                 </div>
                 <p className="t-text">« {tm.text} »</p>
                 <div className="t-who">
@@ -585,11 +585,11 @@ export default function Home() {
       <section className="uee-newsletter" ref={revealNewsletter}>
         <div className="container nl-flex">
           <div>
-            <h3>{t('home.newsletter.title') || "Rejoignez le Cercle Privilège Maison Lián"}</h3>
-            <p>{t('home.newsletter.text') || "Recevez nos invitations aux ventes privées, nos nouveautés et 10% offerts sur votre première commande."}</p>
+            <h3>{t('home.newsletter.title', 'Get -10% on your first order')}</h3>
+            <p>{t('home.newsletter.text', 'New arrivals, wholesale offers and wedding guides, once a month.')}</p>
           </div>
           {subscribed ? (
-            <p className="nl-thanks">{t('home.newsletter.thanks') || "Merci ! Votre code de bienvenue vous a été envoyé par e-mail."}</p>
+            <p className="nl-thanks">{t('home.newsletter.thanks', 'Thank you! Your discount code is on its way by email.')}</p>
           ) : (
             <form className="uee-nl-form" onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }}>
               <input
@@ -612,15 +612,15 @@ export default function Home() {
           <div className="trust-badges">
             <span className="trust-badge">
               <IconTruck />
-              <span><strong>Expédition soignée</strong> sous 48h</span>
+              <span>{t('home.featured.dispatch48h', 'Careful shipping within 48h')}</span>
             </span>
             <span className="trust-badge">
               <IconShield />
-              <span><strong>Certificat d'authenticité</strong> inclus</span>
+              <span>{t('home.featured.certIncluded', 'Certificate of authenticity included')}</span>
             </span>
             <span className="trust-badge">
               <IconCard />
-              <span><strong>Paiement sécurisé</strong> SSL 256-bit</span>
+              <span>{t('home.featured.sslPayment', 'Secure 256-bit SSL payment')}</span>
             </span>
           </div>
           <div className="pay-icons">
@@ -638,7 +638,7 @@ export default function Home() {
         <div className="live-toast" role="status" aria-live="polite">
           <div className="lt-dot"></div>
           <div className="lt-content" style={{ flex: 1 }}>
-            <div className="lt-title">✦ {t('home.liveOrders.title') || 'Commande récente'}</div>
+            <div className="lt-title">✦ {t('home.liveOrders.title', 'Live order')}</div>
             <div className="lt-item">{liveToasts[activeToast].name}</div>
             <div className="lt-sub">{liveToasts[activeToast].loc} • {liveToasts[activeToast].time}</div>
           </div>
