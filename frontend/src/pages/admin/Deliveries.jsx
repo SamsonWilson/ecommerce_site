@@ -54,7 +54,7 @@ export default function Deliveries() {
   };
 
   const handleMarkDelivered = (orderId) => {
-    if (!window.confirm('Confirmez-vous que cette commande a bien été remise au client ?')) return;
+    if (!window.confirm(t('admin.deliveries.confirmDeliveredPrompt', 'Do you confirm that this order has been handed over to the customer?'))) return;
     setUpdating(true);
     api.adminUpdateOrder(orderId, { status: 'DELIVERED' })
       .then(() => {
@@ -111,7 +111,7 @@ export default function Deliveries() {
                 </td>
                 <td>
                   <span className={`status ${o.status === 'SHIPPED' ? 'shipped' : 'pending'}`}>
-                    {o.status === 'SHIPPED' ? 'En tournée' : 'À enlever'}
+                    {o.status === 'SHIPPED' ? t('admin.deliveries.statusOnRoute', 'Out for delivery') : t('admin.deliveries.statusToPickup', 'To pick up')}
                   </span>
                 </td>
                 <td>
