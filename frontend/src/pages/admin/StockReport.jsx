@@ -113,14 +113,14 @@ export default function StockReport() {
   const selectedProductRenewal = selectedProductHistory.find((movement) => Number(movement.quantity_delta || 0) > 0) || null;
 
   const exportCsv = () => {
-    const headers = ['Produit', 'Catégorie', 'Variantes', 'SKU', 'Stock total', 'Statut', 'Prix min', 'Prix max'];
+    const headers = [t('admin.stockReport.colProduct', 'Product'), t('admin.stockReport.colCategory', 'Category'), t('admin.stockReport.colVariants', 'Variants'), 'SKU', t('admin.stockReport.colTotalStock', 'Total stock'), t('admin.stockReport.colStatus', 'Status'), t('admin.stockReport.colMinPrice', 'Min price'), t('admin.stockReport.colMaxPrice', 'Max price')];
     const csvRows = filteredRows.map((row) => [
       row.name,
       row.category,
       row.variantCount,
       row.skus.join(' / '),
       row.totalStock,
-      row.status === 'OUT' ? 'Rupture' : row.status === 'LOW' ? 'Faible' : 'OK',
+      row.status === 'OUT' ? t('admin.stockReport.statusOut', 'Out of stock') : row.status === 'LOW' ? t('admin.stockReport.statusLow', 'Low stock') : t('admin.stockReport.statusOk', 'OK'),
       numberFmt(row.minPrice),
       numberFmt(row.maxPrice),
     ]);
@@ -204,26 +204,26 @@ export default function StockReport() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginTop: 16 }}>
               <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Stock actuel</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.currentStock', 'Current stock')}</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--navy)', marginTop: 6 }}>{selectedProduct.totalStock}</div>
               </div>
 
               <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Dernier renouvellement</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.lastRestock', 'Last restock')}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#27AE60', marginTop: 6 }}>
-                  {selectedProductRenewal ? new Date(selectedProductRenewal.created_at).toLocaleString('fr-FR') : 'Aucun renouvellement connu'}
+                  {selectedProductRenewal ? new Date(selectedProductRenewal.created_at).toLocaleString(i18n.language === 'en' ? 'en-US' : i18n.language === 'zh' ? 'zh-CN' : 'fr-FR') : t('admin.stockReport.noRestockKnown', 'No restock recorded')}
                 </div>
               </div>
 
               <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Quantité ajoutée</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.qtyAdded', 'Quantity added')}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', marginTop: 6 }}>
-                  {selectedProductRenewal ? `+${selectedProductRenewal.quantity_delta} unités` : '—'}
+                  {selectedProductRenewal ? `+${selectedProductRenewal.quantity_delta} ${t('common.units', 'units')}` : '—'}
                 </div>
               </div>
 
               <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Référence</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.ref', 'Reference')}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', marginTop: 6 }}>
                   {selectedProductRenewal?.reference || '—'}
                 </div>
@@ -236,7 +236,7 @@ export default function StockReport() {
               </div>
               {selectedProductHistory.length === 0 ? (
                 <div style={{ background: '#fff', border: '1px solid #ECEBE7', borderRadius: 10, padding: 14, color: 'var(--muted)' }}>
-                  Aucun mouvement enregistré pour ce produit.
+                  {t('admin.stockReport.noMovementsRecorded', 'No movement recorded for this product.')}
                 </div>
               ) : (
                 <div className="admin-table-scroll" style={{ border: '1px solid #ECEBE7', borderRadius: 12, background: '#fff' }}>
