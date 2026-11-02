@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/auth.js';
 import { useCart } from '../../store/cart.js';
 import { useWishlistCount } from '../../store/wishlist.js';
@@ -7,6 +8,7 @@ import {
 } from '../../components/icons.jsx';
 
 export default function AccountLayout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
@@ -15,7 +17,7 @@ export default function AccountLayout() {
 
   const name = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
-    : 'Client';
+    : t('account.defaultClient', 'Client');
   const initial = (name || 'C').charAt(0).toUpperCase();
   const isPro = user?.profile?.account_type === 'WHOLESALE';
 
@@ -38,21 +40,21 @@ export default function AccountLayout() {
 
           <Link to="/" className="back">
             <IconArrowLeft />
-            <span>Retourner à la boutique</span>
+            <span>{t('account.layout.backToShop', 'Back to shop')}</span>
           </Link>
 
           <div className="acc-user">
             <span className="av">{initial}</span>
             <div className="who">
               <b>{name}</b>
-              <span>{isPro ? 'Compte professionnel B2B' : 'Compte particulier'}</span>
+              <span>{isPro ? t('account.layout.proAccount', 'B2B Wholesale Account') : t('account.layout.standardAccount', 'Retail Customer Account')}</span>
             </div>
             <button
               type="button"
               className="acc-logout"
               onClick={signOut}
-              title="Se déconnecter"
-              aria-label="Se déconnecter"
+              title={t('account.layout.logout', 'Sign out')}
+              aria-label={t('account.layout.logout', 'Sign out')}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 17, height: 17 }}>
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -69,11 +71,11 @@ export default function AccountLayout() {
         <div className="acc-nav-inner">
           <NavLink to="/compte" end className={link}>
             <IconUser />
-            <span>Vue d'ensemble</span>
+            <span>{t('account.layout.overview', 'Overview')}</span>
           </NavLink>
           <NavLink to="/compte/boutique" className={link}>
             <IconStore />
-            <span>Boutique</span>
+            <span>{t('account.layout.shop', 'Shop')}</span>
             {cartCount > 0 && (
               <span style={{ background: 'var(--brand-red)', color: '#fff', fontSize: '10.5px', fontWeight: 700, padding: '2px 7px', borderRadius: '10px', marginLeft: 4 }}>
                 {cartCount}
@@ -82,11 +84,11 @@ export default function AccountLayout() {
           </NavLink>
           <NavLink to="/compte/commandes" className={link}>
             <IconPackage />
-            <span>Mes commandes</span>
+            <span>{t('account.layout.orders', 'My Orders')}</span>
           </NavLink>
           <NavLink to="/compte/favoris" className={link}>
             <IconHeart />
-            <span>Mes favoris</span>
+            <span>{t('account.layout.favorites', 'My Wishlist')}</span>
             {wishCount > 0 && (
               <span style={{ background: 'var(--gold, #C5A059)', color: '#fff', fontSize: '10.5px', fontWeight: 700, padding: '2px 7px', borderRadius: '10px', marginLeft: 4 }}>
                 {wishCount}
@@ -96,11 +98,11 @@ export default function AccountLayout() {
           <div className="sep" />
           <NavLink to="/compte/profil" className={link}>
             <IconUser />
-            <span>Mon profil</span>
+            <span>{t('account.layout.profile', 'My Profile')}</span>
           </NavLink>
           <NavLink to="/compte/pro" className={link}>
             <IconStore />
-            <span>Accès grossiste B2B</span>
+            <span>{t('account.layout.wholesale', 'B2B Wholesale Access')}</span>
           </NavLink>
         </div>
       </nav>
