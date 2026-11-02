@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { IconPlay, IconZoom } from './icons.jsx';
 
@@ -14,6 +15,7 @@ const ZOOM = 2.5;
  * de survol, le panneau ne s'ouvre pas : un appui long ferait un zoom fantôme.
  */
 export default function ProductGallery({ items, title, badge, children }) {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [lens, setLens] = useState(null); // { x, y } en % de la photo
   const frameRef = useRef(null);
@@ -54,7 +56,7 @@ export default function ProductGallery({ items, title, badge, children }) {
             {/* `key` sur la source : remonter la photo rejoue le fondu. */}
             <img key={current.src} className="uee-gallery-photo pg-fade" src={current.src} alt={title} />
             {lens && <span className="pg-lens" style={{ left: `${lens.x}%`, top: `${lens.y}%` }} />}
-            {!lens && <span className="pg-hint"><IconZoom />Survolez pour agrandir</span>}
+            {!lens && <span className="pg-hint"><IconZoom />{t('product.hoverToZoom', 'Hover to zoom')}</span>}
           </>
         ) : (
           current?.figure
@@ -85,7 +87,7 @@ export default function ProductGallery({ items, title, badge, children }) {
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIndex(i); }}
-              aria-label={`${title} — visuel ${i + 1}`}
+              aria-label={t('product.visualNumber', { title, number: i + 1, defaultValue: `${title} — Image ${i + 1}` })}
             >
               {item.kind === 'VIDEO' ? (
                 <span className="pg-thumb-video"><IconPlay /></span>
@@ -108,7 +110,7 @@ ProductGallery.propTypes = {
     kind: PropTypes.oneOf(['IMAGE', 'VIDEO']),
     figure: PropTypes.node,
   })).isRequired,
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   badge: PropTypes.string,
   children: PropTypes.node,
 };
