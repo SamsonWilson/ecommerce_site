@@ -608,7 +608,7 @@ export default function Promotions() {
               }}
             >
               <h3 style={{ margin: 0, fontSize: 18, color: 'var(--navy)', fontWeight: 700 }}>
-                {editingPromo ? 'Modifier la promotion' : 'Créer une nouvelle promotion'}
+                {editingPromo ? t('admin.promotions.modalEdit', 'Edit promotion') : t('admin.promotions.modalCreate', 'Create a new promotion')}
               </h3>
               <button
                 type="button"
@@ -637,7 +637,7 @@ export default function Promotions() {
                       className="btn-admin ghost"
                       onClick={handleGenerateCode}
                       style={{ padding: '0 12px', whiteSpace: 'nowrap', fontSize: 12 }}
-                      title="Générer un code aléatoire"
+                      title={t('admin.promotions.generateTitle', 'Generate a random promo code')}
                     >
                       Générer
                     </button>
@@ -648,14 +648,14 @@ export default function Promotions() {
                   <label>Libellé / Description</label>
                   <input
                     type="text"
-                    placeholder="Ex: Offre spéciale Épingle Phénix -20%"
+                    placeholder={t('admin.promotions.labelPlaceholder', 'E.g. Special Phoenix Hairpin -20%')}
                     value={formData.label}
                     onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label>Type de réduction</label>
+                  <label>{t('admin.promotions.typeLabel', 'Discount type')}</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -666,7 +666,7 @@ export default function Promotions() {
                 </div>
 
                 <div>
-                  <label>Valeur de la réduction *</label>
+                  <label>{t('admin.promotions.valueLabel', 'Discount value *')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -679,7 +679,7 @@ export default function Promotions() {
                 </div>
 
                 <div className="full">
-                  <label>Portée de la réduction *</label>
+                  <label>{t('admin.promotions.scopeLabel', 'Discount scope *')}</label>
                   <select
                     value={formData.scope}
                     onChange={(e) => setFormData({ ...formData, scope: e.target.value })}
@@ -699,10 +699,10 @@ export default function Promotions() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                       <div>
                         <strong style={{ fontSize: 13, color: 'var(--navy)' }}>
-                          Sélectionner les produits éligibles ({formData.selectedProducts.length} sélectionné(s))
+                          {t('admin.promotions.selectEligibleProducts', { count: formData.selectedProducts.length, defaultValue: `Select eligible products (${formData.selectedProducts.length} selected)` })}
                         </strong>
                         <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
-                          Cochez les articles auxquels cette réduction s'applique
+                          {t('admin.promotions.checkProductsPrompt', 'Check items to which this discount applies')}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
@@ -777,7 +777,7 @@ export default function Promotions() {
                       })}
                       {filteredModalProducts.length === 0 && (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 12, color: 'var(--muted)', fontSize: 12 }}>
-                          Aucun produit trouvé.
+                          {t('admin.promotions.noProductsFound', 'No products found.')}
                         </div>
                       )}
                     </div>
@@ -800,14 +800,14 @@ export default function Promotions() {
                   <input
                     type="number"
                     min="0"
-                    placeholder="0 = Utilisations illimitées"
+                    placeholder={t('admin.promotions.unlimitedUsesPlaceholder', '0 = Unlimited uses')}
                     value={formData.maxUses}
                     onChange={(e) => setFormData({ ...formData, maxUses: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label>Date de début</label>
+                  <label>{t('admin.promotions.startDate', 'Start date')}</label>
                   <input
                     type="date"
                     required
@@ -837,7 +837,7 @@ export default function Promotions() {
                       <i />
                     </button>
                     <span style={{ fontWeight: 600, fontSize: 13, color: formData.active ? 'var(--green)' : 'var(--muted)' }}>
-                      {formData.active ? 'Promotion Active' : 'Désactivée'}
+                      {formData.active ? t('admin.promotions.activeStatus', 'Promotion Active') : t('admin.promotions.inactiveStatus', 'Deactivated')}
                     </span>
                   </div>
                 </div>
@@ -848,7 +848,7 @@ export default function Promotions() {
                   Annuler
                 </button>
                 <button type="submit" className="btn-admin primary">
-                  {editingPromo ? 'Enregistrer les modifications' : 'Créer la promotion'}
+                  {editingPromo ? t('admin.promotions.saveChanges', 'Save changes') : t('admin.promotions.createPromotionBtn', 'Create promotion')}
                 </button>
               </div>
             </form>
