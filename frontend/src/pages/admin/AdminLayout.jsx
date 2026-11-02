@@ -7,18 +7,54 @@ import { useTheme } from './ThemeContext.jsx';
 import { api } from '../../lib/api.js';
 import { eur } from '../../data/cart.jsx';
 
+const ALL_LANGUAGES = [
+  { code: 'en', name: 'English', label: 'EN' },
+  { code: 'fr', name: 'Français', label: 'FR' },
+  { code: 'zh', name: '中文', label: 'ZH' },
+];
+
 export default function AdminLayout() {
   const { i18n, t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
 
-  const currentLang = (i18n.resolvedLanguage || 'fr').toUpperCase();
-  const { toggleTheme, isDark } = useTheme();
+  const { isDark } = useTheme();
+
+  // GESTION DE LA LANGUE
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef(null);
+
+  const [publishedLangs, setPublishedLangs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('published_langs');
+      return saved ? JSON.parse(saved) : ['en', 'fr'];
+    } catch {
+      return ['en', 'fr'];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const saved = localStorage.getItem('published_langs');
+        if (saved) setPublishedLangs(JSON.parse(saved));
+      } catch { }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const currentLangCode = ((i18n.resolvedLanguage || i18n.language || 'fr').slice(0, 2)).toLowerCase();
+  const currentLangLabel = currentLangCode.toUpperCase();
+  const availableLangs = ALL_LANGUAGES.filter((l) => publishedLangs.includes(l.code));
+  const listLangs = availableLangs.length > 0 ? availableLangs : ALL_LANGUAGES.slice(0, 2);
 
   // GESTION DES NOTIFICATIONS DE COMMANDES & DEVIS
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
   const [readNotifIds, setReadNotifIds] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
@@ -27,20 +63,19 @@ export default function AdminLayout() {
     }
   });
 
-  const popoverRef = useRef(null);
-
-  // Fermeture lors d'un clic à l'extérieur
+  // Fermeture des popovers lors d'un clic à l'extérieur
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
         setNotifOpen(false);
       }
     };
-    if (notifOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [notifOpen]);
+  }, []);
 
   // Récupération automatique des commandes et devis récents
   useEffect(() => {
@@ -100,10 +135,10 @@ export default function AdminLayout() {
 
   const formatTimeAgo = (date) => {
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60) return 'À l\'instant';
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-    return date.toLocaleDateString('fr-FR');
+    if (diff < 60) return t('common.justNow', 'Just now');
+    if (diff < 3600) return t('common.minutesAgo', { count: Math.floor(diff / 60), defaultValue: `${Math.floor(diff / 60)} min ago` });
+    if (diff < 86400) return t('common.hoursAgo', { count: Math.floor(diff / 3600), defaultValue: `${Math.floor(diff / 3600)} h ago` });
+    return date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : i18n.language === 'zh' ? 'zh-CN' : 'fr-FR');
   };
 
   const NAV = [
@@ -228,7 +263,7 @@ export default function AdminLayout() {
             <div className="name">{displayName}</div>
             <div className="role">{user?.role_display || t('admin.nav.administration', 'Administration')}</div>
           </div>
-          <button type="button" className="admin-logout" onClick={signOut} title="Se déconnecter">
+          <button type="button" className="admin-logout" onClick={signOut} title={t('account.layout.logout', 'Sign out')} aria-label={t('account.layout.logout', 'Sign out')}>
             {I.logout}
           </button>
         </div>
@@ -253,95 +288,110 @@ export default function AdminLayout() {
             />
           </div>
 
-          <div className="admin-top-actions" ref={popoverRef}>
-            <span
-              className="admin-lang"
-              style={{ cursor: 'pointer' }}
-              title="Cliquer pour changer de langue"
-              onClick={() => {
-                const next = currentLang === 'FR' ? 'en' : currentLang === 'EN' ? 'zh' : 'fr';
-                i18n.changeLanguage(next);
-              }}
-            >
-              🌐 {currentLang}
-            </span>
+          <div className="admin-top-actions">
+            {/* SÉLECTEUR DE LANGUE EN DROPDOWN */}
+            <div className="admin-lang-dropdown-wrap" ref={langRef}>
+              <button
+                type="button"
+                className={`admin-lang-btn ${langOpen ? 'active' : ''}`}
+                onClick={() => setLangOpen((prev) => !prev)}
+                title="Changer de langue"
+                aria-expanded={langOpen}
+                aria-haspopup="true"
+              >
+                <span className="admin-lang-icon">{I.translate}</span>
+                <span className="admin-lang-code">{currentLangLabel}</span>
+              </button>
 
-            {/* BOUTON MODE CLAIR / SOMBRE */}
-            <button
-              type="button"
-              className="admin-theme-btn"
-              onClick={toggleTheme}
-              title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-            >
-              <span className="admin-theme-icon">{isDark ? I.sun : I.moon}</span>
-              <span className="admin-theme-label">{isDark ? 'Clair' : 'Sombre'}</span>
-            </button>
-
-            {/* BOUTON DE NOTIFICATION CLIQUEABLE */}
-            <div
-              className="admin-bell-wrap"
-              onClick={() => setNotifOpen((prev) => !prev)}
-              title="Notifications des commandes et devis"
-            >
-              {I.bell}
-              {unreadCount > 0 && <span className="count-badge">{unreadCount}</span>}
+              {langOpen && (
+                <div className="admin-lang-menu" role="menu">
+                  {listLangs.map((item) => {
+                    const isSelected = item.code === currentLangCode;
+                    return (
+                      <button
+                        key={item.code}
+                        type="button"
+                        className={`admin-lang-option ${isSelected ? 'selected' : ''}`}
+                        role="menuitem"
+                        onClick={() => {
+                          i18n.changeLanguage(item.code);
+                          setLangOpen(false);
+                        }}
+                      >
+                        <span className="admin-lang-name">{item.name}</span>
+                        <span className="admin-lang-badge">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* POPOVER DES NOTIFICATIONS */}
-            {notifOpen && (
-              <div className="admin-notif-popover">
-                <div className="admin-notif-head">
-                  <h3>🔔 Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
-                  {unreadCount > 0 && (
-                    <button type="button" onClick={markAllAsRead}>
-                      Tout marquer comme lu
-                    </button>
-                  )}
-                </div>
-
-                <div className="admin-notif-body">
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
-                      Aucune nouvelle notification pour le moment.
-                    </div>
-                  ) : (
-                    notifications.map((n) => {
-                      const isUnread = !readNotifIds.includes(n.id);
-                      return (
-                        <Link
-                          key={n.id}
-                          to={n.link}
-                          className={`admin-notif-item ${isUnread ? 'unread' : ''}`}
-                          onClick={() => {
-                            markAsRead(n.id);
-                            setNotifOpen(false);
-                          }}
-                        >
-                          <div className={`admin-notif-icon ${n.type}`}>
-                            {n.type === 'order' ? '🛒' : '📄'}
-                          </div>
-                          <div className="admin-notif-content">
-                            <div className="admin-notif-title">
-                              <span>{n.title}</span>
-                              {isUnread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E1251B' }}></span>}
-                            </div>
-                            <div className="admin-notif-sub">{n.sub}</div>
-                            <div className="admin-notif-time">{formatTimeAgo(n.date)}</div>
-                          </div>
-                        </Link>
-                      );
-                    })
-                  )}
-                </div>
-
-                <div className="admin-notif-foot">
-                  <Link to="/gestion/commandes" onClick={() => setNotifOpen(false)}>
-                    Voir toutes les commandes →
-                  </Link>
-                </div>
+            {/* BOUTON DE NOTIFICATION CLIQUEABLE ET POPOVER */}
+            <div className="admin-notif-wrap" ref={notifRef}>
+              <div
+                className="admin-bell-wrap"
+                onClick={() => setNotifOpen((prev) => !prev)}
+                title="Notifications des commandes et devis"
+              >
+                {I.bell}
+                {unreadCount > 0 && <span className="count-badge">{unreadCount}</span>}
               </div>
-            )}
+
+              {notifOpen && (
+                <div className="admin-notif-popover">
+                  <div className="admin-notif-head">
+                    <h3>🔔 Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
+                    {unreadCount > 0 && (
+                      <button type="button" onClick={markAllAsRead}>
+                        Tout marquer comme lu
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="admin-notif-body">
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: 24, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
+                        Aucune nouvelle notification pour le moment.
+                      </div>
+                    ) : (
+                      notifications.map((n) => {
+                        const isUnread = !readNotifIds.includes(n.id);
+                        return (
+                          <Link
+                            key={n.id}
+                            to={n.link}
+                            className={`admin-notif-item ${isUnread ? 'unread' : ''}`}
+                            onClick={() => {
+                              markAsRead(n.id);
+                              setNotifOpen(false);
+                            }}
+                          >
+                            <div className={`admin-notif-icon ${n.type}`}>
+                              {n.type === 'order' ? '🛒' : '📄'}
+                            </div>
+                            <div className="admin-notif-content">
+                              <div className="admin-notif-title">
+                                <span>{n.title}</span>
+                                {isUnread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E1251B' }}></span>}
+                              </div>
+                              <div className="admin-notif-sub">{n.sub}</div>
+                              <div className="admin-notif-time">{formatTimeAgo(n.date)}</div>
+                            </div>
+                          </Link>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="admin-notif-foot">
+                    <Link to="/gestion/commandes" onClick={() => setNotifOpen(false)}>
+                      Voir toutes les commandes →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="admin-profile"><span className="av">{initial}</span></div>
           </div>
@@ -354,4 +404,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-
