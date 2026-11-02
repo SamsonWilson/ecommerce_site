@@ -1,11 +1,12 @@
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import GoogleLoginButton from './GoogleLoginButton.jsx';
 
+// Identifiants OAuth tiers.
 const FB_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID;
-export const OAUTH_REDIRECT = () => `${window.location.origin}/compte/connexion/callback`;
 
-// Redirige vers la boîte de dialogue OAuth du fournisseur (flux « code »).
-// Aucun SDK tiers n'est chargé : plus robuste et moins de traceurs.
+const OAUTH_REDIRECT = () => `${window.location.origin}/oauth/callback`;
+
 function startOAuth(provider, authorizeUrl, params) {
   const state = `${provider}:${crypto.randomUUID()}`;
   sessionStorage.setItem('oauth_state', state);
@@ -19,10 +20,13 @@ function startOAuth(provider, authorizeUrl, params) {
   window.location.href = `${authorizeUrl}?${qs}`;
 }
 
-export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) {
+export default function SocialLogins({ onGoogle, label }) {
+  const { t } = useTranslation();
+  const sepLabel = label || t('auth.orContinueWith', 'or continue with');
+
   return (
     <>
-      <div className="social-sep">{label}</div>
+      <div className="social-sep">{sepLabel}</div>
 
       <div className="social-row">
         <div className="social-col">
@@ -34,7 +38,7 @@ export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) 
             type="button"
             className="social-btn facebook"
             disabled={!FB_APP_ID}
-            title={FB_APP_ID ? 'Se connecter avec Facebook' : 'VITE_FACEBOOK_APP_ID non configuré'}
+            title={FB_APP_ID ? t('auth.loginWithFacebook', 'Sign in with Facebook') : t('auth.fbNotConfigured', 'Facebook login not configured')}
             onClick={() => startOAuth('facebook', 'https://www.facebook.com/v19.0/dialog/oauth', {
               client_id: FB_APP_ID,
               scope: 'email,public_profile',
@@ -49,8 +53,7 @@ export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) 
       </div>
 
       <p className="social-note">
-        Les comptes <strong>Instagram</strong> se connectent via Facebook — Meta ne
-        propose plus de connexion Instagram pour les sites tiers.
+        {t('auth.instagramNote', 'Instagram accounts sign in via Facebook — Meta no longer provides standalone Instagram login for third-party websites.')}
       </p>
     </>
   );
