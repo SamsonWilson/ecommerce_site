@@ -5,7 +5,7 @@ import GoogleLoginButton from './GoogleLoginButton.jsx';
 // Identifiants OAuth tiers.
 const FB_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID;
 
-const OAUTH_REDIRECT = () => `${window.location.origin}/oauth/callback`;
+export const OAUTH_REDIRECT = () => `${window.location.origin}/oauth/callback`;
 
 function startOAuth(provider, authorizeUrl, params) {
   const state = `${provider}:${crypto.randomUUID()}`;
