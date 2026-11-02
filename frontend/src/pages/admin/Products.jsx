@@ -157,12 +157,12 @@ export default function Products() {
         const fresh = await api.adminProducts({ search: saved.slug });
         const row = (fresh.results || fresh).find((r) => r.id === saved.id);
         setForm({ ...toForm(row || saved), newImages: [] });
-        setError(`Produit enregistré, mais ${failed.length} photo(s) refusée(s) — ${failed.join(' ; ')}`);
+        setError(t('admin.products.photoRejected', { count: failed.length, errors: failed.join(' ; '), defaultValue: `Product saved, but ${failed.length} photo(s) rejected — ${failed.join(' ; ')}` }));
         load();
         return;
       }
 
-      setSuccessMsg(form.id ? 'Produit mis à jour avec succès.' : 'Nouveau produit créé avec succès.');
+      setSuccessMsg(form.id ? t('admin.products.productUpdated', 'Product updated successfully.') : t('admin.products.productCreated', 'New product created successfully.'));
       setTimeout(() => setSuccessMsg(''), 4000);
       setForm({ ...EMPTY });
       load();
@@ -180,7 +180,7 @@ export default function Products() {
     if (!window.confirm(t('admin.products.confirmDelete', `Supprimer « ${p.name} » ? Cette action est définitive.`))) return;
     try {
       await api.adminDeleteProduct(p.id);
-      setSuccessMsg(`Produit « ${p.name} » supprimé.`);
+      setSuccessMsg(t('admin.products.productDeleted', { name: p.name, defaultValue: `Product « ${p.name} » deleted.` }));
       setTimeout(() => setSuccessMsg(''), 3000);
       load();
     } catch {
@@ -266,7 +266,7 @@ export default function Products() {
                 {/* 1. INFORMATIONS GÉNÉRALES */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <span>📦</span> Informations Générales
+                    <span>📦</span> {t('admin.products.generalInfo', 'General Information')}
                   </div>
                   <div className="prod-grid">
                     <div className="full">
@@ -276,7 +276,7 @@ export default function Products() {
                         required
                         value={form.name}
                         onChange={(e) => set('name', e.target.value)}
-                        placeholder="Ex : Épingle Phénix Dorée"
+                        placeholder={t('admin.products.namePlaceholder', 'E.g. Golden Phoenix Hairpin')}
                       />
                     </div>
 
