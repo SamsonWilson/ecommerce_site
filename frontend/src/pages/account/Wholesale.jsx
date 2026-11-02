@@ -214,35 +214,35 @@ export default function Wholesale() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Nom de votre entreprise / Enseigne *
+                    {t('account.wholesale.companyLabel', 'Company / Brand Name')} *
                   </label>
                   <input
                     name="company"
                     required
                     value={form.company}
                     onChange={handleChange}
-                    placeholder="Ex: Bijouterie Céleste, Maison Mariage..."
+                    placeholder={t('account.wholesale.companyPlaceholder', 'E.g. Celestial Bridal, Wedding House…')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Numéro SIRET / Numéro de TVA intracommunautaire *
+                    {t('account.wholesale.siretLabel', 'Company Registration / Tax ID (SIRET)')} *
                   </label>
                   <input
                     name="siret"
                     required
                     value={form.siret}
                     onChange={handleChange}
-                    placeholder="123 456 789 00012 ou FR123456789"
+                    placeholder={t('account.wholesale.siretPlaceholder', '123 456 789 00012 or VAT number')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Secteur d'activité
+                    {t('account.wholesale.activityLabel', 'Business Activity')}
                   </label>
                   <select
                     name="activity"
@@ -250,17 +250,17 @@ export default function Wholesale() {
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, background: '#fff' }}
                   >
-                    <option value="boutique">Boutique physique de mariage / prêt-à-porter</option>
-                    <option value="bijouterie">Bijouterie & Accessoires</option>
-                    <option value="ecommerce">Site E-commerce spécialisé</option>
-                    <option value="wedding">Wedding Planner / Organisateur d'événements</option>
-                    <option value="revendeur">Grossiste / Revendeur indépendant</option>
+                    <option value="boutique">{t('account.wholesale.activityBoutique', 'Physical bridal shop / ready-to-wear boutique')}</option>
+                    <option value="bijouterie">{t('account.wholesale.activityJewelry', 'Jewelry & Accessories store')}</option>
+                    <option value="ecommerce">{t('account.wholesale.activityEcommerce', 'Specialized e-commerce website')}</option>
+                    <option value="wedding">{t('account.wholesale.activityWedding', 'Wedding Planner / Event organizer')}</option>
+                    <option value="revendeur">{t('account.wholesale.activityReseller', 'Wholesaler / Independent reseller')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Volume d'achat annuel estimé
+                    {t('account.wholesale.volumeLabel', 'Estimated Annual Volume')}
                   </label>
                   <select
                     name="volume"
@@ -268,23 +268,23 @@ export default function Wholesale() {
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, background: '#fff' }}
                   >
-                    <option value="1k-5k">Moins de 5 000 € / an</option>
-                    <option value="5k-15k">De 5 000 € à 15 000 € / an</option>
-                    <option value="15k-50k">De 15 000 € à 50 000 € / an</option>
-                    <option value="50k+">Plus de 50 000 € / an</option>
+                    <option value="1k-5k">{t('account.wholesale.volumeUnder5k', 'Under €5,000 / year')}</option>
+                    <option value="5k-15k">{t('account.wholesale.volume5kTo15k', 'From €5,000 to €15,000 / year')}</option>
+                    <option value="15k-50k">{t('account.wholesale.volume15kTo50k', 'From €15,000 to €50,000 / year')}</option>
+                    <option value="50k+">{t('account.wholesale.volumeOver50k', 'Over €50,000 / year')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Message ou demandes spécifiques
+                    {t('account.wholesale.messageLabel', 'Additional notes or requirements')}
                   </label>
                   <textarea
                     name="message"
                     rows={3}
                     value={form.message}
                     onChange={handleChange}
-                    placeholder="Précisez vos besoins particuliers, collections souhaitées, etc."
+                    placeholder={t('account.wholesale.messagePlaceholder', 'Specify your needs, preferred collections, etc.')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, resize: 'vertical' }}
                   />
                 </div>
@@ -295,7 +295,7 @@ export default function Wholesale() {
                   className="btn-premium"
                   style={{ width: '100%', padding: '12px 20px', fontSize: 15, fontWeight: 700, marginTop: 8 }}
                 >
-                  {submitting ? 'Envoi de la demande…' : 'Envoyer ma demande de compte Grossiste'}
+                  {submitting ? t('account.wholesale.submitting', 'Submitting application…') : t('account.wholesale.submitBtn', 'Submit Wholesale Application')}
                 </button>
               </form>
             )}
