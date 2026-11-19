@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'react-qr-code';
 import { api } from '../../lib/api.js';
+import i18n from '../../i18n/config.js';
 import { useAuth } from '../../store/auth.js';
 import { I } from './icons.jsx';
 import { PageHead, Panel } from './ui.jsx';
@@ -34,7 +35,7 @@ const getProductColors = (product) => {
         return { name: color, hex_code: '#C4B5FD' };
       }
       return {
-        name: color.name || color.slug || 'Couleur',
+        name: color.name || color.slug || i18n.t('shop.color'),
         hex_code: color.hex_code || '#C4B5FD',
       };
     })
@@ -45,7 +46,7 @@ const sampleProducts = [
   { id: 1, name: 'Épingle Phénix Cinabre', slug: 'epingle-phenix-cinabre', variants: [{ id: 11, sku: 'PHX-001', stock: 18, retail_price: '48.00', wholesale_price: '36.00' }], category: 'Bijoux', image: '', is_active: true },
   { id: 2, name: 'Diadème Perles Douces', slug: 'diademe-perles-douces', variants: [{ id: 12, sku: 'DIA-018', stock: 9, retail_price: '96.00', wholesale_price: '72.00' }], category: 'Coiffure', image: '', is_active: true },
   { id: 3, name: 'Éventail Brodé Pivoine', slug: 'eventail-brode-pivoine', variants: [{ id: 13, sku: 'EVT-042', stock: 14, retail_price: '62.00', wholesale_price: '46.00' }], category: 'Accessoires', image: '', is_active: true },
-  { id: 4, name: 'Bracelet Jade & Or', slug: 'bracelet-jade-or', variants: [{ id: 14, sku: 'BRA-204', stock: 7, retail_price: '74.00', wholesale_price: '55.00' }], category: 'Bijoux', image: '', is_active: true },
+  { id: 4, name: 'Bracelet Jade ET Or', slug: 'bracelet-jade-or', variants: [{ id: 14, sku: 'BRA-204', stock: 7, retail_price: '74.00', wholesale_price: '55.00' }], category: 'Bijoux', image: '', is_active: true },
 ];
 
 export default function Sales() {
@@ -76,7 +77,7 @@ export default function Sales() {
   const [completedReceipt, setCompletedReceipt] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  // Historique des ventes & encaissements
+  // Historique des ventes ET encaissements
   const [recentSales, setRecentSales] = useState([]);
   const [loadingSales, setLoadingSales] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
@@ -87,13 +88,15 @@ export default function Sales() {
   const getPaymentLabel = (method) => {
     switch (method) {
       case 'card':
-        return 'Carte bancaire';
+        return t('admin.sales.carteBancaire');
       case 'cash':
-        return 'Espèces';
+        return t('admin.sales.especes');
       case 'transfer':
-        return 'Virement';
+        return t('admin.sales.virement');
+      case 'airwallex':
+        return t('checkout.online');
       default:
-        return 'Carte bancaire';
+        return t('admin.sales.carteBancaire');
     }
   };
 
@@ -175,8 +178,8 @@ export default function Sales() {
         sale.shipping_address?.cashier_name ||
         sale.shipping_address?.cashier ||
         (sale.payment_method === 'cash' || sale.shipping_address?.method === 'pickup'
-          ? defaultCashierName || 'Caisse Boutique'
-          : 'Boutique en ligne');
+          ? defaultCashierName || t('admin.sales.caisseBoutique')
+          : t('admin.sales.boutiqueEnLigne'));
 
       if (cashierFilter !== 'ALL' && saleCashier !== cashierFilter) {
         return false;
@@ -223,7 +226,7 @@ export default function Sales() {
       cashierName;
     const items = (order.items || []).map((i) => ({
       productName: i.product_name,
-      sku: i.sku || 'SKU',
+      sku: i.sku || t('admin.sales.sku'),
       unitPrice: Number(i.unit_price || 0),
       quantity: i.quantity || 1,
     }));
@@ -233,7 +236,7 @@ export default function Sales() {
       customerName: finalCustomerName,
       cashierName: orderCashier,
       paymentMethod: order.payment_method || 'card',
-      items: items.length > 0 ? items : [{ productName: `Commande ${order.reference}`, sku: 'REF', unitPrice: Number(order.total_amount || 0), quantity: 1 }],
+      items: items.length > 0 ? items : [{ productName: t('admin.layout.orderTitle', { ref: order.reference }), sku: 'REF', unitPrice: Number(order.total_amount || 0), quantity: 1 }],
       total: Number(order.total_amount || 0),
     };
     setCompletedReceipt(receiptData);
@@ -243,7 +246,7 @@ export default function Sales() {
   const categories = useMemo(() => {
     const list = new Set();
     products.forEach((p) => {
-      if (p.category) list.add(p.category);
+      if (p.category_name) list.add(p.category_name);
     });
     return ['Tous', ...Array.from(list)];
   }, [products]);
@@ -253,7 +256,7 @@ export default function Sales() {
     let result = products;
 
     if (selectedCategory !== 'Tous') {
-      result = result.filter((p) => p.category === selectedCategory);
+      result = result.filter((p) => p.category_name === selectedCategory);
     }
 
     const query = productQuery.trim().toLowerCase();
@@ -261,7 +264,7 @@ export default function Sales() {
       result = result.filter((product) => {
         const colors = getProductColors(product).map((color) => color.name.toLowerCase()).join(' ');
         const sku = product.variants?.[0]?.sku || '';
-        const haystack = `${product.name} ${product.slug} ${sku} ${colors} ${product.category || ''}`.toLowerCase();
+        const haystack = `${product.name} ${product.slug} ${sku} ${colors} ${product.category_name || ''}`.toLowerCase();
         return haystack.includes(query);
       });
     }
@@ -288,8 +291,8 @@ export default function Sales() {
         {
           variantId: variant.id,
           productId: product.id,
-          productName: product.name,
-          sku: variant.sku || 'SKU',
+          productName: product.display_name || product.name,
+          sku: variant.sku || t('admin.sales.sku'),
           unitPrice: Number(variant.price ?? variant.retail_price ?? 0),
           quantity: 1,
           stock: Number(variant.stock ?? 0),
@@ -329,7 +332,7 @@ export default function Sales() {
     const finalCustomerEmail = customerEmail.trim() || selectedCustomer?.email || 'comptoir@maisonlian.com';
 
     if (!cart.length) {
-      setSaleMessage({ text: 'Le panier de vente est vide.', type: 'error', receipt: null });
+      setSaleMessage({ text: t('admin.sales.lePanierDeVenteEstVide'), type: 'error', receipt: null });
       return;
     }
 
@@ -375,7 +378,7 @@ export default function Sales() {
       };
 
       setSaleMessage({
-        text: `Vente validée avec succès ! Référence : ${orderRef}`,
+        text: t('admin.sales.saleConfirmed', { ref: orderRef }),
         type: 'success',
         receipt: receiptData,
       });
@@ -397,7 +400,7 @@ export default function Sales() {
         }
       }, 400);
     } catch (error) {
-      const detail = error?.data?.detail || error?.message || 'La vente a échoué.';
+      const detail = error?.data?.detail || error?.message || t('admin.sales.laVenteAEchoue');
       setSaleMessage({ text: detail, type: 'error', receipt: null });
     } finally {
       setBusy(false);
@@ -408,19 +411,19 @@ export default function Sales() {
     <>
       <div className="no-print">
         <PageHead
-          title={t('admin.sales.title', 'Caisse & Vente directe')}
-          subtitle="Enregistrez et encaissez rapidement les commandes en boutique physique."
+          title={t('admin.sales.title', 'Caisse ET Vente directe')}
+          subtitle={t('admin.sales.enregistrezEtEncaissezRapidementLesCommandes')}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card-bg)', border: '1px solid var(--line)', padding: '5px 12px', borderRadius: 8 }}>
               <span style={{ fontSize: 13 }}>👤</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.1 }}>Caissier actif</span>
+                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.1 }}>{t('admin.sales.caissierActif')}</span>
                 <select
                   value={selectedCashier || defaultCashierName}
                   onChange={(e) => setSelectedCashier(e.target.value)}
                   style={{ border: 'none', background: 'transparent', fontWeight: 700, color: 'var(--text-head)', fontSize: 13, cursor: 'pointer', outline: 'none', padding: 0 }}
-                  title="Sélectionner le caissier actif pour les prochaines ventes"
+                  title={t('admin.sales.selectionnerLeCaissierActifPourLes')}
                 >
                   {availableCashiers.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -429,15 +432,15 @@ export default function Sales() {
               </div>
             </div>
             <button type="button" className="btn-admin ghost" onClick={() => { loadProducts(); loadRecentSales(); }}>
-              {I.check} Actualiser
+              {I.check} {t('admin.products.refresh')}
             </button>
           </div>
         </PageHead>
 
         <div className="pos-layout">
-          {/* COLONNE GAUCHE : CATALOGUE & RECHERCHE */}
+          {/* COLONNE GAUCHE : CATALOGUE ET RECHERCHE */}
           <section className="pos-catalog-section">
-            {/* Barre de recherche & filtres par catégorie */}
+            {/* Barre de recherche ET filtres par catégorie */}
             <div className="pos-toolbar">
               <div className="pos-search-row">
                 <div className="pos-search-box">
@@ -446,7 +449,7 @@ export default function Sales() {
                     type="text"
                     value={productQuery}
                     onChange={(e) => setProductQuery(e.target.value)}
-                    placeholder="Rechercher par nom, référence SKU, couleur…"
+                    placeholder={t('admin.sales.rechercherParNomReferenceSkuCouleur')}
                   />
                   {productQuery && (
                     <button
@@ -464,22 +467,22 @@ export default function Sales() {
                     type="button"
                     className={`pos-view-btn ${viewMode === 'table' ? 'active' : ''}`}
                     onClick={() => setViewMode('table')}
-                    title="Vue Tableau défilant"
+                    title={t('admin.sales.vueTableauDefilant')}
                   >
-                    📋 Tableau
+                    📋 {t('admin.sales.tableView')}
                   </button>
                   <button
                     type="button"
                     className={`pos-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                     onClick={() => setViewMode('grid')}
-                    title="Vue Grille de cartes"
+                    title={t('admin.sales.vueGrilleDeCartes')}
                   >
-                    🔲 Grille
+                    🔲 {t('admin.sales.gridView')}
                   </button>
                 </div>
 
                 <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                  {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
+                  {t('admin.sales.productsCount', { n: filteredProducts.length })}
                 </span>
               </div>
 
@@ -492,7 +495,7 @@ export default function Sales() {
                       className={`pos-chip ${selectedCategory === cat ? 'active' : ''}`}
                       onClick={() => setSelectedCategory(cat)}
                     >
-                      {cat}
+                      {cat === 'Tous' ? t('admin.sales.allCategories') : cat}
                     </button>
                   ))}
                 </div>
@@ -502,24 +505,24 @@ export default function Sales() {
             {/* Grille ou Tableau des produits */}
             {loading ? (
               <div className="admin-empty" style={{ padding: 40 }}>
-                Chargement des produits…
+                {t('admin.sales.chargementDesProduits')}
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="admin-empty" style={{ padding: 40 }}>
-                Aucun produit ne correspond à votre recherche.
+                {t('admin.sales.aucunProduitNeCorrespondAVotre')}
               </div>
             ) : viewMode === 'table' ? (
               <div className="admin-table-scroll" style={{ maxHeight: 480 }}>
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th style={{ width: 48 }}>Photo</th>
-                      <th>Produit</th>
-                      <th>Catégorie</th>
-                      <th>SKU</th>
-                      <th>Stock</th>
-                      <th>Prix</th>
-                      <th style={{ textAlign: 'right' }}>Action</th>
+                      <th style={{ width: 48 }}>{t('admin.sales.photo')}</th>
+                      <th>{t('admin.sales.produit')}</th>
+                      <th>{t('admin.sales.categorie')}</th>
+                      <th>{t('admin.sales.sku')}</th>
+                      <th>{t('admin.sales.stock')}</th>
+                      <th>{t('admin.sales.prix')}</th>
+                      <th style={{ textAlign: 'right' }}>{t('admin.sales.action')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -541,14 +544,14 @@ export default function Sales() {
                           <td>
                             <div style={{ width: 38, height: 38, borderRadius: 6, overflow: 'hidden', background: 'var(--bg)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {image ? (
-                                <img src={image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={image} alt={product.display_name || product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
                                 <span style={{ fontSize: 10, color: 'var(--muted)' }}>-</span>
                               )}
                             </div>
                           </td>
                           <td>
-                            <div className="cell-main" style={{ fontWeight: 600 }}>{product.name}</div>
+                            <div className="cell-main" style={{ fontWeight: 600 }}>{product.display_name || product.name}</div>
                             {colors.length > 0 && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                                 {colors.slice(0, 3).map((c) => (
@@ -570,7 +573,7 @@ export default function Sales() {
                           </td>
                           <td>
                             <span className="tag-pill tier-1" style={{ fontSize: 11 }}>
-                              {product.category || 'Général'}
+                              {product.category_name || t('admin.sales.general')}
                             </span>
                           </td>
                           <td className="cell-sub">
@@ -578,7 +581,7 @@ export default function Sales() {
                           </td>
                           <td>
                             <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
-                              {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restants` : `🟢 ${stock} en stock`}
+                              {isOutOfStock ? `🔴 ${t('product.outOfStock')}` : isLowStock ? `⚠️ ${t('admin.sales.left', { n: stock })}` : `🟢 ${t('admin.sales.inStock', { n: stock })}`}
                             </span>
                           </td>
                           <td style={{ fontWeight: 700, color: 'var(--gold, #B08A34)', fontSize: 13.5 }}>
@@ -591,9 +594,9 @@ export default function Sales() {
                               onClick={() => addToCart(product)}
                               disabled={isOutOfStock}
                               style={{ display: 'inline-flex', padding: '6px 12px', fontSize: 12 }}
-                              title={isOutOfStock ? 'Article en rupture' : 'Ajouter au ticket'}
+                              title={isOutOfStock ? t('admin.sales.outOfStock') : t('admin.sales.addToTicket')}
                             >
-                              {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
+                              {I.plus} {isOutOfStock ? t('product.soldOut') : t('admin.sales.add')}
                             </button>
                           </td>
                         </tr>
@@ -622,22 +625,22 @@ export default function Sales() {
                       <article key={product.id} className="pos-product-card">
                         <div className="pos-product-image">
                           {image ? (
-                            <img src={image} alt={product.name} loading="lazy" />
+                            <img src={image} alt={product.display_name || product.name} loading="lazy" />
                           ) : (
-                            <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>Sans image</span>
+                            <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>{t('admin.sales.sansImage')}</span>
                           )}
                           <span
                             className={`pos-product-stock-tag ${
                               isOutOfStock ? 'out-of-stock' : isLowStock ? 'low-stock' : 'in-stock'
                             }`}
                           >
-                            {isOutOfStock ? '● Rupture' : isLowStock ? `● ${stock} restants` : `● ${stock} en stock`}
+                            {isOutOfStock ? `● ${t('product.outOfStock')}` : isLowStock ? `● ${t('admin.sales.left', { n: stock })}` : `● ${t('admin.sales.inStock', { n: stock })}`}
                           </span>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                           <span className="tag-pill tier-1" style={{ fontSize: 10 }}>
-                            {product.category || 'Général'}
+                            {product.category_name || t('admin.sales.general')}
                           </span>
                           {variant?.sku && (
                             <span className="pos-product-sku" style={{ margin: 0 }}>
@@ -646,8 +649,8 @@ export default function Sales() {
                           )}
                         </div>
 
-                        <h4 className="pos-product-title" title={product.name}>
-                          {product.name}
+                        <h4 className="pos-product-title" title={product.display_name || product.name}>
+                          {product.display_name || product.name}
                         </h4>
 
                         {colors.length > 0 && (
@@ -671,9 +674,9 @@ export default function Sales() {
 
                         {/* LIGNE DE STOCK DÉDIÉE BIEN VISIBLE */}
                         <div className="pos-product-stock-row">
-                          <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Stock :</span>
+                          <span style={{ fontSize: 11.5, color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t('admin.sales.stock2')}</span>
                           <span className={`pos-stock-chip ${isOutOfStock ? 'out' : isLowStock ? 'low' : 'available'}`} style={{ whiteSpace: 'nowrap' }}>
-                            {isOutOfStock ? '🔴 Rupture' : isLowStock ? `⚠️ ${stock} restant${stock > 1 ? 's' : ''}` : `🟢 ${stock} en stock`}
+                            {isOutOfStock ? `🔴 ${t('product.outOfStock')}` : isLowStock ? `⚠️ ${t('admin.sales.left', { n: stock })}` : `🟢 ${t('admin.sales.inStock', { n: stock })}`}
                           </span>
                         </div>
 
@@ -684,9 +687,9 @@ export default function Sales() {
                             className="pos-add-btn"
                             onClick={() => addToCart(product)}
                             disabled={isOutOfStock}
-                            title={isOutOfStock ? 'Article en rupture' : 'Ajouter au panier'}
+                            title={isOutOfStock ? t('admin.sales.outOfStock') : t('product.addToCart')}
                           >
-                            {I.plus} {isOutOfStock ? 'Épuisé' : 'Ajouter'}
+                            {I.plus} {isOutOfStock ? t('product.soldOut') : t('admin.sales.add')}
                           </button>
                         </div>
                       </article>
@@ -697,11 +700,11 @@ export default function Sales() {
             )}
           </section>
 
-          {/* COLONNE DROITE : PANIER STICKY & ENCAISSEMENT */}
+          {/* COLONNE DROITE : PANIER STICKY ET ENCAISSEMENT */}
           <aside className="pos-cart-panel">
             <div className="pos-cart-header">
               <h3>
-                {I.bag} Ticket de caisse
+                {I.bag} {t('admin.sales.receiptTitle')}
                 {cartItemsCount > 0 && (
                   <span className="tag-pill tier-1" style={{ fontSize: 11 }}>
                     {cartItemsCount} article{cartItemsCount > 1 ? 's' : ''}
@@ -723,9 +726,9 @@ export default function Sales() {
             {/* SÉLECTEUR CLIENT */}
             <div className="pos-customer-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-head)' }}>
-                <span>Nom du client</span>
+                <span>{t('admin.sales.nomDuClient')}</span>
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 500 }}>
-                  {customerName.trim() ? 'Saisi' : `Défaut : ${DEFAULT_CUSTOMER_NAME}`}
+                  {customerName.trim() ? t('admin.sales.entered') : t('admin.sales.defaultCustomer', { name: DEFAULT_CUSTOMER_NAME })}
                 </span>
               </div>
 
@@ -772,7 +775,7 @@ export default function Sales() {
                   fontSize: 11.5,
                 }}
               >
-                <option value={0}>-- Ou choisir un compte enregistré --</option>
+                <option value={0}>{t('admin.sales.ouChoisirUnCompteEnregistre')}</option>
                 {customers.filter((c) => c.id !== 0).map((c) => (
                   <option key={c.id || c.email} value={c.id || 0}>
                     👤 {c.full_name || c.email} ({c.email})
@@ -784,7 +787,7 @@ export default function Sales() {
             {/* MODE DE RÈGLEMENT */}
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-head)', marginBottom: 6 }}>
-                Mode de paiement
+                {t('admin.sales.paymentMode')}
               </div>
               <div className="pos-payment-tabs">
                 <button
@@ -792,35 +795,35 @@ export default function Sales() {
                   className={`pos-payment-tab ${paymentMethod === 'card' ? 'active' : ''}`}
                   onClick={() => setPaymentMethod('card')}
                 >
-                  💳 Carte
+                  💳 {t('admin.sales.cardShort')}
                 </button>
                 <button
                   type="button"
                   className={`pos-payment-tab ${paymentMethod === 'cash' ? 'active' : ''}`}
                   onClick={() => setPaymentMethod('cash')}
                 >
-                  💵 Espèces
+                  {t('admin.sales.especes2')}
                 </button>
                 <button
                   type="button"
                   className={`pos-payment-tab ${paymentMethod === 'transfer' ? 'active' : ''}`}
                   onClick={() => setPaymentMethod('transfer')}
                 >
-                  🏦 Virement
+                  {t('admin.sales.virement2')}
                 </button>
               </div>
             </div>
 
             {/* LISTE DES ARTICLES DU PANIER */}
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-head)', marginTop: 2 }}>
-              Articles ({cartItemsCount})
+              {t('admin.sales.itemsCount', { n: cartItemsCount })}
             </div>
 
             {cart.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '28px 14px', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 10, border: '1px dashed var(--line)' }}>
                 <div style={{ fontSize: 24, marginBottom: 6, opacity: 0.7 }}>🛒</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>Le panier est vide</div>
-                <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>Cliquez sur "+ Ajouter" pour insérer des articles</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{t('admin.sales.lePanierEstVide')}</div>
+                <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{t('admin.sales.cliquezSurAjouterPourInsererDes')}</div>
               </div>
             ) : (
               <div className="pos-cart-list">
@@ -840,7 +843,7 @@ export default function Sales() {
                         type="button"
                         className="pos-cart-qty-btn"
                         onClick={() => updateQty(item.variantId, -1)}
-                        title="Diminuer"
+                        title={t('admin.sales.diminuer')}
                       >
                         −
                       </button>
@@ -852,7 +855,7 @@ export default function Sales() {
                         className="pos-cart-qty-btn"
                         onClick={() => updateQty(item.variantId, 1)}
                         disabled={item.stock > 0 && item.quantity >= item.stock}
-                        title="Augmenter"
+                        title={t('admin.sales.augmenter')}
                       >
                         +
                       </button>
@@ -866,7 +869,7 @@ export default function Sales() {
                       type="button"
                       className="pos-cart-del-btn"
                       onClick={() => removeFromCart(item.variantId)}
-                      title="Supprimer la ligne"
+                      title={t('admin.sales.supprimerLaLigne')}
                     >
                       {I.trash}
                     </button>
@@ -878,8 +881,8 @@ export default function Sales() {
             {/* RÉCAPITULATIF TOTAL */}
             <div className="pos-total-summary">
               <div>
-                <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>Total à encaisser</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>Net à payer</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>{t('admin.sales.totalAEncaisser')}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{t('admin.sales.netAPayer')}</div>
               </div>
               <div className="pos-total-val">{formatMoney(total)}</div>
             </div>
@@ -891,7 +894,7 @@ export default function Sales() {
               disabled={cart.length === 0 || busy}
               onClick={submitSale}
             >
-              {busy ? 'Validation en cours…' : `Valider la vente (${formatMoney(total)})`}
+              {busy ? t('checkout.submitting') : t('admin.sales.confirmSale', { amount: formatMoney(total) })}
             </button>
 
             {saleMessage.text && (
@@ -920,7 +923,7 @@ export default function Sales() {
                       style={{ padding: '3px 8px', fontSize: 11, borderRadius: 6 }}
                       onClick={() => setCompletedReceipt(saleMessage.receipt)}
                     >
-                      🖨️ Ticket
+                      🖨️ {t('admin.sales.ticket')}
                     </button>
                   )}
                   <button
@@ -936,10 +939,10 @@ export default function Sales() {
           </aside>
         </div>
 
-        {/* HISTORIQUE DES VENTES & ENCAISSEMENTS RÉCENTS */}
+        {/* HISTORIQUE DES VENTES ET ENCAISSEMENTS RÉCENTS */}
         <div style={{ marginTop: 28 }}>
           <Panel
-            title="Historique des ventes & encaissements"
+            title={t('admin.sales.historiqueDesVentesEtEncaissements')}
             action={
               <button
                 type="button"
@@ -948,7 +951,7 @@ export default function Sales() {
                 disabled={loadingSales}
                 style={{ fontSize: 12 }}
               >
-                {I.check} {loadingSales ? 'Actualisation…' : 'Actualiser'}
+                {I.check} {loadingSales ? t('admin.sales.refreshing') : t('admin.products.refresh')}
               </button>
             }
           >
@@ -959,7 +962,7 @@ export default function Sales() {
                 {I.search}
                 <input
                   type="text"
-                  placeholder="Rechercher par référence, client, caissier, article…"
+                  placeholder={t('admin.sales.rechercherParReferenceClientCaissierArticle')}
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
                 />
@@ -977,7 +980,7 @@ export default function Sales() {
               {/* Filtre par Caissier */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-                  Caissier :
+                  {t('admin.sales.cashierLabel')}
                 </span>
                 <select
                   className="admin-select"
@@ -985,7 +988,7 @@ export default function Sales() {
                   onChange={(e) => setCashierFilter(e.target.value)}
                   style={{ minWidth: 150 }}
                 >
-                  <option value="ALL">Tous les caissiers</option>
+                  <option value="ALL">{t('admin.sales.tousLesCaissiers')}</option>
                   {availableCashiers.map((c) => (
                     <option key={c} value={c}>
                       👤 {c}
@@ -997,7 +1000,7 @@ export default function Sales() {
               {/* Filtre par Mode de paiement */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-                  Paiement :
+                  {t('admin.sales.paymentLabel')}
                 </span>
                 <select
                   className="admin-select"
@@ -1005,17 +1008,17 @@ export default function Sales() {
                   onChange={(e) => setPaymentFilter(e.target.value)}
                   style={{ minWidth: 130 }}
                 >
-                  <option value="ALL">Tous les modes</option>
-                  <option value="card">💳 Carte bancaire</option>
-                  <option value="cash">💵 Espèces</option>
-                  <option value="transfer">🏦 Virement</option>
+                  <option value="ALL">{t('admin.sales.tousLesModes')}</option>
+                  <option value="card">{t('admin.sales.carteBancaire2')}</option>
+                  <option value="cash">{t('admin.sales.especes2')}</option>
+                  <option value="transfer">{t('admin.sales.virement2')}</option>
                 </select>
               </div>
 
               {/* Filtre par Période */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-                  Période :
+                  {t('admin.sales.periodLabel')}
                 </span>
                 <select
                   className="admin-select"
@@ -1023,17 +1026,17 @@ export default function Sales() {
                   onChange={(e) => setPeriodFilter(e.target.value)}
                   style={{ minWidth: 130 }}
                 >
-                  <option value="ALL">Toutes dates</option>
-                  <option value="TODAY">Aujourd'hui</option>
-                  <option value="WEEK">7 derniers jours</option>
-                  <option value="MONTH">Ce mois-ci</option>
+                  <option value="ALL">{t('admin.sales.toutesDates')}</option>
+                  <option value="TODAY">{t('admin.sales.aujourdHui')}</option>
+                  <option value="WEEK">{t('admin.sales.7DerniersJours')}</option>
+                  <option value="MONTH">{t('admin.sales.ceMoisCi')}</option>
                 </select>
               </div>
 
-              {/* Compteur & Réinitialisation */}
+              {/* Compteur ET Réinitialisation */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
                 <span className="admin-count">
-                  {filteredSales.length} / {recentSales.length} vente{filteredSales.length > 1 ? 's' : ''}
+                  {t('admin.sales.salesCount', { n: filteredSales.length, total: recentSales.length })}
                 </span>
                 {(historySearch || cashierFilter !== 'ALL' || paymentFilter !== 'ALL' || periodFilter !== 'ALL') && (
                   <button
@@ -1047,7 +1050,7 @@ export default function Sales() {
                       setPeriodFilter('ALL');
                     }}
                   >
-                    Effacer filtres
+                    {t('admin.sales.effacerFiltres')}
                   </button>
                 )}
               </div>
@@ -1055,30 +1058,30 @@ export default function Sales() {
 
             {loadingSales ? (
               <div className="admin-empty" style={{ padding: '24px 0' }}>
-                Chargement de l'historique des ventes…
+                {t('admin.sales.chargementDeLHistoriqueDesVentes')}
               </div>
             ) : recentSales.length === 0 ? (
               <div className="admin-empty" style={{ padding: '24px 0' }}>
-                Aucune vente enregistrée pour le moment.
+                {t('admin.sales.aucuneVenteEnregistreePourLeMoment')}
               </div>
             ) : filteredSales.length === 0 ? (
               <div className="admin-empty" style={{ padding: '24px 0' }}>
-                Aucune vente ne correspond à vos filtres de recherche.
+                {t('admin.sales.aucuneVenteNeCorrespondAVos')}
               </div>
             ) : (
               <div className="admin-table-scroll">
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Référence</th>
-                      <th>Date & Heure</th>
-                      <th>Caissier / Vendeur</th>
-                      <th>Client</th>
-                      <th>Articles</th>
-                      <th>Mode de règlement</th>
-                      <th>Total encaissé</th>
-                      <th>Statut</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th>{t('admin.sales.reference')}</th>
+                      <th>{t('admin.sales.dateEtHeure')}</th>
+                      <th>{t('admin.sales.caissierVendeur')}</th>
+                      <th>{t('admin.sales.client')}</th>
+                      <th>{t('admin.sales.articles')}</th>
+                      <th>{t('admin.sales.modeDeReglement')}</th>
+                      <th>{t('admin.sales.totalEncaisse')}</th>
+                      <th>{t('admin.sales.statut')}</th>
+                      <th style={{ textAlign: 'right' }}>{t('admin.sales.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1088,8 +1091,8 @@ export default function Sales() {
                         sale.shipping_address?.cashier_name ||
                         sale.shipping_address?.cashier ||
                         (sale.payment_method === 'cash' || sale.shipping_address?.method === 'pickup'
-                          ? defaultCashierName || 'Caisse Boutique'
-                          : 'Boutique en ligne');
+                          ? defaultCashierName || t('admin.sales.caisseBoutique')
+                          : t('admin.sales.boutiqueEnLigne'));
 
                       return (
                         <tr key={sale.id || sale.reference}>
@@ -1097,7 +1100,7 @@ export default function Sales() {
                             <strong>{sale.reference}</strong>
                           </td>
                           <td className="cell-sub">
-                            {sale.created_at ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(sale.created_at)) : '-'}
+                            {sale.created_at ? new Intl.DateTimeFormat(document.documentElement.lang, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(sale.created_at)) : '-'}
                           </td>
                           <td>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--line)', fontSize: 12, fontWeight: 600 }}>
@@ -1117,7 +1120,7 @@ export default function Sales() {
                           </td>
                           <td>
                             <span style={{ fontSize: 12, fontWeight: 600 }}>
-                              {sale.payment_method === 'card' ? '💳 Carte' : sale.payment_method === 'cash' ? '💵 Espèces' : sale.payment_method === 'transfer' ? '🏦 Virement' : (sale.payment_method || 'Comptoir')}
+                              {sale.payment_method === 'card' ? `💳 ${t('admin.sales.cardShort')}` : sale.payment_method === 'cash' ? t('admin.sales.especes2') : sale.payment_method === 'transfer' ? t('admin.sales.virement2') : (sale.payment_method || 'Comptoir')}
                             </span>
                           </td>
                           <td style={{ fontWeight: 700, color: 'var(--gold, #B08A34)', fontSize: 13.5 }}>
@@ -1125,7 +1128,7 @@ export default function Sales() {
                           </td>
                           <td>
                             <span className={`status ${sale.status === 'PAID' ? 'paid' : sale.status === 'SHIPPED' ? 'shipped' : 'pending'}`}>
-                              {sale.status === 'PAID' ? 'Payée' : sale.status === 'SHIPPED' ? 'Expédiée' : (sale.status || 'Validée')}
+                              {sale.status ? t(`orders.status.${sale.status}`, sale.status) : t('admin.sales.confirmed')}
                             </span>
                           </td>
                           <td style={{ textAlign: 'right' }}>
@@ -1134,9 +1137,9 @@ export default function Sales() {
                               className="btn-admin ghost"
                               style={{ padding: '4px 10px', fontSize: 11.5 }}
                               onClick={() => handleViewReceiptFromOrder(sale)}
-                              title="Consulter et réimprimer le ticket"
+                              title={t('admin.sales.consulterEtReimprimerLeTicket')}
                             >
-                              🖨️ Ticket
+                              🖨️ {t('admin.sales.ticket')}
                             </button>
                           </td>
                         </tr>
@@ -1162,7 +1165,7 @@ export default function Sales() {
           >
             {/* EN-TÊTE MODAL (MASQUÉ À L'IMPRESSION) */}
             <div className="pos-receipt-modal-header">
-              <h3>🧾 Ticket de caisse client</h3>
+              <h3>{t('admin.sales.ticketDeCaisseClient')}</h3>
               <button
                 type="button"
                 onClick={() => setCompletedReceipt(null)}
@@ -1175,7 +1178,7 @@ export default function Sales() {
                   alignItems: 'center',
                   padding: 4,
                 }}
-                title="Fermer"
+                title={t('admin.sales.fermer')}
               >
                 {I.cross}
               </button>
@@ -1187,9 +1190,9 @@ export default function Sales() {
                 <div className="pos-receipt-header">
                   <div className="pos-receipt-brand">MAISON LIÁN</div>
                   <div className="pos-receipt-sub">
-                    Haute Joaillerie & Ornements<br />
+                    {t('admin.sales.receiptTagline')}<br />
                     18 Rue de la Paix, 75002 Paris<br />
-                    Tél : +33 1 42 68 55 00<br />
+                    {t('admin.orders.phoneLabel')} +33 1 42 68 55 00<br />
                     SIRET : 849 203 145 00018
                   </div>
                 </div>
@@ -1198,34 +1201,34 @@ export default function Sales() {
 
                 <div className="pos-receipt-meta">
                   <div className="pos-receipt-meta-row">
-                    <span>TICKET N° :</span>
+                    <span>{t('admin.sales.ticketN')}</span>
                     <strong style={{ fontFamily: 'monospace' }}>{completedReceipt.reference}</strong>
                   </div>
                   <div className="pos-receipt-meta-row">
-                    <span>DATE :</span>
+                    <span>{t('admin.sales.date')}</span>
                     <span>
-                      {new Intl.DateTimeFormat('fr-FR', {
+                      {new Intl.DateTimeFormat(document.documentElement.lang, {
                         dateStyle: 'short',
                         timeStyle: 'medium',
                       }).format(new Date(completedReceipt.date))}
                     </span>
                   </div>
                   <div className="pos-receipt-meta-row">
-                    <span>CAISSIER :</span>
+                    <span>{t('admin.sales.caissier')}</span>
                     <strong>{completedReceipt.cashierName || cashierName || 'Administrateur'}</strong>
                   </div>
                   <div className="pos-receipt-meta-row">
-                    <span>CAISSE :</span>
-                    <span>Caisse Boutique #1</span>
+                    <span>{t('admin.sales.caisse')}</span>
+                    <span>{t('admin.sales.caisseBoutique1')}</span>
                   </div>
                   <div className="pos-receipt-meta-row">
-                    <span>CLIENT :</span>
+                    <span>{t('admin.sales.client2')}</span>
                     <strong style={{ letterSpacing: completedReceipt.customerName === DEFAULT_CUSTOMER_NAME ? '1px' : 'normal' }}>
                       {completedReceipt.customerName}
                     </strong>
                   </div>
                   <div className="pos-receipt-meta-row">
-                    <span>RÈGLEMENT :</span>
+                    <span>{t('admin.sales.reglement')}</span>
                     <strong>{getPaymentLabel(completedReceipt.paymentMethod)}</strong>
                   </div>
                 </div>
@@ -1234,8 +1237,8 @@ export default function Sales() {
 
                 <div className="pos-receipt-items">
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 700, color: '#64748b', marginBottom: 6, textTransform: 'uppercase' }}>
-                    <span>Désignation / Réf</span>
-                    <span>Total</span>
+                    <span>{t('admin.sales.designationRef')}</span>
+                    <span>{t('admin.sales.total')}</span>
                   </div>
 
                   {completedReceipt.items.map((item, idx) => (
@@ -1257,7 +1260,7 @@ export default function Sales() {
                 {/* TOTAL UNIQUE (SANS SOUS-TOTAL HT, SANS TVA) */}
                 <div className="pos-receipt-totals">
                   <div className="pos-receipt-total-row pos-receipt-total-main" style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
-                    <span>TOTAL :</span>
+                    <span>{t('admin.sales.total2')}</span>
                     <span>{formatMoney(completedReceipt.total)}</span>
                   </div>
                 </div>
@@ -1265,16 +1268,16 @@ export default function Sales() {
                 <hr className="pos-receipt-divider" />
 
                 <div style={{ textAlign: 'center', padding: '4px 0', fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
-                  ★ TRANSACTION ENCAISSÉE ★
+                  {t('admin.sales.transactionEncaissee')}
                 </div>
 
                 <hr className="pos-receipt-divider" />
 
                 <div className="pos-receipt-footer">
-                  Merci pour votre confiance.<br />
-                  À bientôt chez Maison Lián !<br />
+                  {t('admin.sales.receiptThanks')}<br />
+                  {t('admin.sales.receiptBye')}<br />
                   <span style={{ fontSize: 9.5, opacity: 0.8 }}>
-                    Échange possible sous 14 jours sur présentation du ticket.
+                    {t('admin.sales.echangePossibleSous14JoursSur')}
                   </span>
                 </div>
 
@@ -1289,7 +1292,7 @@ export default function Sales() {
                     />
                   </div>
                   <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 6, textAlign: 'center' }}>
-                    Scannez pour retrouver votre commande
+                    {t('admin.sales.scannezPourRetrouverVotreCommande')}
                   </div>
                   <div style={{ fontSize: 9, fontFamily: 'monospace', color: '#64748b', marginTop: 2 }}>
                     {completedReceipt.reference}
@@ -1305,14 +1308,14 @@ export default function Sales() {
                 className="pos-receipt-btn-print"
                 onClick={() => window.print()}
               >
-                🖨️ Imprimer le ticket
+                {t('admin.sales.imprimerLeTicket')}
               </button>
               <button
                 type="button"
                 className="pos-receipt-btn-close"
                 onClick={() => setCompletedReceipt(null)}
               >
-                ✓ Nouvelle vente
+                {t('admin.sales.nouvelleVente')}
               </button>
             </div>
           </div>

@@ -9,7 +9,9 @@ ARG VITE_GOOGLE_CLIENT_ID=""
 ARG VITE_FACEBOOK_APP_ID=""
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
     VITE_FACEBOOK_APP_ID=$VITE_FACEBOOK_APP_ID
-RUN npm run build
+# nginx sert la SPA à la racine : sans --base=/, les fichiers seraient demandés
+# sous /static/, que nginx envoie au backend (le Dockerfile racine, lui, en a besoin).
+RUN npm run build -- --base=/
 
 # --- Étape 2 : nginx edge (sert la SPA + reverse proxy + load balancer) ---
 FROM nginx:1.27-alpine

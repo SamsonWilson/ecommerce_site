@@ -1,51 +1,65 @@
+import getpass
 import os
-from django.core.management.base import BaseCommand
-from accounts.models import User, StaffProfile
+import sys
+
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
+from accounts.models import StaffProfile, User
 
 
 class Command(BaseCommand):
-    help = "Crée ou met à jour le mot de passe du compte administrateur par défaut."
+    help = (
+        "Crée le compte administrateur initial. Ne modifie jamais un compte existant : "
+        "pour changer un mot de passe, utilisez `manage.py changepassword <e-mail>`."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--email",
             type=str,
-            default=os.environ.get("ADMIN_EMAIL", "admin@maisonlian.com"),
-            help="Adresse e-mail de l'administrateur",
-        )
-        parser.add_argument(
-            "--password",
-            type=str,
-            default=os.environ.get("ADMIN_PASSWORD", "Admin123456!"),
-            help="Mot de passe par défaut de l'administrateur",
+            default=os.environ.get("ADMIN_EMAIL"),
+            help="Adresse e-mail de l'administrateur (ou variable ADMIN_EMAIL)",
         )
 
     def handle(self, *args, **options):
-        email = options["email"]
-        password = options["password"]
+        email = (options["email"] or "").strip().lower()
+        if not email:
+            raise CommandError("Indiquez l'adresse : --email ou variable ADMIN_EMAIL.")
 
-        user, created = User.objects.get_or_create(email=email)
-        user.set_password(password)
-        user.is_staff = True
-        user.is_superuser = True
-        user.is_active = True
-        user.save()
+        if User.objects.filter(email__iexact=email).exists():
+            self.stdout.write(f"Le compte {email} existe déjà : aucune modification.")
+            return
 
-        # Attribue le profil employé ADMIN si nécessaire
-        StaffProfile.objects.update_or_create(
-            user=user,
-            defaults={
-                "role": StaffProfile.Role.ADMIN,
-                "job_title": "Administrateur Système",
-            },
-        )
+        password = self._read_password()
+        try:
+            validate_password(password, user=User(email=email))
+        except ValidationError as exc:
+            raise CommandError(" ".join(exc.messages)) from exc
 
-        action_str = "créé" if created else "mis à jour"
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Compte administrateur {action_str} avec succès !\n"
-                f"  E-mail    : {email}\n"
-                f"  Mot de passe : {password}\n"
-                f"  Rôle      : Staff ADMIN & Superuser"
+        with transaction.atomic():
+            user = User.objects.create_superuser(email=email, password=password)
+            StaffProfile.objects.create(
+                user=user,
+                role=StaffProfile.Role.ADMIN,
+                job_title="Administrateur Système",
             )
-        )
+
+        self.stdout.write(self.style.SUCCESS(f"Compte administrateur {email} créé."))
+
+    def _read_password(self):
+        # Jamais en argument : il resterait dans l'historique du shell et dans `ps`.
+        password = os.environ.get("ADMIN_PASSWORD")
+        if password:
+            return password
+        if not sys.stdin.isatty():
+            raise CommandError(
+                "Mot de passe manquant : définissez ADMIN_PASSWORD "
+                "ou lancez la commande dans un terminal."
+            )
+        password = getpass.getpass("Mot de passe : ")
+        if password != getpass.getpass("Confirmation : "):
+            raise CommandError("Les deux mots de passe ne correspondent pas.")
+        return password

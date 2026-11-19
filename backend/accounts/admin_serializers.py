@@ -10,7 +10,7 @@ class AdminCustomerSerializer(serializers.ModelSerializer):
 
     email = serializers.EmailField(source="user.email", read_only=True)
     full_name = serializers.SerializerMethodField()
-    price_tier_name = serializers.CharField(source="price_tier.name", read_only=True, default=None)
+    price_tier_name = serializers.SerializerMethodField()
     account_type_display = serializers.CharField(source="get_account_type_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
@@ -26,6 +26,9 @@ class AdminCustomerSerializer(serializers.ModelSerializer):
         # L'équipe ne modifie que le statut et le palier depuis cet écran.
         read_only_fields = ("id", "email", "full_name", "company_name",
                             "vat_number", "country", "created_at")
+
+    def get_price_tier_name(self, obj):
+        return obj.price_tier.translated("name") if obj.price_tier else None
 
     def get_full_name(self, obj):
         name = f"{obj.user.first_name} {obj.user.last_name}".strip()

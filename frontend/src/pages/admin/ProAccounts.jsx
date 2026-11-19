@@ -59,7 +59,7 @@ export default function ProAccounts() {
   return (
     <>
       <PageHead
-        title={t('admin.proAccounts.title', 'Comptes clients & accès grossiste')}
+        title={t('admin.proAccounts.title', 'Comptes clients ET accès grossiste')}
         subtitle={`${rows.length} ${t('admin.proAccounts.subtitleCount', 'compte(s)')} — ${pendingCount} ${t('admin.proAccounts.subtitlePending', 'en attente')}`}
       >
         <button className="btn-admin ghost" onClick={load}>{I.check}{t('admin.proAccounts.refresh', 'Actualiser')}</button>
@@ -118,7 +118,7 @@ export default function ProAccounts() {
                     <option value="">— {t('admin.proAccounts.none', 'Aucun')} —</option>
                     {tiers.map((tRes) => (
                       <option key={tRes.id} value={tRes.id}>
-                        {tRes.name} (-{parseFloat(tRes.discount_percent)} %)
+                        {tRes.display_name || tRes.name} (-{parseFloat(tRes.discount_percent)} %)
                       </option>
                     ))}
                   </select>

@@ -9,26 +9,26 @@ export default function Dashboard() {
   const { toggleTheme, isDark } = useTheme();
 
   const kpis = [
-    { icon: I.euro, bg: '#FDE9E8', label: t('admin.dashboard.revenue', "Chiffre d'affaires"), value: '48 260 €', trend: '+12,4%', period: 'vs mois dernier', dir: 'up' },
-    { icon: I.bag2, bg: '#E9F0FE', label: t('admin.dashboard.orders', 'Commandes'), value: '386', trend: '+6,1%', period: 'vs mois dernier', dir: 'up' },
-    { icon: I.store2, bg: '#F1E9FE', label: t('admin.dashboard.newPros', 'Nouveaux comptes pro'), value: '7', trend: '+2', period: 'cette semaine', dir: 'up' },
-    { icon: I.quote2, bg: '#FFF6E3', label: t('admin.dashboard.avgBasket', 'Panier moyen'), value: '125 €', trend: '+4,2%', period: 'vs mois dernier', dir: 'up' },
+    { icon: I.euro, bg: '#FDE9E8', label: t('admin.dashboard.revenue', "Chiffre d'affaires"), value: '48 260 €', trend: '+12,4%', period: t('admin.dashboard.vsLastMonth'), dir: 'up' },
+    { icon: I.bag2, bg: '#E9F0FE', label: t('admin.dashboard.orders', 'Commandes'), value: '386', trend: '+6,1%', period: t('admin.dashboard.vsLastMonth'), dir: 'up' },
+    { icon: I.store2, bg: '#F1E9FE', label: t('admin.dashboard.newPros', 'Nouveaux comptes pro'), value: '7', trend: '+2', period: t('admin.dashboard.thisWeek'), dir: 'up' },
+    { icon: I.quote2, bg: '#FFF6E3', label: t('admin.dashboard.avgBasket', 'Panier moyen'), value: '125 €', trend: '+4,2%', period: t('admin.dashboard.vsLastMonth'), dir: 'up' },
   ];
 
-  const bars = [['Lun', 52], ['Mar', 68], ['Mer', 45], ['Jeu', 80], ['Ven', 100, true], ['Sam', 74], ['Dim', 38]];
+  const bars = [[t('admin.dashboard.mon'), 52], [t('admin.dashboard.tue'), 68], [t('admin.dashboard.wed'), 45], [t('admin.dashboard.thu'), 80], [t('admin.dashboard.fri'), 100, true], [t('admin.dashboard.sat'), 74], [t('admin.dashboard.sun'), 38]];
 
   const orders = [
-    { id: '#ML-10482', who: 'Camille R.', sub: '— Lyon, FR', amount: '128 €', status: ['paid', 'Payée'] },
-    { id: '#ML-10481', who: 'Sophie M. — Pro', sub: 'Boutique Ivoire', amount: '1 536 €', status: ['pending', 'En préparation'] },
-    { id: '#ML-10480', who: 'Mei L.', sub: '— Vancouver, CA', amount: '96 €', status: ['shipped', 'Expédiée'] },
-    { id: '#ML-10479', who: 'Anaïs D.', sub: '— Bordeaux, FR', amount: '212 €', status: ['new', 'Nouvelle'] },
+    { id: '#ML-10482', who: 'Camille R.', sub: '— Lyon, FR', amount: '128 €', status: ['paid', t('orders.status.PAID')] },
+    { id: '#ML-10481', who: 'Sophie M. — Pro', sub: 'Boutique Ivoire', amount: '1 536 €', status: ['pending', t('orders.status.PREPARING')] },
+    { id: '#ML-10480', who: 'Mei L.', sub: '— Vancouver, CA', amount: '96 €', status: ['shipped', t('orders.status.SHIPPED')] },
+    { id: '#ML-10479', who: 'Anaïs D.', sub: '— Bordeaux, FR', amount: '212 €', status: ['new', t('admin.dashboard.statusNew')] },
   ];
 
   const topProducts = [
-    { thumb: <path d="M12 3c-3 4-4 8-2 11 2 3 6 3 8 0 2-3 1-7-2-11Z"/>, name: 'Épingle Phénix Cinabre', cat: 'Style chinois', sales: '86 ventes' },
-    { thumb: <path d="M6 8a6 6 0 0 1 12 0"/>, name: 'Diadème Perles Douces', cat: 'Romance occidentale', sales: '64 ventes' },
-    { thumb: <path d="M5 12q7-8 14 0"/>, name: 'Éventail Brodé Pivoine', cat: 'Style chinois', sales: '51 ventes' },
-    { thumb: <rect x="6" y="6" width="12" height="12" rx="2"/>, name: 'Bracelet Jade & Or', cat: 'Style chinois', sales: '39 ventes' },
+    { thumb: <path d="M12 3c-3 4-4 8-2 11 2 3 6 3 8 0 2-3 1-7-2-11Z"/>, name: t('admin.dashboard.p1'), cat: t('admin.dashboard.chineseStyle'), sales: t('admin.dashboard.sales', { n: 86 }) },
+    { thumb: <path d="M6 8a6 6 0 0 1 12 0"/>, name: t('admin.dashboard.p2'), cat: t('admin.dashboard.westernRomance'), sales: t('admin.dashboard.sales', { n: 64 }) },
+    { thumb: <path d="M5 12q7-8 14 0"/>, name: t('admin.dashboard.p3'), cat: t('admin.dashboard.chineseStyle'), sales: t('admin.dashboard.sales', { n: 51 }) },
+    { thumb: <rect x="6" y="6" width="12" height="12" rx="2"/>, name: t('admin.dashboard.p4'), cat: t('admin.dashboard.chineseStyle'), sales: t('admin.dashboard.sales', { n: 39 }) },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function Dashboard() {
           type="button"
           className="btn-admin ghost admin-theme-page-btn"
           onClick={toggleTheme}
-          title={isDark ? 'Basculer en mode clair' : 'Basculer en mode sombre'}
+          title={isDark ? t('admin.theme.light') : t('admin.theme.dark')}
         >
           {isDark ? I.sun : I.moon}
           <span>{isDark ? t('admin.theme.light', 'Mode clair') : t('admin.theme.dark', 'Mode sombre')}</span>
@@ -81,8 +81,8 @@ export default function Dashboard() {
               <div className="donut-center"><span className="n">62%</span><span className="l">B2C</span></div>
             </div>
             <div className="donut-legend">
-              <div><span className="dot" style={{ background: 'var(--red)' }}></span> Détail (B2C) — 62%</div>
-              <div><span className="dot" style={{ background: 'var(--navy)' }}></span> Gros (B2B) — 38%</div>
+              <div><span className="dot" style={{ background: 'var(--red)' }}></span> {t('admin.dashboard.retailShare')}</div>
+              <div><span className="dot" style={{ background: 'var(--blue)' }}></span> {t('admin.dashboard.wholesaleShare')}</div>
             </div>
           </div>
         </Panel>

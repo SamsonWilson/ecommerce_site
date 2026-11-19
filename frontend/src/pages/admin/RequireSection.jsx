@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth.js';
 
@@ -27,13 +28,14 @@ export const landingFor = (sections = []) => {
  * que l'employé ne pourrait pas alimenter.
  */
 export default function Guard({ section, children }) {
+  const { t } = useTranslation();
   const user = useAuth((s) => s.user);
   const sections = user?.sections || [];
 
   if (!sections.includes(section)) {
     const home = landingFor(sections);
     if (home === window.location.pathname) {
-      return <div className="admin-gate"><p>Votre rôle ne donne accès à aucune section.</p></div>;
+      return <div className="admin-gate"><p>{t('admin.gate.votreRoleNeDonneAccesA')}</p></div>;
     }
     return <Navigate to={home} replace />;
   }

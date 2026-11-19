@@ -30,7 +30,7 @@ export default function ProductCard({ product, showStars = false, showWish = tru
   };
 
   const stock = Number(product.stock ?? 0);
-  const stockLabel = stock > 0 ? `Stock : ${stock} dispo` : 'Rupture de stock';
+  if (stock <= 0) return null;
 
   return (
     <div className="uee-card">
@@ -66,7 +66,7 @@ export default function ProductCard({ product, showStars = false, showWish = tru
           {product.priceOld && <span className="old">{product.priceOld}</span>}
         </div>
         <div className={`stock-tag ${stock > 0 ? 'in-stock' : 'out-stock'}`}>
-          {stock > 0 ? `Disponible : ${stock}` : 'Épuisé'}
+          {stock > 0 ? t('product.available', { n: stock }) : t('product.soldOut')}
         </div>
         {product.moq && <div className="moq-tag">{product.moq}</div>}
       </div>

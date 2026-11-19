@@ -63,7 +63,15 @@ class Order(models.Model):
 
     payment_method = models.CharField(max_length=20, default="card")
     shipping_address = models.JSONField(default=dict)
-    stripe_payment_intent_id = models.CharField(max_length=255, blank=True)
+    # Secret remis au seul client : suivre et régler sa commande sans être connecté.
+    public_token = models.CharField(max_length=64, blank=True, editable=False)
+    # Langue du client à la commande : celle de ses e-mails.
+    language = models.CharField(max_length=10, default="fr")
+    # Vrai tant que les articles sont sortis du stock pour cette commande (vente
+    # ou réservation) : dit exactement quoi rendre en cas d'annulation.
+    stock_deducted = models.BooleanField(default=False, editable=False)
+    # Virement : date limite de réception, au-delà la réservation tombe.
+    payment_deadline = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

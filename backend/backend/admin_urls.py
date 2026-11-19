@@ -9,6 +9,7 @@ from catalog.admin_views import (
     AdminProductViewSet,
     AdminStockMovementViewSet,
     AdminStockViewSet,
+    AdminTranslationViewSet,
 )
 from pricing.views import PriceTierViewSet
 from quotes.views import AdminQuoteViewSet
@@ -24,5 +25,6 @@ router.register("colors", AdminColorViewSet, basename="admin-color")
 router.register("wedding-moments", AdminMomentViewSet, basename="admin-moment")
 router.register("price-tiers", PriceTierViewSet, basename="admin-price-tier")
 router.register("quotes", AdminQuoteViewSet, basename="admin-quote")
+router.register("translations", AdminTranslationViewSet, basename="admin-translation")
 
 urlpatterns = router.urls

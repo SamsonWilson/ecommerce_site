@@ -3,6 +3,7 @@ from dj_rest_auth.serializers import PasswordResetSerializer
 from django.conf import settings
 from allauth.account.utils import user_pk_to_url_str
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from .models import CustomerProfile
@@ -68,7 +69,7 @@ class SignupSerializer(BaseRegisterSerializer):
     def validate_email(self, email):
         email = email.lower().strip()
         if User.objects.filter(email__iexact=email).exists():
-            raise serializers.ValidationError("Un compte existe déjà avec cette adresse e-mail.")
+            raise serializers.ValidationError(_("Un compte existe déjà avec cette adresse e-mail."))
         return email
 
     def get_cleaned_data(self):

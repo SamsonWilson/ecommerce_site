@@ -37,4 +37,7 @@ export const productFromApi = (p) => ({
   figure: figureBySlug[p.slug] || defaultFigure,
 });
 
-export const productsFromApi = (data) => (data?.results || data || []).map(productFromApi);
+export const productsFromApi = (data, { includeOutOfStock = false } = {}) => {
+  const items = (data?.results || data || []).map(productFromApi);
+  return includeOutOfStock ? items : items.filter((p) => p.stock > 0);
+};

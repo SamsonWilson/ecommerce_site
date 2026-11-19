@@ -18,13 +18,18 @@ from .serializers import (
 
 def public_product_queryset(request):
     """
-    Produits actifs, filtrés selon le canal de vente (§6) :
+    Produits actifs et en stock (> 0), filtrés selon le canal de vente (§6) :
       - grossiste validé  -> produits « gros » et « détail et gros »
       - tous les autres   -> produits « détail » et « détail et gros »
+      - stock épuisé (<=0)-> exclu automatiquement du site public
 
-    Le filtrage se fait sur le queryset, jamais côté frontend.
+    Le filtrage se fait sur le queryset, jamais côté frontend seul.
     """
-    qs = Product.objects.filter(is_active=True).prefetch_related("variants", "colors", "media")
+    qs = (
+        Product.objects.filter(is_active=True, variants__stock__gt=0)
+        .prefetch_related("variants", "colors", "media")
+        .distinct()
+    )
     user = getattr(request, "user", None)
     approved_pro = (
         user
@@ -44,7 +49,7 @@ class ProductListView(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ProductListSerializer
     filterset_class = ProductFilter
-    search_fields = ("name", "description")
+    search_fields = ("name", "description", "search_text")
     # `min_price` est annoté ci-dessous : il permet de trier la boutique par prix.
     ordering_fields = ("created_at", "name", "min_price")
     ordering = ("-created_at",)

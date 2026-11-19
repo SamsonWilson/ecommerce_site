@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 
+from catalog.seed_translations import apply_seed_translations
 from catalog.models import (
     Category,
     Collection,
@@ -12,8 +13,8 @@ from catalog.models import (
     WeddingMoment,
 )
 
-CATEGORIES = ["Épingles", "Épingles & peignes", "Éventails", "Bracelets",
-              "Boucles d'oreilles", "Diadèmes & tiares"]
+CATEGORIES = ["Épingles", "Épingles ET peignes", "Éventails", "Bracelets",
+              "Boucles d'oreilles", "Diadèmes ET tiares"]
 COLORS = [("Ivoire", "#F3E7D8"), ("Or", "#B08A34"), ("Rouge cinabre", "#A5293B"),
           ("Jade", "#435C4E"), ("Argent", "#C9CBD0")]
 MOMENTS = ["Cérémonie", "Réception", "Dîner", "Séance photo"]
@@ -22,13 +23,13 @@ MOMENTS = ["Cérémonie", "Réception", "Dîner", "Séance photo"]
 PRODUCTS = [
     ("epingle-phenix-cinabre", "Épingle Phénix Cinabre", "Épingles", "128", ["Rouge cinabre", "Or"]),
     ("eventail-brode-pivoine", "Éventail Brodé Pivoine", "Éventails", "72", ["Rouge cinabre"]),
-    ("peigne-laque-rouge", "Peigne Laque Rouge", "Épingles & peignes", "79", ["Rouge cinabre", "Or"]),
-    ("bracelet-jade-or", "Bracelet Jade & Or", "Bracelets", "104", ["Jade", "Or"]),
+    ("peigne-laque-rouge", "Peigne Laque Rouge", "Épingles ET peignes", "79", ["Rouge cinabre", "Or"]),
+    ("bracelet-jade-or", "Bracelet Jade ET Or", "Bracelets", "104", ["Jade", "Or"]),
     ("pendants-perle-jade", "Pendants Perle de Jade", "Boucles d'oreilles", "68", ["Jade"]),
-    ("tiare-xiuhe-doree", "Tiare Xiuhe Dorée", "Diadèmes & tiares", "142", ["Or"]),
-    ("epingle-double-bonheur", "Épingle Double Bonheur", "Épingles & peignes", "98", ["Or", "Rouge cinabre"]),
+    ("tiare-xiuhe-doree", "Tiare Xiuhe Dorée", "Diadèmes ET tiares", "142", ["Or"]),
+    ("epingle-double-bonheur", "Épingle Double Bonheur", "Épingles ET peignes", "98", ["Or", "Rouge cinabre"]),
     ("eventail-soie-rouge", "Éventail Soie Rouge", "Éventails", "66", ["Rouge cinabre"]),
-    ("diademe-perles-douces", "Diadème Perles Douces", "Diadèmes & tiares", "96", ["Argent", "Ivoire"]),
+    ("diademe-perles-douces", "Diadème Perles Douces", "Diadèmes ET tiares", "96", ["Argent", "Ivoire"]),
     ("boucles-larme-cristal", "Boucles Larme de Cristal", "Boucles d'oreilles", "54", ["Argent"]),
 ]
 
@@ -80,6 +81,8 @@ class Command(BaseCommand):
                 },
             )
             created += 1 if is_new else 0
+
+        apply_seed_translations()
 
         self.stdout.write(self.style.SUCCESS(
             f"Catalogue prêt : {Product.objects.count()} produits ({created} nouveaux)."

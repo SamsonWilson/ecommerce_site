@@ -1,32 +1,34 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cartTotals, eur } from '../../data/cart.jsx';
 import { figureBySlug, defaultFigure } from '../../data/products.jsx';
 import { useCart } from '../../store/cart.js';
 import { IconTrash, IconBag, IconCheck } from '../../components/icons.jsx';
 
 export default function AccountCart() {
+  const { t } = useTranslation();
   const items = useCart((s) => s.items);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
 
-  const { subtotal, shipping, total } = cartTotals(items);
+  const { subtotal } = cartTotals(items);
 
   return (
     <div className="acc-overview">
       <div className="acc-head">
         <div className="acc-head-content">
-          <h1>Mon <span>Panier</span></h1>
-          <p>Gérez les articles de votre panier avant de passer commande.</p>
+          <h1>{t('accountCart.my')} <span>{t('common.cart')}</span></h1>
+          <p>{t('accountCart.subtitle')}</p>
         </div>
       </div>
 
       {items.length === 0 ? (
         <div className="acc-empty">
           <div style={{ marginBottom: 16 }}><IconBag /></div>
-          <h2>Votre panier est vide</h2>
-          <p>Parcourez la boutique pour ajouter vos articles préférés.</p>
+          <h2>{t('common.emptyCart')}</h2>
+          <p>{t('accountCart.emptyHint')}</p>
           <Link to="/compte/boutique" className="btn-premium" style={{ marginTop: 24 }}>
-            Découvrir la boutique
+            {t('common.discoverShop')}
           </Link>
         </div>
       ) : (
@@ -47,9 +49,9 @@ export default function AccountCart() {
                   <div className="cl-moq" style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{it.moq}</div>
                   
                   <div className="uee-qty-stepper" style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8, width: 'max-content', background: '#f5f7f9', padding: 4, borderRadius: 8 }}>
-                    <button type="button" aria-label="Diminuer" onClick={() => setQty(it.slug, -1)} style={{ width: 28, height: 28, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>−</button>
-                    <input type="text" value={it.qty} readOnly aria-label="Quantité" style={{ width: 32, textAlign: 'center', border: 'none', background: 'transparent', fontWeight: 600 }} />
-                    <button type="button" aria-label="Augmenter" onClick={() => setQty(it.slug, 1)} style={{ width: 28, height: 28, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>+</button>
+                    <button type="button" aria-label={t('common.decrease')} onClick={() => setQty(it.slug, -1)} style={{ width: 28, height: 28, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>−</button>
+                    <input type="text" value={it.qty} readOnly aria-label={t('common.quantity')} style={{ width: 32, textAlign: 'center', border: 'none', background: 'transparent', fontWeight: 600 }} />
+                    <button type="button" aria-label={t('common.increase')} onClick={() => setQty(it.slug, 1)} style={{ width: 28, height: 28, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>+</button>
                   </div>
                 </div>
                 <div className="cl-right" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -64,18 +66,18 @@ export default function AccountCart() {
 
           {/* Récapitulatif */}
           <div className="acc-info-card" style={{ padding: 24, height: 'fit-content' }}>
-            <div className="card-title">Récapitulatif</div>
+            <div className="card-title">{t('common.summary')}</div>
             <div className="srow" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, color: 'var(--navy)', fontWeight: 500 }}>
-              <span>Sous-total</span><span>{eur(subtotal)}</span>
+              <span>{t('common.subtotal')}</span><span>{eur(subtotal)}</span>
             </div>
             <div className="srow muted" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, color: 'var(--muted)', fontSize: 14 }}>
-              <span>Livraison</span><span>{shipping === 0 ? 'Offerte' : eur(shipping)}</span>
+              <span>{t('common.shipping')}</span><span>{t('common.shippingAtCheckout')}</span>
             </div>
             <div className="stotal" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: 20, marginBottom: 32, fontSize: 18, fontWeight: 800, color: 'var(--navy)' }}>
-              <span>Total</span><span className="amt">{eur(total)}</span>
+              <span>{t('common.totalExclShipping')}</span><span className="amt">{eur(subtotal)}</span>
             </div>
             <Link to="/compte/checkout" className="btn-premium" style={{ width: '100%', display: 'flex' }}>
-              Passer la commande
+              {t('common.checkout')}
             </Link>
             <div className="reassure" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, fontSize: 12, color: 'var(--muted)' }}>
               <IconCheck /> Paiement sécurisé · Retours sous 30 jours

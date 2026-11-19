@@ -31,7 +31,7 @@ i18n
   });
 
 // Garde <html lang> synchronisé (SEO + accessibilité)
-const applyLang = (lng) => { document.documentElement.lang = lng; };
+const applyLang = (lng) => { document.documentElement.lang = lng === 'zh' ? 'zh-Hans' : lng; };
 applyLang(i18n.resolvedLanguage);
 i18n.on('languageChanged', applyLang);
 

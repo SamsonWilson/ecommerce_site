@@ -25,12 +25,12 @@ const ROLE_DEFAULT_SECTIONS = {
 
 const DEFAULT_SECTIONS_CATALOG = [
   { key: 'dashboard', label: 'Tableau de bord', route: '/gestion', desc: "Vue d'ensemble et statistiques" },
-  { key: 'orders', label: 'Commandes & Ventes', route: '/gestion/commandes', desc: 'Commandes clients et encaissements caisse' },
+  { key: 'orders', label: 'Commandes ET Ventes', route: '/gestion/commandes', desc: 'Commandes clients et encaissements caisse' },
   { key: 'customers', label: 'Clients', route: '/gestion/clients', desc: 'Gestion du fichier clients' },
   { key: 'promotions', label: 'Promotions', route: '/gestion/promotions', desc: 'Codes promo et remises' },
-  { key: 'b2b', label: 'Comptes Pro & Paliers', route: '/gestion/comptes-pro', desc: 'Tarifs professionnels et B2B' },
-  { key: 'catalog', label: 'Catalogue & Stocks', route: '/gestion/produits', desc: 'Produits, stocks, inventaire, catégories' },
-  { key: 'deliveries', label: 'Livraisons & Courses', route: '/gestion/livraisons', desc: 'Tournées et statut des livraisons' },
+  { key: 'b2b', label: 'Comptes Pro ET Paliers', route: '/gestion/comptes-pro', desc: 'Tarifs professionnels et B2B' },
+  { key: 'catalog', label: 'Catalogue ET Stocks', route: '/gestion/produits', desc: 'Produits, stocks, inventaire, catégories' },
+  { key: 'deliveries', label: 'Livraisons ET Courses', route: '/gestion/livraisons', desc: 'Tournées et statut des livraisons' },
   { key: 'staff', label: 'Équipe', route: '/gestion/equipe', desc: 'Gestion des accès et employés' },
 ];
 
@@ -184,7 +184,7 @@ export default function Employees() {
         setPermSuccess(false);
       }, 700);
     } catch (err) {
-      const msg = firstError(err.data) || err.message || "Impossible d'enregistrer les accès aux pages.";
+      const msg = firstError(err.data) || err.message || t('admin.employees.impossibleDEnregistrerLesAccesAux');
       setPermError(msg);
       setError(msg);
     } finally {
@@ -248,7 +248,7 @@ export default function Employees() {
               <div>
                 <h3 className="staff-perm-title">
                   {I.shield}
-                  <span>Accès aux pages & permissions</span>
+                  <span>{t('admin.employees.accesAuxPagesEtPermissions')}</span>
                 </h3>
                 <div className="staff-perm-subtitle">
                   <span style={{ fontWeight: 600, color: 'var(--text-head)' }}>{fullName(permStaff)}</span>
@@ -257,7 +257,7 @@ export default function Employees() {
                     {permStaff.role_label || permStaff.role}
                   </span>
                   {permStaff.custom_sections && permStaff.custom_sections.length > 0 && (
-                    <span className="staff-perm-badge-custom">⚙️ Personnalisé</span>
+                    <span className="staff-perm-badge-custom">⚙️ {t('admin.employees.custom')}</span>
                   )}
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function Employees() {
                 type="button"
                 onClick={() => !permBusy && setPermStaff(null)}
                 style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}
-                title="Fermer"
+                title={t('admin.employees.fermer')}
               >
                 ✕
               </button>
@@ -273,7 +273,7 @@ export default function Employees() {
 
             <div className="staff-perm-quickbar">
               <div className="staff-perm-count">
-                <strong>{permSections.length}</strong> / {sectionsCatalog.length} page(s) autorisée(s)
+                <strong>{permSections.length}</strong> / {sectionsCatalog.length} {t('admin.employees.pagesAllowed')}
               </div>
               <div className="staff-perm-actions">
                 <button
@@ -306,9 +306,9 @@ export default function Employees() {
             <div className="staff-perm-body">
               {permError && (
                 <div style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#991b1b',
+                  background: 'rgba(225, 37, 27, 0.12)',
+                  border: '1px solid rgba(225, 37, 27, 0.35)',
+                  color: 'var(--red)',
                   borderRadius: 8,
                   padding: '10px 14px',
                   marginBottom: 16,
@@ -317,15 +317,15 @@ export default function Employees() {
                   alignItems: 'center',
                   gap: 8,
                 }}>
-                  ⚠️ <strong>Erreur :</strong> {permError}
+                  ⚠️ <strong>{t('admin.employees.errorLabel')}</strong> {permError}
                 </div>
               )}
 
               {currentUser?.email === permStaff.email && !permSections.includes('staff') && (
                 <div style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#991b1b',
+                  background: 'rgba(225, 37, 27, 0.12)',
+                  border: '1px solid rgba(225, 37, 27, 0.35)',
+                  color: 'var(--red)',
                   borderRadius: 8,
                   padding: '10px 14px',
                   marginBottom: 16,
@@ -334,7 +334,7 @@ export default function Employees() {
                   alignItems: 'center',
                   gap: 8,
                 }}>
-                  ⚠️ <strong>Attention :</strong> Vous configurez votre propre compte. Si vous retirez la page "Équipe", vous ne pourrez plus gérer les accès.
+                  ⚠️ <strong>{t('admin.employees.warningLabel')}</strong> {t('admin.employees.selfWarning')}
                 </div>
               )}
 
@@ -383,7 +383,7 @@ export default function Employees() {
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {permSuccess && (
-                  <span style={{ color: '#16a34a', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ color: 'var(--green)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
                     ✓ Enregistré !
                   </span>
                 )}
@@ -393,7 +393,7 @@ export default function Employees() {
                   onClick={savePermissions}
                   disabled={permBusy}
                 >
-                  {permBusy ? 'Enregistrement…' : 'Enregistrer les accès'}
+                  {permBusy ? t('common.saving') : t('admin.employees.saveAccess')}
                 </button>
               </div>
             </div>
@@ -420,7 +420,7 @@ export default function Employees() {
               <tr>
                 <th>{t('admin.employees.tableEmployee', 'Employé')}</th>
                 <th>{t('admin.employees.tableRole', 'Rôle')}</th>
-                <th>{t('admin.employees.tableAccess', 'Accès & Pages')}</th>
+                <th>{t('admin.employees.tableAccess', 'Accès ET Pages')}</th>
                 <th>{t('admin.employees.tableStatus', 'Statut')}</th>
                 <th></th>
               </tr>
@@ -449,18 +449,18 @@ export default function Employees() {
                         type="button"
                         className="staff-access-pill-btn"
                         onClick={() => openPermModal(r)}
-                        title="Configurer les pages autorisées pour cet employé"
+                        title={t('admin.employees.configurerLesPagesAutoriseesPourCet')}
                       >
                         {I.shield}
-                        <span>{r.sections.length} page(s)</span>
+                        <span>{r.sections.length} {t('admin.employees.pages')}</span>
                       </button>
                       {r.custom_sections && r.custom_sections.length > 0 ? (
-                        <span className="staff-perm-badge-custom" title="Accès personnalisés pour cet employé">
-                          ⚙️ Personnalisé
+                        <span className="staff-perm-badge-custom" title={t('admin.employees.accesPersonnalisesPourCetEmploye')}>
+                          ⚙️ {t('admin.employees.custom')}
                         </span>
                       ) : (
-                        <span className="staff-perm-badge-default" title="Accès standards hérités du rôle">
-                          Rôle standard
+                        <span className="staff-perm-badge-default" title={t('admin.employees.accesStandardsHeritesDuRole')}>
+                          {t('admin.employees.roleStandard')}
                         </span>
                       )}
                     </div>
@@ -474,7 +474,7 @@ export default function Employees() {
                     <div className="row-actions">
                       <button
                         className="icon-btn"
-                        title="Configurer les accès aux pages"
+                        title={t('admin.employees.configurerLesAccesAuxPages')}
                         onClick={() => openPermModal(r)}
                         style={{ color: 'var(--navy)' }}
                       >
@@ -504,7 +504,7 @@ export default function Employees() {
             <label htmlFor="e-email">{t('admin.employees.proEmail', 'E-mail professionnel')}</label>
             <input id="e-email" type="email" required value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="prenom@maison-lian.com" />
+              placeholder={t('admin.employees.prenomMaisonLianCom')} />
 
             <label htmlFor="e-first" style={{ marginTop: 12 }}>{t('admin.employees.firstName', 'Prénom')}</label>
             <input id="e-first" value={form.first_name}
@@ -532,10 +532,10 @@ export default function Employees() {
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {I.shield}
-                  {showCustomPerms ? 'Masquer la personnalisation' : 'Personnaliser les pages accessibles'}
+                  {showCustomPerms ? t('admin.employees.hideCustom') : t('admin.employees.showCustom')}
                 </span>
                 <span style={{ fontWeight: 600 }}>
-                  {formSections.length} page(s)
+                  {formSections.length} {t('admin.employees.pages')}
                 </span>
               </button>
 
@@ -548,7 +548,7 @@ export default function Employees() {
                       style={{ fontSize: 11, padding: '2px 8px' }}
                       onClick={() => { setCustomPermsModified(true); setFormSections(sectionsCatalog.map((s) => s.key)); }}
                     >
-                      Tout cocher
+                      {t('admin.employees.toutCocher')}
                     </button>
                     <button
                       type="button"
@@ -556,7 +556,7 @@ export default function Employees() {
                       style={{ fontSize: 11, padding: '2px 8px' }}
                       onClick={() => { setCustomPermsModified(true); setFormSections([]); }}
                     >
-                      Tout décocher
+                      {t('admin.employees.toutDecocher')}
                     </button>
                     <button
                       type="button"
@@ -603,7 +603,7 @@ export default function Employees() {
             <label htmlFor="e-job" style={{ marginTop: 12 }}>{t('admin.employees.jobTitle', 'Intitulé de poste')}</label>
             <input id="e-job" value={form.job_title}
               onChange={(e) => setForm({ ...form, job_title: e.target.value })}
-              placeholder="Ex. Chargé de clientèle" />
+              placeholder={t('admin.employees.exChargeDeClientele')} />
 
             <label htmlFor="e-phone" style={{ marginTop: 12 }}>{t('admin.employees.phone', 'Téléphone')}</label>
             <input id="e-phone" value={form.phone}
@@ -614,12 +614,12 @@ export default function Employees() {
                 <label htmlFor="e-zone" style={{ marginTop: 12 }}>{t('admin.employees.deliveryZone', 'Zone de livraison')}</label>
                 <input id="e-zone" value={form.delivery_zone}
                   onChange={(e) => setForm({ ...form, delivery_zone: e.target.value })}
-                  placeholder="Ex. Lyon et périphérie" />
+                  placeholder={t('admin.employees.exLyonEtPeripherie')} />
 
                 <label htmlFor="e-vehicle" style={{ marginTop: 12 }}>{t('admin.employees.vehicle', 'Véhicule')}</label>
                 <input id="e-vehicle" value={form.vehicle}
                   onChange={(e) => setForm({ ...form, vehicle: e.target.value })}
-                  placeholder="Ex. Scooter" />
+                  placeholder={t('admin.employees.exScooter')} />
               </>
             )}
 

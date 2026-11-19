@@ -12,6 +12,7 @@ import { ThemeProvider } from './ThemeContext.jsx';
 
 // Socle commun
 import Products from './Products.jsx';
+import AestheticMedia from './AestheticMedia.jsx';
 import StockManagement from './StockManagement.jsx';
 import StockReport from './StockReport.jsx';
 import Inventory from './Inventory.jsx';
@@ -26,6 +27,7 @@ import Promotions from './Promotions.jsx';
 
 // Pôle gros (B2B)
 import ProAccounts from './ProAccounts.jsx';
+import Quotes from './Quotes.jsx';
 import PriceTiers from './PriceTiers.jsx';
 
 // Équipe interne
@@ -50,6 +52,7 @@ export default function AdminRoutes() {
 
             {/* Gros — B2B */}
             <Route path="comptes-pro" element={<Guard section="b2b"><ProAccounts /></Guard>} />
+            <Route path="devis" element={<Guard section="b2b"><Quotes /></Guard>} />
             <Route path="paliers" element={<Guard section="b2b"><PriceTiers /></Guard>} />
 
             {/* Équipe interne */}
@@ -58,6 +61,7 @@ export default function AdminRoutes() {
 
             {/* Socle commun */}
             <Route path="produits" element={<Guard section="catalog"><Products /></Guard>} />
+            <Route path="mediatheque" element={<Guard section="catalog"><AestheticMedia /></Guard>} />
             <Route path="stocks" element={<Guard section="catalog"><StockManagement /></Guard>} />
             <Route path="stocks-rapport" element={<Guard section="catalog"><StockReport /></Guard>} />
             <Route path="inventaire" element={<Guard section="catalog"><Inventory /></Guard>} />

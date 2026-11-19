@@ -54,7 +54,7 @@ export default function Deliveries() {
   };
 
   const handleMarkDelivered = (orderId) => {
-    if (!window.confirm('Confirmez-vous que cette commande a bien été remise au client ?')) return;
+    if (!window.confirm(t('admin.deliveries.confirmezVousQueCetteCommandeA'))) return;
     setUpdating(true);
     api.adminUpdateOrder(orderId, { status: 'DELIVERED' })
       .then(() => {
@@ -87,7 +87,7 @@ export default function Deliveries() {
             <tr>
               <th>{t('admin.deliveries.tableOrder', 'Commande')}</th>
               <th>{t('admin.deliveries.tableAddress', 'Adresse de livraison')}</th>
-              <th>Contact</th>
+              <th>{t('admin.deliveries.contact')}</th>
               <th>{t('admin.deliveries.tableStatus', 'Statut')}</th>
               <th></th>
             </tr>
@@ -99,7 +99,7 @@ export default function Deliveries() {
                   <div className="cell-main">{o.reference}</div>
                   <div className="cell-sub">{o.shipping_address?.full_name || o.customer_name}</div>
                   {!isDriver && o.delivery_driver_name && (
-                    <div style={{ fontSize: 11, color: '#2563EB', marginTop: 4 }}>Livreur: {o.delivery_driver_name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--blue)', marginTop: 4 }}>Livreur: {o.delivery_driver_name}</div>
                   )}
                 </td>
                 <td>
@@ -111,7 +111,7 @@ export default function Deliveries() {
                 </td>
                 <td>
                   <span className={`status ${o.status === 'SHIPPED' ? 'shipped' : 'pending'}`}>
-                    {o.status === 'SHIPPED' ? 'En tournée' : 'À enlever'}
+                    {o.status === 'SHIPPED' ? t('admin.deliveries.onRoad') : t('admin.deliveries.toCollect')}
                   </span>
                 </td>
                 <td>

@@ -1,4 +1,4 @@
-# Architecture technique — Site e-commerce accessoires de mariage & style chinois
+# Architecture technique — Site e-commerce accessoires de mariage ET style chinois
 
 **Version** 1.0 — 20 juillet 2026
 **Stack retenue** Django 5 (API REST) + Next.js 15 en JavaScript (SSR) + PostgreSQL
@@ -57,13 +57,13 @@ site_ecommerce_giovane/
 | `psycopg[binary]` | Driver PostgreSQL |
 | `django-cors-headers` | Autoriser le domaine Next.js |
 | `django-environ` | Configuration par variables d'environnement |
-| `django-parler` | Traduction des contenus produits |
+| `anthropic` | Traduction des contenus produits (`catalog.translation`, `core.translator`) |
 | `django-filter` | Filtres API (couleur, moment, prix) |
 | `Pillow` | Traitement images |
 | `django-storages[s3]` | Stockage médias sur S3 / Cloudflare R2 |
 | `celery` + `redis` | Tâches asynchrones |
-| `stripe` | Paiement carte |
-| `paypal-server-sdk` | Paiement PayPal |
+| `requests` | Paiement en ligne Airwallex (`payments/providers/airwallex.py`), sans SDK serveur |
+| `@airwallex/components-sdk` (front) | Redirection vers la page de paiement hébergée, chargée à la demande |
 | `weasyprint` | Génération des fiches PDF B2B |
 | `sentry-sdk` | Suivi des erreurs en production |
 
@@ -372,11 +372,21 @@ POST /api/v1/auth/password-reset/
 
 ```
 GET|POST|PATCH|DELETE /api/v1/cart/items/
-POST /api/v1/checkout/                 crée la commande + PaymentIntent Stripe
+POST /api/v1/checkout/                 crée la commande (prix et port calculés par le serveur) + jeton secret
+GET  /api/v1/shipping/countries/       pays desservis
+POST /api/v1/shipping/options/         modes et frais de port pour un pays et un panier
+GET  /api/v1/payments/config/          moyens de paiement proposés
+POST /api/v1/payments/start/           {reference, token} -> PaymentIntent Airwallex + paramètres de redirection
+GET  /api/v1/payments/status/          ?ref=&token= -> statut réel, relu chez Airwallex si besoin
+POST /api/v1/webhooks/airwallex/       signature HMAC vérifiée, événements dédoublonnés
+POST /api/v1/admin/orders/{id}/refund/ remboursement (administrateur ou responsable)
+POST /api/v1/admin/orders/{id}/record-transfer/  virement reçu (administrateur ou responsable)
+POST /api/v1/quotes/                   demande de devis (articles par slug ou déclinaison)
+GET  /api/v1/quotes/view/              ?ref=&token= -> devis chiffré (lien envoyé par e-mail)
+POST /api/v1/quotes/accept/            {reference, token, payment_method, shipping_address} -> commande
+POST /api/v1/admin/quotes/{id}/send/   prix par ligne + port -> total calculé, e-mail au client
 GET  /api/v1/orders/                   historique du client
 GET  /api/v1/orders/{reference}/
-POST /api/v1/webhooks/stripe/          idempotent, signature vérifiée
-POST /api/v1/webhooks/paypal/
 ```
 
 ### B2B

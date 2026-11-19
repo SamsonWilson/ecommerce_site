@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/auth.js';
-import { api } from '../../lib/api.js';
+import { api, apiErrorMessage } from '../../lib/api.js';
+import { eur } from '../../data/cart.jsx';
 import { IconStore, IconCheck, IconShield, IconPdf, IconPackage, IconUser } from '../../components/icons.jsx';
 
 export default function Wholesale() {
@@ -33,19 +34,27 @@ export default function Wholesale() {
     setError('');
 
     try {
-      // Envoyer la demande sous forme de devis / demande de partenariat B2B
+      // Demande sans article : elle arrive dans « Devis » du back-office, où
+      // l'équipe la lit avant d'ouvrir l'accès grossiste (page Clients).
+      // Le texte est destiné à l'équipe : il reste en français.
       await api.createQuote({
+        contact_email: user?.email,
+        contact_name: [user?.first_name, user?.last_name].filter(Boolean).join(' '),
         company: form.company,
-        siret: form.siret,
-        activity: form.activity,
-        volume: form.volume,
-        notes: `Demande d'ouverture de compte Grossiste B2B: ${form.message}`,
+        message: [
+          "Demande d'ouverture de compte grossiste",
+          `SIRET / n° d'entreprise : ${form.siret || '—'}`,
+          `Activité : ${form.activity}`,
+          `Volume annuel estimé : ${form.volume}`,
+          '',
+          form.message,
+        ].join('\n'),
         items: [],
       });
       setSuccess(true);
-    } catch {
-      // repli gracieux si l'API retourne un statut ou en mode démonstration
-      setSuccess(true);
+    } catch (err) {
+      // Rien n'a été enregistré : le client doit le savoir.
+      setError(apiErrorMessage(err, t('account.wholesale.sendFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -214,35 +223,35 @@ export default function Wholesale() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Nom de votre entreprise / Enseigne *
+                    {t('wholesale.company')}
                   </label>
                   <input
                     name="company"
                     required
                     value={form.company}
                     onChange={handleChange}
-                    placeholder="Ex: Bijouterie Céleste, Maison Mariage..."
+                    placeholder={t('wholesale.companyHint')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Numéro SIRET / Numéro de TVA intracommunautaire *
+                    {t('wholesale.vat')}
                   </label>
                   <input
                     name="siret"
                     required
                     value={form.siret}
                     onChange={handleChange}
-                    placeholder="123 456 789 00012 ou FR123456789"
+                    placeholder={t('wholesale.vatHint')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Secteur d'activité
+                    {t('wholesale.sector')}
                   </label>
                   <select
                     name="activity"
@@ -250,17 +259,17 @@ export default function Wholesale() {
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, background: '#fff' }}
                   >
-                    <option value="boutique">Boutique physique de mariage / prêt-à-porter</option>
-                    <option value="bijouterie">Bijouterie & Accessoires</option>
-                    <option value="ecommerce">Site E-commerce spécialisé</option>
-                    <option value="wedding">Wedding Planner / Organisateur d'événements</option>
-                    <option value="revendeur">Grossiste / Revendeur indépendant</option>
+                    <option value="boutique">{t('wholesale.sectorBoutique')}</option>
+                    <option value="bijouterie">{t('wholesale.sectorJeweller')}</option>
+                    <option value="ecommerce">{t('wholesale.sectorEcommerce')}</option>
+                    <option value="wedding">{t('wholesale.sectorPlanner')}</option>
+                    <option value="revendeur">{t('wholesale.sectorReseller')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Volume d'achat annuel estimé
+                    {t('wholesale.volume')}
                   </label>
                   <select
                     name="volume"
@@ -268,23 +277,23 @@ export default function Wholesale() {
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, background: '#fff' }}
                   >
-                    <option value="1k-5k">Moins de 5 000 € / an</option>
-                    <option value="5k-15k">De 5 000 € à 15 000 € / an</option>
-                    <option value="15k-50k">De 15 000 € à 50 000 € / an</option>
-                    <option value="50k+">Plus de 50 000 € / an</option>
+                    <option value="1k-5k">{t('wholesale.volume1')}</option>
+                    <option value="5k-15k">{t('wholesale.volume2')}</option>
+                    <option value="15k-50k">{t('wholesale.volume3')}</option>
+                    <option value="50k+">{t('wholesale.volume4')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                    Message ou demandes spécifiques
+                    {t('wholesale.message')}
                   </label>
                   <textarea
                     name="message"
                     rows={3}
                     value={form.message}
                     onChange={handleChange}
-                    placeholder="Précisez vos besoins particuliers, collections souhaitées, etc."
+                    placeholder={t('wholesale.messageHint')}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, resize: 'vertical' }}
                   />
                 </div>
@@ -295,13 +304,52 @@ export default function Wholesale() {
                   className="btn-premium"
                   style={{ width: '100%', padding: '12px 20px', fontSize: 15, fontWeight: 700, marginTop: 8 }}
                 >
-                  {submitting ? 'Envoi de la demande…' : 'Envoyer ma demande de compte Grossiste'}
+                  {submitting ? t('wholesale.sending') : t('wholesale.send')}
                 </button>
               </form>
             )}
           </div>
         </div>
       )}
+
+      <MyQuotes />
+    </div>
+  );
+}
+
+// Devis demandés depuis le panier : statut, montant et lien pour accepter.
+function MyQuotes() {
+  const { t, i18n } = useTranslation();
+  const [quotes, setQuotes] = useState(null);
+
+  useEffect(() => {
+    api.myQuotes()
+      .then((res) => setQuotes((res.results || res).filter((q) => q.items.length > 0)))
+      .catch(() => setQuotes([]));
+  }, [i18n.resolvedLanguage]);
+
+  if (!quotes || quotes.length === 0) return null;
+  return (
+    <div className="acc-info-card" style={{ padding: 24, marginTop: 32 }}>
+      <h3 style={{ marginTop: 0, fontSize: 18 }}>{t('quote.myQuotes')}</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {quotes.map((q) => (
+          <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: 12, border: '1px solid #E2E8F0', borderRadius: 8 }}>
+            <div>
+              <strong>{q.reference}</strong> · {q.status_display}
+              <div style={{ fontSize: 12, color: '#64748B' }}>
+                {new Date(q.created_at).toLocaleDateString(i18n.resolvedLanguage)} · {t('quote.itemsCount', { count: q.items.length })}
+                {q.quoted_total && ` · ${eur(Number(q.quoted_total))}`}
+              </div>
+            </div>
+            {q.link_token && (
+              <Link className="btn-outline" to={`/devis/${q.reference}?token=${encodeURIComponent(q.link_token)}`}>
+                {q.status === 'QUOTED' ? t('quote.openToAccept') : t('quote.open')}
+              </Link>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

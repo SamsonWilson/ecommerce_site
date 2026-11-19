@@ -1,4 +1,5 @@
 from accounts.permissions import HasStaffSection
+from core.translator import TARGET_LANGUAGES, TranslationError, translate_texts
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -14,6 +15,7 @@ from .admin_serializers import (
     StockMovementSerializer,
 )
 from .models import Category, ColorTheme, Product, ProductVariant, StockMovement, WeddingMoment
+from .translation import translate_next_batch, translation_status
 
 
 class AdminStockViewSet(viewsets.ModelViewSet):
@@ -134,6 +136,47 @@ class AdminProductViewSet(viewsets.ModelViewSet):
         media.file.delete(save=False)
         media.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+MAX_FREE_TEXTS = 20
+MAX_FREE_TEXT_LENGTH = 2000
+
+
+class AdminTranslationViewSet(viewsets.ViewSet):
+    """Avancement réel des traductions du catalogue, et traduction de ce qui manque."""
+
+    permission_classes = [HasStaffSection]
+    required_section = "catalog"
+
+    def list(self, request):
+        return Response(translation_status())
+
+    @action(detail=False, methods=["post"])
+    def run(self, request):
+        """Traduit un lot : le back-office rappelle cette route tant qu'il en reste."""
+        try:
+            translated = translate_next_batch()
+        except TranslationError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+        return Response({"translated": translated, **translation_status()})
+
+    @action(detail=False, methods=["post"])
+    def texts(self, request):
+        """Traduit des textes qui ne sont pas en base (médiathèque, promotions)."""
+        lang = request.data.get("lang")
+        texts = request.data.get("texts")
+        valid = (
+            lang in TARGET_LANGUAGES
+            and isinstance(texts, dict)
+            and 0 < len(texts) <= MAX_FREE_TEXTS
+            and all(isinstance(text, str) and len(text) <= MAX_FREE_TEXT_LENGTH for text in texts.values())
+        )
+        if not valid:
+            return Response({"detail": "Requête invalide."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            return Response({"translations": translate_texts(texts, lang)})
+        except TranslationError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 class _TaxonomyViewSet(viewsets.ModelViewSet):

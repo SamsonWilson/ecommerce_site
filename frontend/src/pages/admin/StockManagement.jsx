@@ -90,7 +90,7 @@ export default function StockManagement() {
   return (
     <>
       <PageHead
-        title={t('admin.stock.title', 'Gestion & Contrôle des Stocks')}
+        title={t('admin.stock.title', 'Gestion ET Contrôle des Stocks')}
         subtitle={t('admin.stock.subtitle', 'Supervision du niveau de réserve, inventaires et réapprovisionnements en temps réel')}
       >
         <button className="btn-admin ghost" onClick={loadData} style={{ borderRadius: 20, padding: '9px 18px' }}>
@@ -108,7 +108,7 @@ export default function StockManagement() {
             <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(30,58,95,0.12)', borderRadius: 8, color: 'var(--text-head)' }}>📦</span>
           </div>
           <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-head)', marginTop: 8 }}>{totalSkus}</div>
-          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Variantes enregistrées</span>
+          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>{t('admin.stock.variantesEnregistrees')}</span>
         </div>
 
         <div className="stat-card" style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(192,57,43,0.3)', boxShadow: 'var(--shadow)' }}>
@@ -122,7 +122,7 @@ export default function StockManagement() {
             {outOfStockCount}
           </div>
           <span style={{ fontSize: 11, color: outOfStockCount > 0 ? '#E1251B' : 'var(--muted)', fontWeight: 600, marginTop: 4, display: 'block' }}>
-            {outOfStockCount > 0 ? 'Réapprovisionnement urgent requis' : 'Aucune rupture'}
+            {outOfStockCount > 0 ? t('admin.stock.urgentRestock') : t('admin.stock.noStockout')}
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export default function StockManagement() {
             {lowStockCount}
           </div>
           <span style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginTop: 4, display: 'block' }}>
-            Seuil critique atteint
+            {t('admin.stock.criticalLevel')}
           </span>
         </div>
 
@@ -149,7 +149,7 @@ export default function StockManagement() {
             <span style={{ fontSize: 18, padding: '6px 10px', background: 'rgba(39,174,96,0.12)', borderRadius: 8, color: '#27AE60' }}>📊</span>
           </div>
           <div className="stat-value" style={{ fontSize: 28, fontWeight: 800, color: '#27AE60', marginTop: 8 }}>{totalUnits}</div>
-          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Unités physiques disponibles</span>
+          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>{t('admin.stock.unitesPhysiquesDisponibles')}</span>
         </div>
       </div>
 
@@ -166,7 +166,7 @@ export default function StockManagement() {
                 type="button"
                 className="stock-adjust-close"
                 onClick={() => setAdjustModal(null)}
-                aria-label="Fermer"
+                aria-label={t('admin.stock.fermer')}
               >
                 ✕
               </button>
@@ -195,7 +195,7 @@ export default function StockManagement() {
                     className="btn-admin ghost"
                     style={{ width: 42, height: 42, padding: 0, fontSize: 20, fontWeight: 700, borderRadius: 8 }}
                     onClick={() => setAdjustDelta((d) => d - 1)}
-                    title="Diminuer de 1"
+                    title={t('admin.stock.diminuerDe1')}
                   >
                     −
                   </button>
@@ -213,7 +213,7 @@ export default function StockManagement() {
                     className="btn-admin ghost"
                     style={{ width: 42, height: 42, padding: 0, fontSize: 20, fontWeight: 700, borderRadius: 8 }}
                     onClick={() => setAdjustDelta((d) => d + 1)}
-                    title="Augmenter de 1"
+                    title={t('admin.stock.augmenterDe1')}
                   >
                     +
                   </button>
@@ -222,13 +222,13 @@ export default function StockManagement() {
                 <div className="stock-quick-buttons">
                   <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d - 10)}>-10</button>
                   <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d - 5)}>-5</button>
-                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta(0)}>Reset (0)</button>
+                  <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta(0)}>{t('admin.stock.reset0')}</button>
                   <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d + 5)}>+5</button>
                   <button type="button" className="stock-quick-btn" onClick={() => setAdjustDelta((d) => d + 10)}>+10</button>
                 </div>
 
                 <div className={`stock-preview-badge ${adjustDelta > 0 ? 'positive' : adjustDelta < 0 ? 'negative' : 'neutral'}`}>
-                  Nouveau stock estimé : <strong>{Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0))} pièce(s)</strong>
+                  {t('admin.stock.estimated')} <strong>{t('admin.stock.pieces', { n: Math.max(0, (adjustModal.stock || 0) + (adjustDelta || 0)) })}</strong>
                   {adjustDelta !== 0 && (
                     <span style={{ marginLeft: 6, fontSize: 11.5, opacity: 0.85 }}>
                       ({adjustDelta > 0 ? `+${adjustDelta}` : adjustDelta})
@@ -254,7 +254,7 @@ export default function StockManagement() {
                 <input
                   id="adjust-ref"
                   type="text"
-                  placeholder="ex: BL-2026-09 ou Inventaire de printemps"
+                  placeholder={t('admin.stock.exBl202609OuInventaire')}
                   value={adjustRef}
                   onChange={(e) => setAdjustRef(e.target.value)}
                   style={{ borderRadius: 8 }}
@@ -363,7 +363,7 @@ export default function StockManagement() {
                     </td>
                     <td>
                       <span className={stock === 0 ? 'status rejected' : stock <= 5 ? 'status pending' : 'status paid'} style={{ fontWeight: 700, padding: '5px 12px', borderRadius: 20 }}>
-                        {stock === 0 ? '🔴 0 (Rupture)' : stock <= 5 ? `🟡 ${stock} (Stock Faible)` : `🟢 ${stock} pièces`}
+                        {stock === 0 ? `🔴 0 (${t('product.outOfStock')})` : stock <= 5 ? t('admin.stock.lowBadge', { n: stock }) : t('admin.stock.okBadge', { n: stock })}
                       </span>
                     </td>
                     <td>
@@ -398,7 +398,7 @@ export default function StockManagement() {
             <table className="admin-table">
             <thead>
               <tr>
-                <th>{t('admin.stock.colDate', 'Date & Heure')}</th>
+                <th>{t('admin.stock.colDate', 'Date ET Heure')}</th>
                 <th>{t('admin.stock.colSku', 'SKU / Référence')}</th>
                 <th>{t('admin.stock.colProduct', 'Produit')}</th>
                 <th>{t('admin.stock.colDelta', 'Mouvement')}</th>
@@ -409,14 +409,14 @@ export default function StockManagement() {
             <tbody>
               {movements.map((m) => (
                 <tr key={m.id}>
-                  <td className="cell-sub">{new Date(m.created_at).toLocaleString('fr-FR')}</td>
+                  <td className="cell-sub">{new Date(m.created_at).toLocaleString(document.documentElement.lang)}</td>
                   <td style={{ fontWeight: 600 }}>{m.variant_sku}</td>
                   <td>{m.product_name}</td>
                   <td>
                     <span
                       style={{
                         fontWeight: 700,
-                        color: m.quantity_delta > 0 ? '#2e7d32' : '#c62828',
+                        color: m.quantity_delta > 0 ? 'var(--green)' : 'var(--red)',
                       }}
                     >
                       {m.quantity_delta > 0 ? `+${m.quantity_delta}` : m.quantity_delta}
@@ -424,7 +424,7 @@ export default function StockManagement() {
                   </td>
                   <td>
                     <span className="tag-pill">
-                      {REASON_LABELS[m.reason] || m.reason_display}
+                      {t(`admin.stock.reasons.${m.reason}`, m.reason_display)}
                     </span>
                   </td>
                   <td className="cell-sub">{m.reference || '—'}</td>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthShell from './AuthShell.jsx';
 import SocialLogins from '../../components/SocialLogins.jsx';
 import { useAuth } from '../../store/auth.js';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const login = useAuth((s) => s.login);
   const loginGoogle = useAuth((s) => s.loginGoogle);
@@ -31,7 +33,7 @@ export default function Login() {
       await loginGoogle(credential);
       navigate('/compte');
     } catch {
-      setError('Connexion Google impossible.');
+      setError(t('auth.googleFailed'));
     }
   };
 
@@ -39,25 +41,25 @@ export default function Login() {
     <AuthShell activeTab="connexion">
       <form onSubmit={emailLogin}>
         <div className="field">
-          <label htmlFor="l-mail">Adresse e-mail</label>
+          <label htmlFor="l-mail">{t('auth.email')}</label>
           <input
             id="l-mail"
             name="l-mail"
             type="email"
             required
             autoComplete="email"
-            placeholder="mariage@exemple.com"
+            placeholder={t('auth.emailHint')}
           />
         </div>
 
         <div className="field">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <label htmlFor="l-pass" style={{ margin: 0 }}>Mot de passe</label>
+            <label htmlFor="l-pass" style={{ margin: 0 }}>{t('auth.password')}</label>
             <Link
               to="/compte/mot-de-passe-oublie"
               style={{ fontSize: 12, color: 'var(--brand-red)', fontWeight: 600, textDecoration: 'none' }}
             >
-              Mot de passe oublié ?
+              {t('auth.forgot')}
             </Link>
           </div>
           <input
@@ -86,15 +88,15 @@ export default function Login() {
         )}
 
         <button type="submit" className="btn-primary" disabled={busy}>
-          {busy ? 'Connexion en cours…' : 'Accéder à mon espace ➔'}
+          {busy ? t('auth.signingIn') : t('auth.enter')}
         </button>
       </form>
 
-      <SocialLogins onGoogle={googleLogin} label="ou se connecter avec" />
+      <SocialLogins onGoogle={googleLogin} label={t('auth.orSignInWith')} />
 
       <p className="auth-alt" style={{ marginTop: 22 }}>
-        Vous n'avez pas encore de compte ?{' '}
-        <Link to="/compte/inscription" style={{ fontWeight: 700 }}>Créer un compte</Link>
+        {t('auth.noAccount')}{' '}
+        <Link to="/compte/inscription" style={{ fontWeight: 700 }}>{t('auth.signUp')}</Link>
       </p>
     </AuthShell>
   );

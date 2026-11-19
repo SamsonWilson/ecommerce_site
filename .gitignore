@@ -1,7 +1,7 @@
 # Fichiers téléversés depuis le back-office (photos produits)
 backend/media/
 
-# Artefacts Python & Environnements virtuels
+# Artefacts Python ET Environnements virtuels
 __pycache__/
 /**/__pycache__/
 *.py[cod]
@@ -17,7 +17,7 @@ frontend/node_modules/
 frontend/dist/
 .dist/
 
-# Secrets & DB locales
+# Secrets ET DB locales
 .env
 *.sqlite3
 backend/db.sqlite3

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthShell from './AuthShell.jsx';
 import SocialLogins from '../../components/SocialLogins.jsx';
@@ -6,6 +7,7 @@ import { api, setAccessToken } from '../../lib/api.js';
 import { useAuth } from '../../store/auth.js';
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -15,7 +17,7 @@ export default function Register() {
       await useAuth.getState().loginGoogle(credential);
       navigate('/compte');
     } catch {
-      setError("La connexion Google a échoué.");
+      setError(t('auth.googleRegisterFailed'));
     }
   };
 
@@ -24,7 +26,7 @@ export default function Register() {
     setError(''); setBusy(true);
     const f = e.target;
     if (f.password1.value !== f.password2.value) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('auth.passwordMismatch'));
       setBusy(false);
       return;
     }
@@ -40,7 +42,7 @@ export default function Register() {
       navigate('/compte');
     } catch (err) {
       const d = err.data || {};
-      setError(d.email?.[0] || d.password1?.[0] || d.non_field_errors?.[0] || "L'inscription a échoué.");
+      setError(d.email?.[0] || d.password1?.[0] || d.non_field_errors?.[0] || t('auth.registerFailed'));
     } finally {
       setBusy(false);
     }
@@ -50,48 +52,48 @@ export default function Register() {
     <AuthShell activeTab="inscription">
       <form onSubmit={submit}>
         <div className="field">
-          <label htmlFor="first_name">Prénom</label>
+          <label htmlFor="first_name">{t('common.firstName')}</label>
           <input
             id="first_name"
             name="first_name"
             autoComplete="given-name"
-            placeholder="Camille"
+            placeholder={t('auth.firstNameHint')}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="email">Adresse e-mail</label>
+          <label htmlFor="email">{t('auth.email')}</label>
           <input
             id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            placeholder="mariage@exemple.com"
+            placeholder={t('auth.emailHint')}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="password1">Mot de passe</label>
+          <label htmlFor="password1">{t('auth.password')}</label>
           <input
             id="password1"
             name="password1"
             type="password"
             required
             autoComplete="new-password"
-            placeholder="8 caractères minimum"
+            placeholder={t('auth.passwordHint')}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="password2">Confirmer le mot de passe</label>
+          <label htmlFor="password2">{t('auth.confirmPassword')}</label>
           <input
             id="password2"
             name="password2"
             type="password"
             required
             autoComplete="new-password"
-            placeholder="Confirmez votre mot de passe"
+            placeholder={t('auth.confirmPasswordHint')}
           />
         </div>
 
@@ -111,15 +113,15 @@ export default function Register() {
         )}
 
         <button type="submit" className="btn-primary" disabled={busy}>
-          {busy ? 'Création de votre compte…' : 'Créer mon compte Privilège ➔'}
+          {busy ? t('auth.creating') : t('auth.createAccount')}
         </button>
       </form>
 
-      <SocialLogins onGoogle={googleSignup} label="ou s'inscrire avec" />
+      <SocialLogins onGoogle={googleSignup} label={t('auth.orSignUpWith')} />
 
       <p className="auth-alt" style={{ marginTop: 22 }}>
-        Déjà client ?{' '}
-        <Link to="/compte/connexion" style={{ fontWeight: 700 }}>Se connecter</Link>
+        {t('auth.alreadyClient')}{' '}
+        <Link to="/compte/connexion" style={{ fontWeight: 700 }}>{t('auth.signInLink')}</Link>
       </p>
     </AuthShell>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from '../../lib/api.js';
+import { api, translatePending } from '../../lib/api.js';
 import { I } from './icons.jsx';
 import { PageHead, Panel } from './ui.jsx';
 
@@ -28,6 +28,7 @@ export default function PriceTiers() {
       });
       setForm({ name: '', discount_percent: '', priority: '' });
       load();
+      translatePending().catch(() => {});
     } catch (err) {
       setError(err.data?.discount_percent?.[0] || err.data?.name?.[0] || t('admin.priceTiers.createError', 'Création impossible.'));
     }
@@ -66,7 +67,7 @@ export default function PriceTiers() {
             <tbody>
               {tiers.map((tier) => (
                 <tr key={tier.id}>
-                  <td className="cell-main">{tier.name}</td>
+                  <td className="cell-main">{tier.display_name || tier.name}</td>
                   <td>
                     <input
                       className="admin-select"
@@ -97,7 +98,7 @@ export default function PriceTiers() {
           <form className="admin-form" onSubmit={create}>
             <label htmlFor="t-name">{t('admin.priceTiers.name', 'Nom')}</label>
             <input id="t-name" required value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex. Partenaire privilégié" />
+              onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('admin.priceTiers.exPartenairePrivilegie')} />
 
             <label htmlFor="t-disc" style={{ marginTop: 12 }}>{t('admin.priceTiers.discount', 'Remise (%)')}</label>
             <input id="t-disc" type="number" min="0" max="100" value={form.discount_percent}

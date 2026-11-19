@@ -99,7 +99,7 @@ export default function Inventory() {
       return;
     }
     setManagerPin('');
-    setAuditRefNote(`Session Inventaire - Validé par ${user?.first_name || 'Admin'} le ${new Date().toLocaleDateString('fr-FR')}`);
+    setAuditRefNote(t('admin.inventory.auditNote', { name: user?.first_name || 'Admin', date: new Date().toLocaleDateString(document.documentElement.lang) }));
     setPinError('');
     setSecurityModalOpen(true);
   };
@@ -109,7 +109,7 @@ export default function Inventory() {
     e.preventDefault();
     // Le code PIN par défaut est 1234 ou 0000
     if (managerPin !== '1234' && managerPin !== '0000') {
-      setPinError('Code PIN Responsable incorrect. (Code par défaut: 1234)');
+      setPinError(t('admin.inventory.pinWrong'));
       return;
     }
 
@@ -132,7 +132,7 @@ export default function Inventory() {
       setSuccessMsg(
         t(
           'admin.inventory.successMsg',
-          `Inventaire sécurisé validé avec succès ! ${diffs.length} stock(s) ajusté(s) (Signé par ${user?.first_name || 'Superviseur'}).`
+          t('admin.inventory.validated', { n: diffs.length, name: user?.first_name || t('admin.inventory.supervisor') })
         )
       );
       await loadVariants();
@@ -146,7 +146,7 @@ export default function Inventory() {
   return (
     <>
       <PageHead
-        title={t('admin.inventory.title', 'Inventaire Physique & Contrôle Sécurisé')}
+        title={t('admin.inventory.title', 'Inventaire Physique ET Contrôle Sécurisé')}
         subtitle={t('admin.inventory.subtitle', 'Protocole de comptage à aveugle, traçabilité et validation par code PIN')}
       >
         <button
@@ -159,15 +159,15 @@ export default function Inventory() {
             fontWeight: 600,
           }}
         >
-          {blindMode ? '👁️ Mode Normal' : '🙈 Mode Comptage à Aveugle'}
+          {blindMode ? t('admin.inventory.normalMode') : t('admin.inventory.blindMode')}
         </button>
 
         <button className="btn-admin ghost no-print" onClick={resetPhysicalToTheoretical} style={{ borderRadius: 20 }}>
-          🔄 Réinitialiser
+          🔄 {t('admin.stockReport.reset')}
         </button>
 
         <button className="btn-admin ghost no-print" onClick={() => window.print()} style={{ borderRadius: 20 }}>
-          🖨️ Imprimer la fiche
+          🖨️ {t('admin.inventory.printSheet')}
         </button>
 
         <button
@@ -181,7 +181,7 @@ export default function Inventory() {
             boxShadow: totalDiscrepancies > 0 ? '0 4px 12px rgba(192,57,43,0.3)' : undefined,
           }}
         >
-          🔒 {saving ? 'Validation…' : `Valider la session (${totalDiscrepancies} écarts)`}
+          🔒 {saving ? t('admin.inventory.validating') : t('admin.inventory.validateSession', { n: totalDiscrepancies })}
         </button>
       </PageHead>
 
@@ -191,52 +191,52 @@ export default function Inventory() {
           <div
             className="admin-modal-content"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 460, borderRadius: 18, padding: 28, background: '#fff', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}
+            style={{ maxWidth: 460, borderRadius: 18, padding: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', boxShadow: '0 20px 50px rgba(0,0,0,0.35)', color: 'var(--text)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
-              <h3 style={{ margin: 0, fontSize: 18, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 18, color: 'var(--text-head)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 🔒 Validation d'Inventaire Sécurisée
               </h3>
               <button onClick={() => setSecurityModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
             </div>
 
-            <div style={{ background: '#F8F7F4', borderRadius: 10, padding: 14, marginBottom: 18, border: '1px solid #EAEAE8' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
+            <div style={{ background: 'var(--bg)', borderRadius: 10, padding: 14, marginBottom: 18, border: '1px solid var(--line)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-head)' }}>
                 Régularisation globale en attente :
               </div>
               <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                <span>Références à modifier : <strong style={{ color: '#C0392B' }}>{totalDiscrepancies} article(s)</strong></span>
-                <span>Impact financier : <strong style={{ color: totalValueImpact < 0 ? '#C0392B' : '#27AE60' }}>{totalValueImpact.toFixed(2)} €</strong></span>
+                <span>{t('admin.inventory.toChange')} <strong style={{ color: '#E1251B' }}>{t('shop.itemCount', { n: totalDiscrepancies })}</strong></span>
+                <span>{t('admin.inventory.financialImpact')} <strong style={{ color: totalValueImpact < 0 ? '#E1251B' : '#1FA971' }}>{totalValueImpact.toFixed(2)} €</strong></span>
               </div>
             </div>
 
             <form onSubmit={handleSecureSubmit} className="admin-form">
               <div className="field">
-                <label style={{ fontWeight: 700, color: 'var(--navy)' }}>Code PIN Responsable (Authentification)</label>
+                <label style={{ fontWeight: 700, color: 'var(--text-head)' }}>{t('admin.inventory.codePinResponsableAuthentification')}</label>
                 <input
                   type="password"
                   maxLength="6"
-                  placeholder="Saisissez le PIN (ex: 1234)"
+                  placeholder={t('admin.inventory.saisissezLePinEx1234')}
                   value={managerPin}
                   onChange={(e) => setManagerPin(e.target.value)}
-                  style={{ fontSize: 20, letterSpacing: '0.3em', textAlign: 'center', borderRadius: 10, background: '#FAF9F6' }}
+                  style={{ fontSize: 20, letterSpacing: '0.3em', textAlign: 'center', borderRadius: 10, background: 'var(--input-bg)', color: 'var(--text)', border: '1px solid var(--line)' }}
                   autoFocus
                   required
                 />
                 {pinError && (
-                  <div style={{ fontSize: 11.5, color: '#C0392B', fontWeight: 600, marginTop: 6, textAlign: 'center' }}>
+                  <div style={{ fontSize: 11.5, color: '#E1251B', fontWeight: 600, marginTop: 6, textAlign: 'center' }}>
                     ⚠️ {pinError}
                   </div>
                 )}
               </div>
 
               <div className="field" style={{ marginTop: 14 }}>
-                <label style={{ fontWeight: 600 }}>Référence & Motif d'Audit (Horodaté)</label>
+                <label style={{ fontWeight: 600, color: 'var(--text-head)' }}>{t('admin.inventory.referenceEtMotifDAuditHorodate')}</label>
                 <input
                   type="text"
                   value={auditRefNote}
                   onChange={(e) => setAuditRefNote(e.target.value)}
-                  style={{ borderRadius: 8 }}
+                  style={{ borderRadius: 8, background: 'var(--input-bg)', color: 'var(--text)', border: '1px solid var(--line)' }}
                   required
                 />
               </div>
@@ -245,8 +245,8 @@ export default function Inventory() {
                 <button type="button" className="btn-admin ghost" onClick={() => setSecurityModalOpen(false)} style={{ borderRadius: 20 }}>
                   Annuler
                 </button>
-                <button type="submit" className="btn-admin primary" disabled={saving || !managerPin} style={{ borderRadius: 20, padding: '10px 24px', background: 'var(--brand-red, #C0392B)' }}>
-                  🔓 Signer & Clôturer l'Inventaire
+                <button type="submit" className="btn-admin primary" disabled={saving || !managerPin} style={{ borderRadius: 20, padding: '10px 24px', background: 'var(--brand-red, #E1251B)' }}>
+                  🔓 Signer ET Clôturer l'Inventaire
                 </button>
               </div>
             </form>
@@ -256,44 +256,44 @@ export default function Inventory() {
 
       {/* KPI INVENTAIRE */}
       <div className="admin-stats-grid no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 24 }}>
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid #E6E9EF', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}>
           <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Articles Audités
+            {t('admin.inventory.itemsAudited')}
           </div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)', marginTop: 8 }}>{variants.length}</div>
-          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Références scannées</span>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-head)', marginTop: 8 }}>{variants.length}</div>
+          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>{t('admin.inventory.referencesScannees')}</span>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: totalDiscrepancies > 0 ? '1px solid rgba(192,57,43,0.3)' : '1px solid #E6E9EF', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
-          <div style={{ fontSize: 12, color: totalDiscrepancies > 0 ? '#C0392B' : 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Écarts Constatés
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: totalDiscrepancies > 0 ? '1px solid rgba(225,37,27,0.3)' : '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}>
+          <div style={{ fontSize: 12, color: totalDiscrepancies > 0 ? '#E1251B' : 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            {t('admin.inventory.gapsFound')}
           </div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: totalDiscrepancies > 0 ? '#C0392B' : '#27AE60', marginTop: 8 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: totalDiscrepancies > 0 ? '#E1251B' : '#1FA971', marginTop: 8 }}>
             {totalDiscrepancies}
           </div>
           <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>
-            {totalDiscrepancies === 0 ? 'Inventaire 100% conforme ✅' : 'Révisions requises'}
+            {totalDiscrepancies === 0 ? t('admin.inventory.conform') : t('admin.inventory.reviewsRequired')}
           </span>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid #E6E9EF', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}>
           <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Impact Financier global
+            {t('admin.inventory.globalImpact')}
           </div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: totalValueImpact < 0 ? '#C0392B' : totalValueImpact > 0 ? '#27AE60' : 'var(--navy)', marginTop: 8 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: totalValueImpact < 0 ? '#E1251B' : totalValueImpact > 0 ? '#1FA971' : 'var(--text-head)', marginTop: 8 }}>
             {totalValueImpact > 0 ? `+${totalValueImpact.toFixed(2)}` : totalValueImpact.toFixed(2)} €
           </div>
-          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>Basé sur le prix de vente</span>
+          <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>{t('admin.inventory.baseSurLePrixDeVente')}</span>
         </div>
       </div>
 
       {successMsg && (
-        <div style={{ background: '#E6F7EF', border: '1px solid #27AE60', color: '#1FA971', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontWeight: 600 }}>
+        <div style={{ background: 'rgba(31, 169, 113, 0.15)', border: '1px solid rgba(31, 169, 113, 0.35)', color: 'var(--green)', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontWeight: 600 }}>
           ✅ {successMsg}
         </div>
       )}
       {errorMsg && (
-        <div style={{ background: '#FDE9E8', border: '1px solid #E1251B', color: '#E1251B', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontWeight: 600 }}>
+        <div style={{ background: 'rgba(225, 37, 27, 0.12)', border: '1px solid rgba(225, 37, 27, 0.35)', color: 'var(--red)', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontWeight: 600 }}>
           ⚠️ {errorMsg}
         </div>
       )}
@@ -304,7 +304,7 @@ export default function Inventory() {
           <div className="admin-field">
             {I.search}
             <input
-              placeholder="Rechercher par SKU ou nom de produit…"
+              placeholder={t('admin.inventory.rechercherParSkuOuNomDe')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -315,12 +315,12 @@ export default function Inventory() {
             onChange={(e) => setFilterDiscrepancy(e.target.value)}
             style={{ borderRadius: 8 }}
           >
-            <option value="ALL">Tous les produits</option>
-            <option value="DIFF">Seulement les écarts (différences)</option>
-            <option value="MATCH">Stocks concordants (0 écart)</option>
+            <option value="ALL">{t('admin.inventory.tousLesProduits')}</option>
+            <option value="DIFF">{t('admin.inventory.seulementLesEcartsDifferences')}</option>
+            <option value="MATCH">{t('admin.inventory.stocksConcordants0Ecart')}</option>
           </select>
           <span className="admin-count">
-            {filteredItems.length} référence(s) affichée(s)
+            {t('admin.inventory.shown', { n: filteredItems.length })}
           </span>
         </Toolbar>
 
@@ -328,30 +328,30 @@ export default function Inventory() {
           <table className="admin-table">
           <thead>
             <tr>
-              <th>SKU / Réf</th>
-              <th>Produit</th>
-              <th>Stock Théorique (Système)</th>
-              <th style={{ background: '#FAF8F5', textTransform: 'uppercase', color: 'var(--navy)', fontWeight: 700 }}>Comptage Physique</th>
-              <th>Écart (Delta)</th>
-              <th>Impact Valeur (€)</th>
-              <th>Note d'Ajustement</th>
+              <th>{t('admin.inventory.skuRef')}</th>
+              <th>{t('admin.inventory.produit')}</th>
+              <th>{t('admin.inventory.stockTheoriqueSysteme')}</th>
+              <th style={{ background: 'var(--bg)', textTransform: 'uppercase', color: 'var(--text-head)', fontWeight: 700 }}>{t('admin.inventory.comptagePhysique')}</th>
+              <th>{t('admin.inventory.ecartDelta')}</th>
+              <th>{t('admin.inventory.impactValeur')}</th>
+              <th>{t('admin.inventory.noteDAjustement')}</th>
             </tr>
           </thead>
           <tbody>
             {filteredItems.map((item) => (
-              <tr key={item.id} style={{ background: item.delta !== 0 ? 'rgba(243, 156, 18, 0.05)' : undefined }}>
-                <td className="cell-sub" style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--navy)' }}>{item.sku}</td>
+              <tr key={item.id} style={{ background: item.delta !== 0 ? 'rgba(243, 156, 18, 0.08)' : undefined }}>
+                <td className="cell-sub" style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--text-head)' }}>{item.sku}</td>
                 <td className="cell-main" style={{ fontWeight: 600 }}>{item.product_name || item.product?.name || '—'}</td>
                 <td style={{ fontWeight: 600, textAlign: 'center' }}>
                   {blindMode ? (
-                    <span style={{ padding: '4px 12px', background: '#E6E9EF', color: '#8A93A3', borderRadius: 12, fontStyle: 'italic', fontSize: 11.5 }}>
+                    <span style={{ padding: '4px 12px', background: 'var(--bg)', color: 'var(--muted)', borderRadius: 12, fontStyle: 'italic', fontSize: 11.5 }}>
                       🔒 Masqué (Aveugle)
                     </span>
                   ) : (
-                    <span style={{ padding: '4px 10px', background: '#F2F4F7', borderRadius: 12 }}>{item.theoretical}</span>
+                    <span style={{ padding: '4px 10px', background: 'var(--bg)', color: 'var(--text)', borderRadius: 12 }}>{item.theoretical}</span>
                   )}
                 </td>
-                <td style={{ background: '#FAF8F5', width: 140 }}>
+                <td style={{ background: 'var(--bg)', width: 140 }}>
                   <input
                     type="number"
                     min="0"
@@ -364,8 +364,9 @@ export default function Inventory() {
                       fontWeight: 700,
                       textAlign: 'center',
                       borderRadius: 8,
-                      border: item.delta !== 0 ? '2px solid #F39C12' : '1px solid #DCDFE6',
-                      background: '#fff',
+                      border: item.delta !== 0 ? '2px solid #F39C12' : '1px solid var(--line)',
+                      background: 'var(--input-bg)',
+                      color: 'var(--text)',
                     }}
                   />
                 </td>
@@ -384,10 +385,10 @@ export default function Inventory() {
                 <td>
                   <input
                     type="text"
-                    placeholder="ex: Rayon casse, Perte, Surplus..."
+                    placeholder={t('admin.inventory.exRayonCassePerteSurplus')}
                     value={notes[item.id] || ''}
                     onChange={(e) => handleNoteChange(item.id, e.target.value)}
-                    style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, width: '100%' }}
+                    style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, width: '100%', background: 'var(--input-bg)', color: 'var(--text)', border: '1px solid var(--line)' }}
                   />
                 </td>
               </tr>
@@ -395,13 +396,13 @@ export default function Inventory() {
 
             {loading && (
               <tr>
-                <td colSpan="7" className="admin-empty">Chargement de la grille d'inventaire…</td>
+                <td colSpan="7" className="admin-empty">{t('admin.inventory.chargementDeLaGrilleDInventaire')}</td>
               </tr>
             )}
 
             {!loading && filteredItems.length === 0 && (
               <tr>
-                <td colSpan="7" className="admin-empty">Aucun produit ne correspond à ces critères d'inventaire.</td>
+                <td colSpan="7" className="admin-empty">{t('admin.inventory.aucunProduitNeCorrespondACes')}</td>
               </tr>
             )}
           </tbody>

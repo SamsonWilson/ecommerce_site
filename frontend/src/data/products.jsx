@@ -18,12 +18,12 @@ export const catalogProducts = [
     figure: fig('#7C1F2C', <path d="M50 110 h100 M60 90 q 40 -30 80 0 M60 130 q 40 30 80 0"/>),
   },
   {
-    slug: 'peigne-laque-rouge', cat: 'Épingles & peignes', name: 'Peigne Laque Rouge',
+    slug: 'peigne-laque-rouge', cat: 'Épingles ET peignes', name: 'Peigne Laque Rouge',
     priceNew: '79 €', priceOld: '88 €', badge: '-10%', moq: 'MOQ grossiste : 12 pièces',
     figure: fig('#7C1F2C', <path d="M70 40 L 130 40 M 100 40 L 100 190 M70 100 L130 100"/>),
   },
   {
-    slug: 'bracelet-jade-or', cat: 'Bracelets', name: 'Bracelet Jade & Or',
+    slug: 'bracelet-jade-or', cat: 'Bracelets', name: 'Bracelet Jade ET Or',
     priceNew: '104 €', moq: 'MOQ grossiste : 24 pièces',
     figure: fig('#7C1F2C', <path d="M100 40 v140 M70 60 h60 M70 100 h60 M70 140 h60"/>),
   },
@@ -33,12 +33,12 @@ export const catalogProducts = [
     figure: fig('#7C1F2C', <><circle cx="100" cy="80" r="30"/><path d="M100 110 v90"/></>),
   },
   {
-    slug: 'tiare-xiuhe-doree', cat: 'Diadèmes & tiares', name: 'Tiare Xiuhe Dorée',
+    slug: 'tiare-xiuhe-doree', cat: 'Diadèmes ET tiares', name: 'Tiare Xiuhe Dorée',
     priceNew: '142 €', priceOld: '168 €', badge: '-15%', moq: 'MOQ grossiste : 12 pièces',
     figure: fig('#7C1F2C', <path d="M60 100 q 40 -60 80 0 q -40 60 -80 0Z"/>),
   },
   {
-    slug: 'epingle-double-bonheur', cat: 'Épingles & peignes', name: 'Épingle Double Bonheur',
+    slug: 'epingle-double-bonheur', cat: 'Épingles ET peignes', name: 'Épingle Double Bonheur',
     priceNew: '98 €', moq: 'MOQ grossiste : 12 pièces',
     figure: fig('#7C1F2C', <path d="M60 80 h80 M60 130 h80 M100 60 v100"/>),
   },

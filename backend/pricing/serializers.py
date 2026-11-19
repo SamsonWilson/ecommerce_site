@@ -4,9 +4,15 @@ from .models import PriceTier
 
 
 class PriceTierSerializer(serializers.ModelSerializer):
+    # `name` reste le français saisi ; `display_name` suit la langue de l'écran.
+    display_name = serializers.SerializerMethodField()
+
     class Meta:
         model = PriceTier
-        fields = ("id", "name", "discount_percent", "priority")
+        fields = ("id", "name", "display_name", "discount_percent", "priority")
+
+    def get_display_name(self, obj):
+        return obj.translated("name")
 
     def validate_discount_percent(self, value):
         if not 0 <= value <= 100:

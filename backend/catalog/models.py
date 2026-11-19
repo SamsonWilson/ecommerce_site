@@ -1,11 +1,11 @@
 from django.db import models
 
-# NOTE multilingue : pour rester dans le périmètre de cette étape, les contenus
-# sont mono-langue (fr). L'internationalisation structurelle des contenus produits
-# (django-parler, cf. ARCHITECTURE.md §5.3) est l'évolution prévue ensuite.
+from core.models import TranslatableModel
 
 
-class Category(models.Model):
+class Category(TranslatableModel):
+    TRANSLATABLE_FIELDS = ("name",)
+
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
 
@@ -16,7 +16,9 @@ class Category(models.Model):
         return self.name
 
 
-class ColorTheme(models.Model):
+class ColorTheme(TranslatableModel):
+    TRANSLATABLE_FIELDS = ("name",)
+
     name = models.CharField(max_length=60)
     slug = models.SlugField(unique=True)
     hex_code = models.CharField(max_length=7, default="#000000")  # pour le filtre
@@ -25,8 +27,10 @@ class ColorTheme(models.Model):
         return self.name
 
 
-class WeddingMoment(models.Model):
+class WeddingMoment(TranslatableModel):
     """Cérémonie, réception, dîner, séance photo… (ARCHITECTURE.md §5.3)."""
+
+    TRANSLATABLE_FIELDS = ("name",)
 
     name = models.CharField(max_length=80)
     slug = models.SlugField(unique=True)
@@ -35,7 +39,9 @@ class WeddingMoment(models.Model):
         return self.name
 
 
-class Collection(models.Model):
+class Collection(TranslatableModel):
+    TRANSLATABLE_FIELDS = ("name", "story")
+
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
     story = models.TextField(blank=True)  # storytelling / inspiration
@@ -44,7 +50,10 @@ class Collection(models.Model):
         return self.name
 
 
-class Product(models.Model):
+class Product(TranslatableModel):
+    TRANSLATABLE_FIELDS = ("name", "description", "cultural_story", "seo_title", "seo_description")
+    TRANSLATION_STORAGE_FIELDS = ("translations", "search_text")
+
     class SalesChannel(models.TextChoices):
         """Canal de vente : à qui le produit est-il proposé ?"""
         BOTH = "BOTH", "Détail et gros"
@@ -71,11 +80,23 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Textes traduits mis à plat : la recherche fonctionne dans toutes les langues.
+    search_text = models.TextField(blank=True, editable=False)
+
     class Meta:
         ordering = ("-created_at",)
 
     def __str__(self):
         return self.name
+
+    def set_translation(self, lang, texts, engine=None):
+        super().set_translation(lang, texts, engine)
+        self.search_text = " ".join(
+            text
+            for entry in self.translations.values()
+            for key, text in entry.items()
+            if not key.startswith("_")
+        )
 
 
 class ProductVariant(models.Model):

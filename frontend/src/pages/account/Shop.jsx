@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard.jsx';
 import { catalogProducts, figureBySlug, defaultFigure } from '../../data/products.jsx';
@@ -10,20 +11,21 @@ import { IconTrash, IconBag } from '../../components/icons.jsx';
 
 const PRICE_MAX = 300;
 const SORTS = [
-  { value: '-created_at', label: 'Nouveautés' },
-  { value: 'name', label: 'Nom A → Z' },
-  { value: 'min_price', label: 'Prix croissant' },
-  { value: '-min_price', label: 'Prix décroissant' },
+  { value: '-created_at', label: 'shop.titleNew' },
+  { value: 'name', label: 'shop.sort.name' },
+  { value: 'min_price', label: 'shop.sort.priceAsc' },
+  { value: '-min_price', label: 'shop.sort.priceDesc' },
 ];
 
 export default function Shop() {
+  const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const category = params.get('category') || '';
   const color = params.get('color') || '';
   const ordering = params.get('sort') || '-created_at';
   const maxPrice = params.get('max_price') || '';
 
-  const [products, setProducts] = useState(catalogProducts);
+  const [products, setProducts] = useState([]);
   const [cats, setCats] = useState([]);
   const [colors, setColors] = useState([]);
   const [count, setCount] = useState(null);
@@ -36,7 +38,7 @@ export default function Shop() {
   const items = useCart((s) => s.items);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
-  const { total } = cartTotals(items);
+  const { subtotal } = cartTotals(items);
 
   const setFilter = (key, value) => {
     const next = new URLSearchParams(params);
@@ -49,7 +51,7 @@ export default function Shop() {
   useEffect(() => {
     api.categories().then((d) => setCats(d.results || d)).catch(() => {});
     api.colors().then((d) => setColors(d.results || d)).catch(() => {});
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   const commitPrice = (value) => setFilter('max_price', value >= PRICE_MAX ? '' : String(value));
 
@@ -66,23 +68,28 @@ export default function Shop() {
     })
       .then((data) => {
         if (!alive) return;
-        setProducts(productsFromApi(data));
-        setCount(data.count ?? null);
+        const items = productsFromApi(data).filter((p) => Number(p.stock) > 0);
+        setProducts(items);
+        setCount(data.count ?? items.length);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!alive) return;
+        setProducts([]);
+        setCount(0);
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [category, color, maxPrice, ordering, search]);
+  }, [category, color, maxPrice, ordering, search, i18n.resolvedLanguage]);
 
-  const heading = cats.find((c) => c.slug === category)?.name || 'Boutique';
+  const heading = cats.find((c) => c.slug === category)?.name || t('common.shop');
 
   return (
     <div className="acc-shop">
       {/* Header de la boutique intégrée */}
       <div className="acc-shop-header">
         <div className="acc-shop-title">
-          <h2>Boutique</h2>
-          <span className="acc-shop-count">{count ?? products.length} produit(s)</span>
+          <h2>{t('common.shop')}</h2>
+          <span className="acc-shop-count">{t('shop.productCount', { n: count ?? products.length })}</span>
         </div>
         <div className="acc-shop-controls">
           <div className="acc-shop-search">
@@ -91,7 +98,7 @@ export default function Shop() {
             </svg>
             <input
               type="search"
-              placeholder="Rechercher un produit…"
+              placeholder={t('shop.searchHint')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -101,7 +108,7 @@ export default function Shop() {
             value={ordering}
             onChange={(e) => setFilter('sort', e.target.value)}
           >
-            {SORTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {SORTS.map((o) => <option key={o.value} value={o.value}>{t(o.label)}</option>)}
           </select>
           <button
             type="button"
@@ -112,7 +119,7 @@ export default function Shop() {
               <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" />
               <line x1="11" y1="18" x2="13" y2="18" />
             </svg>
-            Filtres
+            {t('shop.filters')}
           </button>
         </div>
       </div>
@@ -122,10 +129,10 @@ export default function Shop() {
         <aside className={`acc-shop-aside${filtersOpen ? ' open' : ''}`}>
           {/* Catégories */}
           <div className="acc-shop-filter-block">
-            <div className="acc-filter-title">Catégories</div>
+            <div className="acc-filter-title">{t('shop.categories')}</div>
             <label className="acc-radio-line">
               <input type="radio" name="cat" checked={category === ''} onChange={() => setFilter('category', '')} />
-              <span>Toutes</span>
+              <span>{t('shop.all')}</span>
             </label>
             {cats.map((c) => (
               <label key={c.slug} className="acc-radio-line">
@@ -133,12 +140,12 @@ export default function Shop() {
                 <span>{c.name}</span>
               </label>
             ))}
-            {cats.length === 0 && <p className="acc-filter-note">Aucune catégorie disponible.</p>}
+            {cats.length === 0 && <p className="acc-filter-note">{t('shop.noCategoryAvailable')}</p>}
           </div>
 
           {/* Prix */}
           <div className="acc-shop-filter-block">
-            <div className="acc-filter-title">Prix max</div>
+            <div className="acc-filter-title">{t('shop.maxPrice')}</div>
             <div className="acc-price-range">
               <input
                 type="range"
@@ -151,7 +158,7 @@ export default function Shop() {
                 onTouchEnd={(e) => commitPrice(Number(e.target.value))}
               />
               <span className="acc-price-label">
-                {priceCursor >= PRICE_MAX ? 'Tous les prix' : `≤ ${priceCursor} €`}
+                {priceCursor >= PRICE_MAX ? t('shop.allPrices') : `≤ ${priceCursor} €`}
               </span>
             </div>
           </div>
@@ -159,7 +166,7 @@ export default function Shop() {
           {/* Couleurs */}
           {colors.length > 0 && (
             <div className="acc-shop-filter-block">
-              <div className="acc-filter-title">Couleur</div>
+              <div className="acc-filter-title">{t('shop.color')}</div>
               <div className="acc-swatches">
                 {colors.map((c) => (
                   <button
@@ -174,7 +181,7 @@ export default function Shop() {
               </div>
               {color && (
                 <button type="button" className="acc-filter-clear" onClick={() => setFilter('color', '')}>
-                  Retirer le filtre couleur
+                  {t('shop.clearColor')}
                 </button>
               )}
             </div>
@@ -187,7 +194,7 @@ export default function Shop() {
               className="acc-filter-reset"
               onClick={() => setParams({}, { replace: true })}
             >
-              Réinitialiser tous les filtres
+              {t('shop.resetFilters')}
             </button>
           )}
         </aside>
@@ -228,19 +235,19 @@ export default function Shop() {
           {loading && products.length === 0 && (
             <div className="acc-shop-loading">
               <div className="acc-shop-spinner" />
-              <p>Chargement des produits…</p>
+              <p>{t('shop.loadingProducts')}</p>
             </div>
           )}
           {!loading && products.length === 0 && (
             <div className="acc-empty">
-              <p>Aucun produit ne correspond à votre recherche.</p>
+              <p>{t('shop.noSearchMatch')}</p>
               <button
                 type="button"
                 className="btn-premium"
                 style={{ marginTop: 16 }}
                 onClick={() => setParams({}, { replace: true })}
               >
-                Effacer les filtres
+                {t('shop.clearFilters')}
               </button>
             </div>
           )}
@@ -249,14 +256,14 @@ export default function Shop() {
         {/* Panneau Panier en direct */}
         <div className="acc-shop-cart-panel">
           <div className="acc-cart-header">
-            <h3>Mon Panier</h3>
-            <span className="count">{items.length} article(s)</span>
+            <h3>{t('shop.myCart')}</h3>
+            <span className="count">{t('shop.itemCount', { n: items.length })}</span>
           </div>
           <div className="acc-cart-items">
             {items.length === 0 ? (
               <div className="acc-cart-empty">
                 <IconBag />
-                <p>Votre panier est vide</p>
+                <p>{t('common.emptyCart')}</p>
               </div>
             ) : (
               items.map((it) => (
@@ -283,11 +290,11 @@ export default function Shop() {
           {items.length > 0 && (
             <div className="acc-cart-footer">
               <div className="tot">
-                <span>Total</span>
-                <strong>{eur(total)}</strong>
+                <span>{t('common.totalExclShipping')}</span>
+                <strong>{eur(subtotal)}</strong>
               </div>
               <Link to="/compte/checkout" className="btn-premium" style={{ width: '100%' }}>
-                Commander
+                {t('shop.order')}
               </Link>
             </div>
           )}

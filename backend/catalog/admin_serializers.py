@@ -24,7 +24,7 @@ from .models import (
 
 class StockMovementSerializer(serializers.ModelSerializer):
     variant_sku = serializers.CharField(source="variant.sku", read_only=True)
-    product_name = serializers.CharField(source="variant.product.name", read_only=True)
+    product_name = serializers.SerializerMethodField()
     reason_display = serializers.CharField(source="get_reason_display", read_only=True)
 
     class Meta:
@@ -34,6 +34,9 @@ class StockMovementSerializer(serializers.ModelSerializer):
             "quantity_delta", "reason", "reason_display", "reference", "created_at"
         )
         read_only_fields = ("id", "created_at")
+
+    def get_product_name(self, obj):
+        return obj.variant.product.translated("name")
 
 
 # Marques ISO-BMFF (l'octet 4..8 vaut « ftyp ») : la marque distingue une image
@@ -103,7 +106,19 @@ def unique_slug(name, instance=None, model=Product):
     return slug
 
 
-class _SluggedSerializer(serializers.ModelSerializer):
+class DisplayNameMixin(serializers.Serializer):
+    """
+    `name` reste le français saisi, seul champ à modifier. `display_name` est le
+    même nom dans la langue de l'écran, pour les tableaux du back-office.
+    """
+
+    display_name = serializers.SerializerMethodField()
+
+    def get_display_name(self, obj):
+        return obj.translated("name")
+
+
+class _SluggedSerializer(DisplayNameMixin, serializers.ModelSerializer):
     """
     Base des taxonomies : le slug est facultatif et déduit du nom À LA CRÉATION.
 
@@ -127,7 +142,7 @@ class AdminCategorySerializer(_SluggedSerializer):
 
     class Meta:
         model = Category
-        fields = ("id", "name", "slug", "product_count")
+        fields = ("id", "name", "display_name", "slug", "product_count")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
 
     def validate_name(self, value):
@@ -158,7 +173,7 @@ class AdminColorSerializer(_SluggedSerializer):
 
     class Meta:
         model = ColorTheme
-        fields = ("id", "name", "slug", "hex_code", "product_count")
+        fields = ("id", "name", "display_name", "slug", "hex_code", "product_count")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
 
     def validate_name(self, value):
@@ -178,7 +193,7 @@ class AdminMomentSerializer(_SluggedSerializer):
 
     class Meta:
         model = WeddingMoment
-        fields = ("id", "name", "slug", "product_count")
+        fields = ("id", "name", "display_name", "slug", "product_count")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
 
 
@@ -190,11 +205,15 @@ class AdminVariantSerializer(serializers.ModelSerializer):
     sku = serializers.CharField(max_length=64, required=False, allow_blank=True)
     retail_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
     wholesale_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    product_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
-        fields = ("id", "sku", "attributes", "retail_price", "wholesale_price",
+        fields = ("id", "sku", "product_name", "attributes", "retail_price", "wholesale_price",
                   "moq", "max_order_qty", "stock", "weight_grams", "position")
+
+    def get_product_name(self, obj):
+        return obj.product.translated("name")
 
     def validate(self, attrs):
         retail = attrs.get("retail_price")
@@ -267,20 +286,23 @@ class AdminProductMediaSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class AdminProductSerializer(serializers.ModelSerializer):
+class AdminProductSerializer(DisplayNameMixin, serializers.ModelSerializer):
     variants = AdminVariantSerializer(many=True)
     media = AdminProductMediaSerializer(many=True, read_only=True)
-    category_name = serializers.CharField(source="category.name", read_only=True, default=None)
+    category_name = serializers.SerializerMethodField()
     sales_channel_display = serializers.CharField(source="get_sales_channel_display", read_only=True)
 
     class Meta:
         model = Product
-        fields = ("id", "name", "slug", "description", "cultural_story",
+        fields = ("id", "name", "display_name", "slug", "description", "cultural_story",
                   "category", "category_name", "collection", "colors", "wedding_moments",
                   "sales_channel", "sales_channel_display", "is_active",
                   "variants", "media", "created_at")
         read_only_fields = ("id", "created_at")
         extra_kwargs = {"slug": {"required": False, "allow_blank": True}}
+
+    def get_category_name(self, obj):
+        return obj.category.translated("name") if obj.category else None
 
     def validate_name(self, value):
         cleaned = value.strip() if value else value

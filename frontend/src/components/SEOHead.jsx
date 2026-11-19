@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 export default function SEOHead({ title, description, image, url, schema }) {
+  const { t } = useTranslation();
   useEffect(() => {
     // Title
-    const fullTitle = title ? `${title} | Maison Lian` : 'Maison Lian — Accessoires de Mariage & Élégance Chinoise';
+    const fullTitle = title ? `${title} | Maison Lián` : t('seo.defaultTitle');
     document.title = fullTitle;
 
     // Helper function to update or create meta tags
@@ -20,11 +22,11 @@ export default function SEOHead({ title, description, image, url, schema }) {
     };
 
     // Standard Meta
-    setMeta('name', 'description', description || 'Maison Lian - Accessoires de mariage d’inspiration traditionnelle chinoise.');
+    setMeta('name', 'description', description || t('seo.defaultDescription'));
 
     // OpenGraph Meta (Pinterest / Facebook)
     setMeta('property', 'og:title', fullTitle);
-    setMeta('property', 'og:description', description || 'Accessoires de mariage & haute coiffure.');
+    setMeta('property', 'og:description', description || t('seo.shortDescription'));
     setMeta('property', 'og:type', 'website');
     if (url) setMeta('property', 'og:url', url);
     if (image) setMeta('property', 'og:image', image);
@@ -32,7 +34,7 @@ export default function SEOHead({ title, description, image, url, schema }) {
     // Twitter Meta
     setMeta('name', 'twitter:card', 'summary_large_image');
     setMeta('name', 'twitter:title', fullTitle);
-    setMeta('name', 'twitter:description', description || 'Accessoires de mariage & haute coiffure.');
+    setMeta('name', 'twitter:description', description || t('seo.shortDescription'));
     if (image) setMeta('name', 'twitter:image', image);
 
     // JSON-LD Schema

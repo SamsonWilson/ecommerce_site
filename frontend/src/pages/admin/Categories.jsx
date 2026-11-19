@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from '../../lib/api.js';
+import { api, translatePending } from '../../lib/api.js';
 import { I } from './icons.jsx';
 import { PageHead, Panel } from './ui.jsx';
 
@@ -73,6 +73,7 @@ export default function Categories() {
       else await api.adminCreateCategory(body);
       setCatForm({ ...EMPTY_CAT });
       await load();
+      translatePending().catch(() => {});
     } catch (err) {
       setError(readErr(err, t('admin.categories.saveCatError', "L'enregistrement de la catégorie a échoué.")));
     } finally { setBusy(false); }
@@ -80,8 +81,8 @@ export default function Categories() {
 
   const deleteCat = async (c) => {
     const warn = c.product_count
-      ? `« ${c.name} » contient ${c.product_count} produit(s).\nIls ne seront pas supprimés mais se retrouveront sans catégorie.\n\nContinuer ?`
-      : `Supprimer la catégorie « ${c.name} » ?`;
+      ? t('admin.categories.confirmDeleteUsed', { name: c.display_name || c.name, n: c.product_count })
+      : t('admin.categories.confirmDelete', { name: c.display_name || c.name });
     if (!window.confirm(warn)) return;
     setError('');
     try {
@@ -115,6 +116,7 @@ export default function Categories() {
       const body = { name: trimmedName, slug: (colorForm.slug || '').trim(), hex_code: colorForm.hex_code };
       if (colorForm.id) await api.adminUpdateColor(colorForm.id, body);
       else await api.adminCreateColor(body);
+      translatePending().catch(() => {});
       setColorForm({ ...EMPTY_COLOR });
       await load();
     } catch (err) {
@@ -123,7 +125,7 @@ export default function Categories() {
   };
 
   const deleteColor = async (c) => {
-    if (!window.confirm(`Supprimer le coloris « ${c.name} » ?`)) return;
+    if (!window.confirm(t('admin.categories.confirmDeleteColor', { name: c.display_name || c.name }))) return;
     setError('');
     try {
       await api.adminDeleteColor(c.id);
@@ -151,7 +153,7 @@ export default function Categories() {
               <tbody>
                 {cats.map((c) => (
                   <tr key={c.id} className={catForm.id === c.id ? 'row-editing' : undefined}>
-                    <td className="cell-main">{c.name}</td>
+                    <td className="cell-main">{c.display_name || c.name}</td>
                     <td className="cell-sub">/{c.slug}</td>
                     <td>
                       <span className={c.product_count ? 'status paid' : 'status pending'}>
@@ -185,12 +187,12 @@ export default function Categories() {
             <label htmlFor="c-name">{t('admin.categories.tableName', 'Nom')}</label>
             <input id="c-name" required value={catForm.name}
               onChange={(e) => { setCatForm({ ...catForm, name: e.target.value }); if (error) setError(''); }}
-              placeholder="Ex. Colliers" />
+              placeholder={t('admin.categories.exColliers')} />
 
             <label htmlFor="c-slug" style={{ marginTop: 12 }}>{t('admin.categories.slugOptional', 'Slug (facultatif)')}</label>
             <input id="c-slug" value={catForm.slug}
               onChange={(e) => { setCatForm({ ...catForm, slug: e.target.value }); if (error) setError(''); }}
-              placeholder="généré depuis le nom" />
+              placeholder={t('admin.categories.genereDepuisLeNom')} />
             <p className="cell-sub" style={{ marginTop: 6, lineHeight: 1.5 }}>
               {t('admin.categories.slugHint', "Le slug apparaît dans l'URL. Le modifier change l'adresse de la page.")}
             </p>
@@ -220,7 +222,7 @@ export default function Categories() {
                     <td>
                       <div className="cell-flex">
                         <span className="color-dot" style={{ background: c.hex_code }} />
-                        <span className="cell-main">{c.name}</span>
+                        <span className="cell-main">{c.display_name || c.name}</span>
                       </div>
                     </td>
                     <td className="cell-sub">{c.hex_code}</td>
@@ -255,7 +257,7 @@ export default function Categories() {
             <label htmlFor="k-name">{t('admin.categories.tableName', 'Nom')}</label>
             <input id="k-name" required value={colorForm.name}
               onChange={(e) => { setColorForm({ ...colorForm, name: e.target.value }); if (error) setError(''); }}
-              placeholder="Ex. Rouge cinabre" />
+              placeholder={t('admin.categories.exRougeCinabre')} />
 
             <label htmlFor="k-hex" style={{ marginTop: 12 }}>{t('admin.categories.colorHex', 'Couleur')}</label>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

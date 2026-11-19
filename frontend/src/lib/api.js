@@ -1,3 +1,5 @@
+import i18n from '../i18n/config.js';
+
 // Client API centralisé (cf. ARCHITECTURE.md §3 : aucun fetch dispersé).
 // Base relative "/api/v1" -> tout passe par le reverse proxy nginx :
 // l'URL du backend n'apparaît jamais dans le navigateur.
@@ -25,6 +27,8 @@ async function request(path, { method = 'GET', body, auth = false, retry = true 
   // qui pose le Content-Type avec la frontière multipart.
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   const headers = isForm ? {} : { 'Content-Type': 'application/json' };
+  // Le serveur renvoie le catalogue dans la langue du visiteur.
+  headers['Accept-Language'] = i18n.resolvedLanguage || 'fr';
   if (auth && accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
   const res = await fetch(BASE + path, {
@@ -60,6 +64,25 @@ const qs = (params = {}) => {
   return s ? `?${s}` : '';
 };
 
+/** Traduit le catalogue lot par lot jusqu'à ce qu'il ne reste rien à faire. */
+export async function translatePending(onProgress) {
+  let result;
+  do {
+    result = await api.adminRunTranslations();
+    onProgress?.(result);
+  } while (result.translated > 0 && result.remaining > 0);
+  return result;
+}
+
+/** Traduit des textes qui ne sont pas stockés sur le serveur. Renvoie `{ zh: {...}, en: {...} }`. */
+export async function translateTexts(texts) {
+  const entries = await Promise.all(['zh', 'en'].map(async (lang) => {
+    const { translations } = await api.adminTranslateTexts(lang, texts);
+    return [lang, translations];
+  }));
+  return Object.fromEntries(entries);
+}
+
 export const api = {
   // Catalogue (public)
   products: (params) => request(`/products/${qs(params)}`),
@@ -68,7 +91,8 @@ export const api = {
   colors: () => request('/colors/'),
 
   // Devis B2B
-  createQuote: (d) => request('/quotes/', { method: 'POST', body: d }),
+  // Connecté : le devis est rattaché au compte et suivi dans l'espace pro.
+  createQuote: (d) => request('/quotes/', { method: 'POST', body: d, auth: true }),
   myQuotes: () => request('/quotes/', { auth: true }),
 
   // Back-office (exige un compte is_staff)
@@ -154,14 +178,46 @@ export const api = {
   removeCartItem: (id) => request(`/cart/items/${id}/`, { method: 'DELETE', auth: true }),
   syncCart: (items) => request('/cart/sync/', { method: 'POST', body: { items }, auth: true }),
 
-  // Commandes & Paiements
+  // Commandes ET Paiements
   checkout: (d) => request('/checkout/', { method: 'POST', body: d, auth: true }),
+  // Frais de port calculés par le serveur (connecté : prix pro pris en compte).
+  shippingCountries: () => request('/shipping/countries/'),
+  shippingOptions: (d) => request('/shipping/options/', { method: 'POST', body: d, auth: true }),
+  // Paiement en ligne : le serveur crée le paiement, le prestataire l'encaisse,
+  // et seul son webhook signé fait passer la commande en « payée ».
+  // Connecté : le virement n'est proposé qu'aux grossistes validés.
+  paymentConfig: () => request('/payments/config/', { auth: true }),
+  startPayment: (d) => request('/payments/start/', { method: 'POST', body: d }),
+  paymentStatus: (ref, token) => request(`/payments/status/${qs({ ref, token })}`),
   myOrders: () => request('/orders/', { auth: true }),
   orderDetail: (ref) => request(`/orders/${ref}/`, { auth: true }),
   confirmOrderDelivery: (ref, pin) => request(`/orders/${ref}/confirm-delivery/`, { method: 'POST', body: { pin }, auth: true }),
+
+  // Traduction du catalogue — `run` traduit un lot, à rappeler tant qu'il en reste.
+  adminTranslations: () => request('/admin/translations/', { auth: true }),
+  adminRunTranslations: () => request('/admin/translations/run/', { method: 'POST', auth: true }),
+  adminTranslateTexts: (lang, texts) =>
+    request('/admin/translations/texts/', { method: 'POST', body: { lang, texts }, auth: true }),
 
   // Administration des Commandes
   adminOrders: (params) => request(`/admin/orders/${qs(params)}`, { auth: true }),
   adminOrderDetail: (id) => request(`/admin/orders/${id}/`, { auth: true }),
   adminUpdateOrder: (id, d) => request(`/admin/orders/${id}/`, { method: 'PATCH', body: d, auth: true }),
+  adminRefundOrder: (id, d) => request(`/admin/orders/${id}/refund/`, { method: 'POST', body: d, auth: true }),
+  adminRecordTransfer: (id, d) => request(`/admin/orders/${id}/record-transfer/`, { method: 'POST', body: d, auth: true }),
+  adminSendQuote: (id, d) => request(`/admin/quotes/${id}/send/`, { method: 'POST', body: d, auth: true }),
+  // Devis ouvert par le lien secret envoyé au client (sans compte).
+  quoteView: (ref, token) => request(`/quotes/view/${qs({ ref, token })}`),
+  acceptQuote: (d) => request('/quotes/accept/', { method: 'POST', body: d }),
 };
+
+// Premier message lisible d'une erreur de l'API ({detail}, ou erreurs par champ).
+export function apiErrorMessage(err, fallback) {
+  const find = (value) => {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) return value.map(find).find(Boolean);
+    if (value && typeof value === 'object') return find(value.detail) || Object.values(value).map(find).find(Boolean);
+    return null;
+  };
+  return find(err?.data) || fallback;
+}

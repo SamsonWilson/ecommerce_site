@@ -27,10 +27,10 @@ jobs:
       - name: Run Django Tests
         working-directory: ./backend
         run: |
-          python manage.py test pricing accounts quotes cart orders
+          python manage.py test pricing accounts quotes cart orders catalog
 
   frontend-build:
-    name: Frontend Lint & Build (React 19 / Vite)
+    name: Frontend Lint ET Build (React 19 / Vite)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Linter & Build
+      - name: Run Linter ET Build
         working-directory: ./frontend
         run: |
           npm run lint

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import GoogleLoginButton from './GoogleLoginButton.jsx';
 
 const FB_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -19,10 +20,11 @@ function startOAuth(provider, authorizeUrl, params) {
   window.location.href = `${authorizeUrl}?${qs}`;
 }
 
-export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) {
+export default function SocialLogins({ onGoogle, label }) {
+  const { t } = useTranslation();
   return (
     <>
-      <div className="social-sep">{label}</div>
+      <div className="social-sep">{label || t('auth.orContinue')}</div>
 
       <div className="social-row">
         <div className="social-col">
@@ -34,7 +36,7 @@ export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) 
             type="button"
             className="social-btn facebook"
             disabled={!FB_APP_ID}
-            title={FB_APP_ID ? 'Se connecter avec Facebook' : 'VITE_FACEBOOK_APP_ID non configuré'}
+            title={FB_APP_ID ? t('auth.facebook') : 'VITE_FACEBOOK_APP_ID'}
             onClick={() => startOAuth('facebook', 'https://www.facebook.com/v19.0/dialog/oauth', {
               client_id: FB_APP_ID,
               scope: 'email,public_profile',
@@ -49,8 +51,7 @@ export default function SocialLogins({ onGoogle, label = 'ou continuer avec' }) 
       </div>
 
       <p className="social-note">
-        Les comptes <strong>Instagram</strong> se connectent via Facebook — Meta ne
-        propose plus de connexion Instagram pour les sites tiers.
+        {t('auth.instagramNote')}
       </p>
     </>
   );

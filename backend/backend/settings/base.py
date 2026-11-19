@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "quotes",
     "cart",
     "orders",
+    "shipping",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -62,6 +64,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",          # statiques en prod
     "corsheaders.middleware.CorsMiddleware",               # avant CommonMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",           # langue : en-tête Accept-Language
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -114,12 +117,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "fr"
+LANGUAGES = [("fr", "Français"), ("en", "English"), ("zh-hans", "简体中文")]
+LOCALE_PATHS = [BASE_DIR / "locale"]   # messages du serveur et e-mails
 TIME_ZONE = "Europe/Paris"
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+WHITENOISE_ROOT = BASE_DIR / "staticfiles"
 
 # Médias téléversés depuis le back-office (photos produits).
 MEDIA_URL = "media/"
@@ -217,11 +226,39 @@ REFRESH_COOKIE_SAMESITE = "Lax"
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_CREDENTIALS = True  # nécessaire pour le cookie refresh
 
+# --- Traduction du catalogue (API Claude) -----------------------------------
+# Sans clé, le site reste en français pour les contenus du catalogue.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
 # --- Authentification Google ----------------------------------------------
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
 
 # --- Connexion par réseaux sociaux ----------------------------------------
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+
+# Paiement en ligne par Airwallex (cartes, Apple Pay, Google Pay, Alipay,
+# WeChat Pay…). Sans ces trois valeurs, seul le paiement à la livraison est proposé.
+AIRWALLEX_CLIENT_ID = env("AIRWALLEX_CLIENT_ID", default="")
+AIRWALLEX_API_KEY = env("AIRWALLEX_API_KEY", default="")
+AIRWALLEX_WEBHOOK_SECRET = env("AIRWALLEX_WEBHOOK_SECRET", default="")
+# "sandbox" pour les essais, "prod" pour encaisser réellement.
+AIRWALLEX_ENV = env("AIRWALLEX_ENV", default="sandbox")
+# Virement bancaire (T/T) pour les grossistes validés et les devis acceptés.
+# Coordonnées lues dans l'environnement du serveur, pas en base : un compte
+# employé piraté ne peut pas détourner les paiements vers un autre compte.
+# Sans titulaire, numéro de compte et BIC, le virement n'est pas proposé.
+BANK_TRANSFER_HOLDER = env("BANK_TRANSFER_HOLDER", default="")
+BANK_TRANSFER_BANK = env("BANK_TRANSFER_BANK", default="")
+BANK_TRANSFER_ACCOUNT = env("BANK_TRANSFER_ACCOUNT", default="")   # IBAN, ou numéro de compte
+BANK_TRANSFER_BIC = env("BANK_TRANSFER_BIC", default="")           # code SWIFT / BIC
+BANK_TRANSFER_BANK_ADDRESS = env("BANK_TRANSFER_BANK_ADDRESS", default="")
+# Jours pendant lesquels les articles restent réservés en attendant le virement.
+BANK_TRANSFER_DAYS = env.int("BANK_TRANSFER_DAYS", default=7)
+
+AIRWALLEX_API_BASE = env(
+    "AIRWALLEX_API_BASE",
+    default="https://api.airwallex.com" if AIRWALLEX_ENV == "prod" else "https://api.sandbox.airwallex.com",
+)
 SOCIAL_CALLBACK_URL = f"{FRONTEND_URL}/compte/connexion/callback"
 
 SOCIALACCOUNT_PROVIDERS = {

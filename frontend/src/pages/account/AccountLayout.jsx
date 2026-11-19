@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/auth.js';
 import { useCart } from '../../store/cart.js';
 import { useWishlistCount } from '../../store/wishlist.js';
@@ -7,6 +8,7 @@ import {
 } from '../../components/icons.jsx';
 
 export default function AccountLayout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
@@ -38,21 +40,21 @@ export default function AccountLayout() {
 
           <Link to="/" className="back">
             <IconArrowLeft />
-            <span>Retourner à la boutique</span>
+            <span>{t('common.backToShop')}</span>
           </Link>
 
           <div className="acc-user">
             <span className="av">{initial}</span>
             <div className="who">
               <b>{name}</b>
-              <span>{isPro ? 'Compte professionnel B2B' : 'Compte particulier'}</span>
+              <span>{isPro ? t('layout.proAccount') : t('layout.personalAccount')}</span>
             </div>
             <button
               type="button"
               className="acc-logout"
               onClick={signOut}
-              title="Se déconnecter"
-              aria-label="Se déconnecter"
+              title={t('layout.signOut')}
+              aria-label={t('layout.signOut')}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 17, height: 17 }}>
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -69,11 +71,11 @@ export default function AccountLayout() {
         <div className="acc-nav-inner">
           <NavLink to="/compte" end className={link}>
             <IconUser />
-            <span>Vue d'ensemble</span>
+            <span>{t('layout.overview')}</span>
           </NavLink>
           <NavLink to="/compte/boutique" className={link}>
             <IconStore />
-            <span>Boutique</span>
+            <span>{t('common.shop')}</span>
             {cartCount > 0 && (
               <span style={{ background: 'var(--brand-red)', color: '#fff', fontSize: '10.5px', fontWeight: 700, padding: '2px 7px', borderRadius: '10px', marginLeft: 4 }}>
                 {cartCount}
@@ -82,11 +84,11 @@ export default function AccountLayout() {
           </NavLink>
           <NavLink to="/compte/commandes" className={link}>
             <IconPackage />
-            <span>Mes commandes</span>
+            <span>{t('layout.orders')}</span>
           </NavLink>
           <NavLink to="/compte/favoris" className={link}>
             <IconHeart />
-            <span>Mes favoris</span>
+            <span>{t('wishlist.titleNav')}</span>
             {wishCount > 0 && (
               <span style={{ background: 'var(--gold, #C5A059)', color: '#fff', fontSize: '10.5px', fontWeight: 700, padding: '2px 7px', borderRadius: '10px', marginLeft: 4 }}>
                 {wishCount}
@@ -96,11 +98,11 @@ export default function AccountLayout() {
           <div className="sep" />
           <NavLink to="/compte/profil" className={link}>
             <IconUser />
-            <span>Mon profil</span>
+            <span>{t('layout.profile')}</span>
           </NavLink>
           <NavLink to="/compte/pro" className={link}>
             <IconStore />
-            <span>Accès grossiste B2B</span>
+            <span>{t('layout.wholesale')}</span>
           </NavLink>
         </div>
       </nav>

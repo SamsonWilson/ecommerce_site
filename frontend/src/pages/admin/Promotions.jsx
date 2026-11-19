@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { I } from './icons.jsx';
 import { PageHead, Panel, Toolbar } from './ui.jsx';
 import { catalogProducts, bestSellers } from '../../data/products.jsx';
-import { api } from '../../lib/api.js';
+import { api, translateTexts } from '../../lib/api.js';
 import { productsFromApi } from '../../lib/catalog.js';
 
 // Combinaison des produits locaux et API
@@ -96,6 +96,16 @@ const INITIAL_PROMOS = [
   },
 ];
 
+// Ces valeurs servent à la logique : seul leur affichage est traduit.
+const SCOPE_KEYS = {
+  'Catalogue entier': 'all',
+  'Produits spécifiques': 'specific',
+  'Nouveaux clients': 'newCustomers',
+  'Comptes pro validés': 'pro',
+  'Dès 150 €': 'from150',
+};
+const STATUS_KEYS = { Active: 'active', Planifiée: 'scheduled', Expirée: 'expired', Désactivée: 'disabled' };
+
 const SCOPE_OPTIONS = [
   'Catalogue entier',
   'Produits spécifiques',
@@ -105,7 +115,15 @@ const SCOPE_OPTIONS = [
 ];
 
 export default function Promotions() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const scopeLabel = (scope) => t(`admin.promotions.scopes.${SCOPE_KEYS[scope]}`, scope);
+  const statusLabel = (status) => t(`admin.promotions.statuses.${STATUS_KEYS[status]}`, status);
+  const promoLabel = (promo) => {
+    const saved = promo.translations?.[i18n.resolvedLanguage]?.label;
+    if (saved) return saved;
+    const sample = INITIAL_PROMOS.find((item) => item.id === promo.id);
+    return sample?.label === promo.label ? t(`admin.promotions.samples.${promo.id}`, promo.label) : promo.label;
+  };
   const [promos, setPromos] = useState(INITIAL_PROMOS);
   const [availableProducts, setAvailableProducts] = useState(ALL_CATALOG_PRODUCTS);
   const [filter, setFilter] = useState('Toutes');
@@ -156,8 +174,16 @@ export default function Promotions() {
     { value: 'Active', label: t('admin.promotions.filterActive', 'Actives') },
     { value: 'Planifiée', label: t('admin.promotions.filterScheduled', 'Planifiées') },
     { value: 'Expirée', label: t('admin.promotions.filterExpired', 'Expirées') },
-    { value: 'Désactivée', label: 'Désactivées' },
+    { value: 'Désactivée', label: t('admin.promotions.disabledFilter') },
   ];
+
+  // Les promotions ne sont pas en base : le libellé est traduit à l'enregistrement.
+  const translatePromo = (id, label) => {
+    if (!label) return;
+    translateTexts({ label })
+      .then((translations) => setPromos((list) => list.map((item) => (item.id === id ? { ...item, translations } : item))))
+      .catch(() => {});
+  };
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -244,13 +270,13 @@ export default function Promotions() {
         return p;
       })
     );
-    showToast('Statut de la promotion mis à jour');
+    showToast(t('admin.promotions.statutDeLaPromotionMisA'));
   };
 
   const handleRemove = (id) => {
     if (window.confirm('Voulez-vous vraiment supprimer cette promotion ?')) {
       setPromos((list) => list.filter((p) => p.id !== id));
-      showToast('Promotion supprimée avec succès');
+      showToast(t('admin.promotions.promotionSupprimeeAvecSucces'));
     }
   };
 
@@ -259,7 +285,7 @@ export default function Promotions() {
     if (!formData.code.trim()) return;
 
     if (formData.scope === 'Produits spécifiques' && formData.selectedProducts.length === 0) {
-      alert('Veuillez sélectionner au moins un produit pour cette promotion spécifique.');
+      alert(t('admin.promotions.veuillezSelectionnerAuMoinsUnProduit'));
       return;
     }
 
@@ -281,6 +307,7 @@ export default function Promotions() {
                 ...p,
                 code: formData.code.trim().toUpperCase(),
                 label: formData.label,
+                translations: undefined,
                 type: formData.type,
                 value: formData.value,
                 minAmount: Number(formData.minAmount) || 0,
@@ -295,7 +322,8 @@ export default function Promotions() {
             : p
         )
       );
-      showToast(`Promotion ${formData.code.toUpperCase()} modifiée`);
+      translatePromo(editingPromo.id, formData.label);
+      showToast(t('admin.promotions.updated', { code: formData.code.toUpperCase() }));
     } else {
       const newPromo = {
         id: Date.now(),
@@ -314,7 +342,8 @@ export default function Promotions() {
         status,
       };
       setPromos((list) => [newPromo, ...list]);
-      showToast(`Promotion ${newPromo.code} créée avec succès !`);
+      translatePromo(newPromo.id, newPromo.label);
+      showToast(t('admin.promotions.created', { code: newPromo.code }));
     }
 
     setIsModalOpen(false);
@@ -389,10 +418,10 @@ export default function Promotions() {
               {I.percent}
             </span>
           </div>
-          <div className="kpi-label">Total Promotions</div>
+          <div className="kpi-label">{t('admin.promotions.totalPromotions')}</div>
           <div className="kpi-value">{promos.length}</div>
           <div className="kpi-trend up">
-            {I.up} {totalActive} actives
+            {I.up} {t('admin.promotions.activeCount', { n: totalActive })}
           </div>
         </div>
 
@@ -402,9 +431,9 @@ export default function Promotions() {
               {I.check}
             </span>
           </div>
-          <div className="kpi-label">Promotions Actives</div>
+          <div className="kpi-label">{t('admin.promotions.promotionsActives')}</div>
           <div className="kpi-value">{totalActive}</div>
-          <div className="kpi-trend up">En cours de validité</div>
+          <div className="kpi-trend up">{t('admin.promotions.enCoursDeValidite')}</div>
         </div>
 
         <div className="kpi-card">
@@ -413,9 +442,9 @@ export default function Promotions() {
               {I.bag2}
             </span>
           </div>
-          <div className="kpi-label">Utilisations Totales</div>
+          <div className="kpi-label">{t('admin.promotions.utilisationsTotales')}</div>
           <div className="kpi-value">{totalUses}</div>
-          <div className="kpi-trend up">Commandes bénéficiaires</div>
+          <div className="kpi-trend up">{t('admin.promotions.commandesBeneficiaires')}</div>
         </div>
 
         <div className="kpi-card">
@@ -424,9 +453,9 @@ export default function Promotions() {
               {I.euro}
             </span>
           </div>
-          <div className="kpi-label">Impact Commercial</div>
+          <div className="kpi-label">{t('admin.promotions.impactCommercial')}</div>
           <div className="kpi-value">-18,4 %</div>
-          <div className="kpi-trend up">Taux moyen de conversion</div>
+          <div className="kpi-trend up">{t('admin.promotions.tauxMoyenDeConversion')}</div>
         </div>
       </div>
 
@@ -436,7 +465,7 @@ export default function Promotions() {
             {I.search}
             <input
               type="text"
-              placeholder="Rechercher un code ou libellé..."
+              placeholder={t('admin.promotions.rechercherUnCodeOuLibelle')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -461,11 +490,11 @@ export default function Promotions() {
               <tr>
                 <th>{t('admin.promotions.tableCode', 'Code')}</th>
                 <th>{t('admin.promotions.tableDiscount', 'Remise')}</th>
-                <th>{t('admin.promotions.tableScope', 'Portée & Produits')}</th>
-                <th>Conditions</th>
+                <th>{t('admin.promotions.tableScope', 'Portée ET Produits')}</th>
+                <th>{t('admin.promotions.conditions')}</th>
                 <th>{t('admin.promotions.tablePeriod', 'Période')}</th>
                 <th>{t('admin.promotions.tableUses', 'Utilisations')}</th>
-                <th>Actif</th>
+                <th>{t('admin.promotions.actif')}</th>
                 <th>{t('admin.promotions.tableStatus', 'Statut')}</th>
                 <th>{t('admin.promotions.tableActions', 'Actions')}</th>
               </tr>
@@ -486,7 +515,7 @@ export default function Promotions() {
                       >
                         {p.code}
                       </div>
-                      <div className="cell-sub">{p.label}</div>
+                      <div className="cell-sub">{promoLabel(p)}</div>
                     </td>
                     <td>
                       <span className={`tag-pill ${p.type === '%' ? 'tier-2' : 'tier-1'}`} style={{ fontWeight: 700 }}>
@@ -494,15 +523,15 @@ export default function Promotions() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, fontSize: 12.5 }}>{p.scope}</div>
+                      <div style={{ fontWeight: 600, fontSize: 12.5 }}>{scopeLabel(p.scope)}</div>
                       {isSpecific && selectedNames.length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                           {selectedNames.slice(0, 2).map((name) => (
                             <span
                               key={name}
                               style={{
-                                background: '#EFF6FF',
-                                color: '#1D4ED8',
+                                background: 'rgba(46, 107, 224, 0.15)',
+                                color: 'var(--blue)',
                                 fontSize: 11,
                                 padding: '2px 6px',
                                 borderRadius: 4,
@@ -515,8 +544,9 @@ export default function Promotions() {
                           {selectedNames.length > 2 && (
                             <span
                               style={{
-                                background: '#F1F5F9',
-                                color: '#475569',
+                                background: 'var(--bg)',
+                                color: 'var(--muted)',
+                                border: '1px solid var(--line)',
                                 fontSize: 11,
                                 padding: '2px 6px',
                                 borderRadius: 4,
@@ -528,11 +558,11 @@ export default function Promotions() {
                           )}
                         </div>
                       ) : isSpecific ? (
-                        <span style={{ fontSize: 11, color: 'var(--red)' }}>Aucun produit lié</span>
+                        <span style={{ fontSize: 11, color: 'var(--red)' }}>{t('admin.promotions.aucunProduitLie')}</span>
                       ) : null}
                     </td>
                     <td className="cell-sub">
-                      {p.minAmount > 0 ? `Min. ${p.minAmount} €` : 'Sans minimum'}
+                      {p.minAmount > 0 ? t('admin.promotions.minAmount', { n: p.minAmount }) : t('admin.promotions.noMinimum')}
                       {p.maxUses > 0 ? ` • Max ${p.maxUses}` : ''}
                     </td>
                     <td className="cell-sub">
@@ -547,13 +577,13 @@ export default function Promotions() {
                         type="button"
                         className={`admin-switch ${p.active ? 'on' : ''}`}
                         onClick={() => handleToggleActive(p.id)}
-                        title={p.active ? 'Désactiver' : 'Activer'}
+                        title={p.active ? t('admin.promotions.disable') : t('admin.promotions.enable')}
                       >
                         <i />
                       </button>
                     </td>
                     <td>
-                      <span className={`status ${p.status ? p.status[0] : 'paid'}`}>{p.status ? p.status[1] : 'Active'}</span>
+                      <span className={`status ${p.status ? p.status[0] : 'paid'}`}>{statusLabel(p.status ? p.status[1] : 'Active')}</span>
                     </td>
                     <td>
                       <div className="row-actions">
@@ -608,7 +638,7 @@ export default function Promotions() {
               }}
             >
               <h3 style={{ margin: 0, fontSize: 18, color: 'var(--navy)', fontWeight: 700 }}>
-                {editingPromo ? 'Modifier la promotion' : 'Créer une nouvelle promotion'}
+                {editingPromo ? t('admin.promotions.editTitle') : t('admin.promotions.createTitle')}
               </h3>
               <button
                 type="button"
@@ -622,12 +652,12 @@ export default function Promotions() {
             <form onSubmit={handleSubmit} className="admin-form" style={{ padding: 24, overflowY: 'auto', maxHeight: '80vh' }}>
               <div className="prod-grid">
                 <div>
-                  <label>Code Promotionnel *</label>
+                  <label>{t('admin.promotions.codePromotionnel')}</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
                       required
-                      placeholder="EX: ETE2026"
+                      placeholder={t('admin.promotions.exEte2026')}
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                       style={{ textTransform: 'uppercase', fontFamily: 'monospace', fontWeight: 700 }}
@@ -637,7 +667,7 @@ export default function Promotions() {
                       className="btn-admin ghost"
                       onClick={handleGenerateCode}
                       style={{ padding: '0 12px', whiteSpace: 'nowrap', fontSize: 12 }}
-                      title="Générer un code aléatoire"
+                      title={t('admin.promotions.genererUnCodeAleatoire')}
                     >
                       Générer
                     </button>
@@ -645,28 +675,28 @@ export default function Promotions() {
                 </div>
 
                 <div>
-                  <label>Libellé / Description</label>
+                  <label>{t('admin.promotions.libelleDescription')}</label>
                   <input
                     type="text"
-                    placeholder="Ex: Offre spéciale Épingle Phénix -20%"
+                    placeholder={t('admin.promotions.exOffreSpecialeEpinglePhenix20')}
                     value={formData.label}
                     onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label>Type de réduction</label>
+                  <label>{t('admin.promotions.typeDeReduction')}</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   >
-                    <option value="%">Pourcentage (%)</option>
-                    <option value="€">Montant fixe (€)</option>
+                    <option value="%">{t('admin.promotions.pourcentage')}</option>
+                    <option value="€">{t('admin.promotions.montantFixe')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label>Valeur de la réduction *</label>
+                  <label>{t('admin.promotions.valeurDeLaReduction')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -679,7 +709,7 @@ export default function Promotions() {
                 </div>
 
                 <div className="full">
-                  <label>Portée de la réduction *</label>
+                  <label>{t('admin.promotions.porteeDeLaReduction')}</label>
                   <select
                     value={formData.scope}
                     onChange={(e) => setFormData({ ...formData, scope: e.target.value })}
@@ -687,7 +717,7 @@ export default function Promotions() {
                   >
                     {SCOPE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
-                        {opt}
+                        {scopeLabel(opt)}
                       </option>
                     ))}
                   </select>
@@ -695,28 +725,28 @@ export default function Promotions() {
 
                 {/* SÉLECTEUR DE PRODUITS SPÉCIFIQUES */}
                 {formData.scope === 'Produits spécifiques' && (
-                  <div className="full" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 16 }}>
+                  <div className="full" style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                       <div>
-                        <strong style={{ fontSize: 13, color: 'var(--navy)' }}>
-                          Sélectionner les produits éligibles ({formData.selectedProducts.length} sélectionné(s))
+                        <strong style={{ fontSize: 13, color: 'var(--text-head)' }}>
+                          {t('admin.promotions.selectProducts', { n: formData.selectedProducts.length })}
                         </strong>
                         <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
-                          Cochez les articles auxquels cette réduction s'applique
+                          {t('admin.promotions.cochezLesArticlesAuxquelsCetteReduction')}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
                           type="button"
                           onClick={handleSelectAllProducts}
-                          style={{ background: '#E2E8F0', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          style={{ background: 'var(--card-bg)', border: '1px solid var(--line)', color: 'var(--text)', borderRadius: 4, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                         >
                           Tout cocher
                         </button>
                         <button
                           type="button"
                           onClick={handleDeselectAllProducts}
-                          style={{ background: '#E2E8F0', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          style={{ background: 'var(--card-bg)', border: '1px solid var(--line)', color: 'var(--text)', borderRadius: 4, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                         >
                           Tout décocher
                         </button>
@@ -725,7 +755,7 @@ export default function Promotions() {
 
                     <input
                       type="text"
-                      placeholder="Filtrer les produits par nom..."
+                      placeholder={t('admin.promotions.filtrerLesProduitsParNom')}
                       value={prodSearchModal}
                       onChange={(e) => setProdSearchModal(e.target.value)}
                       style={{ marginBottom: 12, fontSize: 12 }}
@@ -735,8 +765,8 @@ export default function Promotions() {
                       style={{
                         maxHeight: 180,
                         overflowY: 'auto',
-                        background: '#fff',
-                        border: '1px solid #E2E8F0',
+                        background: 'var(--input-bg)',
+                        border: '1px solid var(--line)',
                         borderRadius: 6,
                         padding: 8,
                         display: 'grid',
@@ -755,8 +785,9 @@ export default function Promotions() {
                               gap: 8,
                               padding: '6px 10px',
                               borderRadius: 6,
-                              background: isChecked ? '#EFF6FF' : '#F9FAFB',
-                              border: isChecked ? '1px solid #BFDBFE' : '1px solid #F1F5F9',
+                              background: isChecked ? 'rgba(46, 107, 224, 0.15)' : 'var(--card-bg)',
+                              border: isChecked ? '1px solid var(--blue)' : '1px solid var(--line)',
+                              color: 'var(--text)',
                               cursor: 'pointer',
                               fontSize: 12,
                               margin: 0,
@@ -777,7 +808,7 @@ export default function Promotions() {
                       })}
                       {filteredModalProducts.length === 0 && (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 12, color: 'var(--muted)', fontSize: 12 }}>
-                          Aucun produit trouvé.
+                          {t('admin.promotions.aucunProduitTrouve')}
                         </div>
                       )}
                     </div>
@@ -785,29 +816,29 @@ export default function Promotions() {
                 )}
 
                 <div>
-                  <label>Panier Minimum (€)</label>
+                  <label>{t('admin.promotions.panierMinimum')}</label>
                   <input
                     type="number"
                     min="0"
-                    placeholder="0 = Pas de minimum"
+                    placeholder={t('admin.promotions.0PasDeMinimum')}
                     value={formData.minAmount}
                     onChange={(e) => setFormData({ ...formData, minAmount: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label>Limite d'utilisations max</label>
+                  <label>{t('admin.promotions.limiteDUtilisationsMax')}</label>
                   <input
                     type="number"
                     min="0"
-                    placeholder="0 = Utilisations illimitées"
+                    placeholder={t('admin.promotions.0UtilisationsIllimitees')}
                     value={formData.maxUses}
                     onChange={(e) => setFormData({ ...formData, maxUses: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label>Date de début</label>
+                  <label>{t('admin.promotions.dateDeDebut')}</label>
                   <input
                     type="date"
                     required
@@ -817,7 +848,7 @@ export default function Promotions() {
                 </div>
 
                 <div>
-                  <label>Date de fin</label>
+                  <label>{t('admin.promotions.dateDeFin')}</label>
                   <input
                     type="date"
                     required
@@ -827,7 +858,7 @@ export default function Promotions() {
                 </div>
 
                 <div className="full">
-                  <label>Statut initial</label>
+                  <label>{t('admin.promotions.statutInitial')}</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
                     <button
                       type="button"
@@ -837,7 +868,7 @@ export default function Promotions() {
                       <i />
                     </button>
                     <span style={{ fontWeight: 600, fontSize: 13, color: formData.active ? 'var(--green)' : 'var(--muted)' }}>
-                      {formData.active ? 'Promotion Active' : 'Désactivée'}
+                      {formData.active ? t('admin.promotions.activeLabel') : statusLabel('Désactivée')}
                     </span>
                   </div>
                 </div>
@@ -845,10 +876,10 @@ export default function Promotions() {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
                 <button type="button" className="btn-admin ghost" onClick={() => setIsModalOpen(false)}>
-                  Annuler
+                  {t('admin.promotions.annuler')}
                 </button>
                 <button type="submit" className="btn-admin primary">
-                  {editingPromo ? 'Enregistrer les modifications' : 'Créer la promotion'}
+                  {editingPromo ? t('admin.promotions.saveChanges') : t('admin.promotions.createBtn')}
                 </button>
               </div>
             </form>

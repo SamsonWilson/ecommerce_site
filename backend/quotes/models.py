@@ -29,8 +29,18 @@ class QuoteRequest(models.Model):
     message = models.TextField(blank=True)
 
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.NEW)
+    # Total = somme des prix proposés + port : calculé par le serveur à l'envoi.
     quoted_total = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     valid_until = models.DateField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    # Secret du lien envoyé au client : consulter et accepter sans compte.
+    public_token = models.CharField(max_length=64, blank=True, editable=False)
+    language = models.CharField(max_length=10, default="fr")
+    # Commande créée à l'acceptation.
+    order = models.OneToOneField(
+        "orders.Order", null=True, blank=True, on_delete=models.SET_NULL, related_name="quote",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

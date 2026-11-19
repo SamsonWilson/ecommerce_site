@@ -2,7 +2,7 @@
 # DEPENDANCES PYTHON BACKEND (DJANGO + REST FRAMEWORK + PROD)
 # ==============================================================================
 
-# --- Cœur Framework & API REST ---
+# --- Cœur Framework ET API REST ---
 django>=5.1,<5.2
 djangorestframework>=3.15.0
 djangorestframework-simplejwt>=5.3.1
@@ -10,22 +10,26 @@ django-cors-headers>=4.4.0
 django-environ>=0.11.2
 django-filter>=24.3
 
-# --- Authentification & Inscription (Allauth / Dj-Rest-Auth) ---
+# --- Authentification ET Inscription (Allauth / Dj-Rest-Auth) ---
 django-allauth>=65.3.0
 dj-rest-auth[with_social]>=7.0.0
 
 # --- Base de Données PostgreSQL ---
 psycopg[binary]>=3.2.0
 
-# --- Authentification OAuth2 & Services HTTP ---
+# --- Authentification OAuth2 ET Services HTTP ---
 google-auth>=2.30.0
 requests>=2.32.0
 
-# --- Traitement Médias & Stockage Cloud S3 / Cloudflare R2 ---
+# --- Traduction du catalogue (API Claude) ---
+anthropic>=2.5,<3
+pydantic>=2.0
+
+# --- Traitement Médias ET Stockage Cloud S3 / Cloudflare R2 ---
 Pillow>=10.4.0
 django-storages[s3]>=1.14.4
 boto3>=1.34.0
 
-# --- Serveur WSGI & Fichiers Statiques en Production ---
+# --- Serveur WSGI ET Fichiers Statiques en Production ---
 gunicorn>=23.0.0
 whitenoise>=6.7.0

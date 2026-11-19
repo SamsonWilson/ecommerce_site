@@ -1,0 +1,314 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_Hans\n"
+
+msgid "Requête invalide."
+msgstr "请求无效。"
+
+msgid "Seule la caisse peut enregistrer une vente payée."
+msgstr "只有收银台可以登记已付款的销售。"
+
+msgid "Adresse email obligatoire."
+msgstr "请填写电子邮箱。"
+
+msgid "Adresse email invalide."
+msgstr "电子邮箱格式不正确。"
+
+msgid "Le panier est vide."
+msgstr "购物车是空的。"
+
+msgid "Liste d'articles invalide."
+msgstr "商品列表无效。"
+
+msgid "Adresse de livraison invalide."
+msgstr "收货地址无效。"
+
+msgid "Moyen de paiement invalide."
+msgstr "付款方式无效。"
+
+msgid "Article invalide."
+msgstr "商品无效。"
+
+msgid "Quantité invalide."
+msgstr "数量无效。"
+
+msgid "Un article de votre panier n'existe plus."
+msgstr "购物车中有商品已不存在。"
+
+msgid "Un article de votre panier n'est plus disponible."
+msgstr "购物车中有商品已下架。"
+
+msgid "Quantité minimale de %(moq)s pour %(name)s."
+msgstr "%(name)s 的最低订购量为 %(moq)s 件。"
+
+msgid "Quantité maximale de %(max)s pour %(name)s."
+msgstr "%(name)s 的最高订购量为 %(max)s 件。"
+
+msgid "Stock insuffisant pour %(name)s (Disponible : %(stock)s)."
+msgstr "%(name)s 库存不足（现有 %(stock)s 件）。"
+
+msgid "Un compte existe déjà avec cette adresse e-mail."
+msgstr "该邮箱已注册账户。"
+
+msgid "Réinitialisation de votre mot de passe"
+msgstr "重置您的密码"
+
+msgid "Bonjour,"
+msgstr "您好："
+
+msgid "Bonjour %(name)s,"
+msgstr "%(name)s，您好："
+
+msgid "Vous avez demandé la réinitialisation du mot de passe de votre compte Maison Lián."
+msgstr "您申请重置 Maison Lián 账户的密码。"
+
+msgid "Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :"
+msgstr "请点击下方链接设置新密码："
+
+msgid "Ce lien n'est valable qu'une seule fois."
+msgstr "此链接仅可使用一次。"
+
+msgid "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe actuel reste inchangé."
+msgstr "如果这不是您本人的操作，请忽略此邮件，您的密码不会改变。"
+
+msgid "— L'équipe Maison Lián"
+msgstr "— Maison Lián 团队"
+
+msgid "Administrateur"
+msgstr "管理员"
+
+msgid "Responsable boutique"
+msgstr "门店主管"
+
+msgid "Gestionnaire catalogue"
+msgstr "商品目录管理员"
+
+msgid "Commercial B2B"
+msgstr "B2B 销售"
+
+msgid "Service client"
+msgstr "客户服务"
+
+msgid "Livreur"
+msgstr "配送员"
+
+msgid "Particulier"
+msgstr "个人"
+
+msgid "Professionnel"
+msgstr "专业客户"
+
+msgid "En attente"
+msgstr "待审核"
+
+msgid "Validé"
+msgstr "已通过"
+
+msgid "Refusé"
+msgstr "已拒绝"
+
+msgid "Tableau de bord"
+msgstr "仪表盘"
+
+msgid "Vue d'ensemble et statistiques"
+msgstr "概览与统计"
+
+msgid "Commandes ET Ventes (Caisse)"
+msgstr "订单与销售（收银）"
+
+msgid "Gestion des commandes et poste d'encaissement"
+msgstr "订单管理与收银"
+
+msgid "Clients"
+msgstr "客户"
+
+msgid "Fichier des clients B2C et B2B"
+msgstr "B2C 与 B2B 客户档案"
+
+msgid "Promotions"
+msgstr "促销"
+
+msgid "Codes promo et offres commerciales"
+msgstr "优惠码与促销活动"
+
+msgid "Comptes Pro ET Paliers"
+msgstr "专业账户与等级"
+
+msgid "Espace grossistes et remises B2B"
+msgstr "批发专区与 B2B 折扣"
+
+msgid "Catalogue ET Stocks"
+msgstr "商品目录与库存"
+
+msgid "Produits, stocks, inventaire, catégories et langues"
+msgstr "商品、库存、盘点、分类与语言"
+
+msgid "Courses ET Livraisons"
+msgstr "配送任务"
+
+msgid "Tournées et statut des expéditions"
+msgstr "路线与发货状态"
+
+msgid "Équipe interne"
+msgstr "内部团队"
+
+msgid "Gestion des comptes employés et droits d'accès"
+msgstr "员工账户与访问权限"
+
+msgid "Pays de livraison invalide."
+msgstr "收货国家无效。"
+
+msgid "Ce mode de livraison n'est pas disponible pour cette adresse."
+msgstr "该配送方式不适用于此地址。"
+
+msgid "Le paiement à la livraison n'est pas proposé avec ce mode de livraison."
+msgstr "此配送方式不支持货到付款。"
+
+msgid "Commande introuvable."
+msgstr "找不到该订单。"
+
+msgid "Cette commande n'est plus en attente de paiement."
+msgstr "此订单已不再等待付款。"
+
+msgid "Le paiement en ligne n'est pas disponible pour le moment."
+msgstr "暂时无法在线付款。"
+
+msgid "Le service de paiement ne répond pas. Veuillez réessayer dans quelques instants."
+msgstr "支付服务无响应，请稍后再试。"
+
+msgid "Seuls un administrateur ou un responsable peuvent rembourser."
+msgstr "只有管理员或店长可以退款。"
+
+msgid "Aucun paiement en ligne à rembourser."
+msgstr "没有可退款的在线付款。"
+
+msgid "Montant invalide."
+msgstr "金额无效。"
+
+msgid "Motif invalide."
+msgstr "原因无效。"
+
+msgid "Le prestataire a refusé le remboursement. Rien n'a été remboursé."
+msgstr "支付服务商拒绝了退款，未退还任何款项。"
+
+msgid "Le prestataire de ce paiement n'est plus configuré."
+msgstr "该付款的服务商已不再配置。"
+
+#, python-format
+msgid "Montant remboursable : %(amount)s %(currency)s."
+msgstr "可退款金额：%(amount)s %(currency)s。"
+
+#, python-format
+msgid "Merci pour votre commande %(reference)s."
+msgstr "感谢您的订单 %(reference)s。"
+
+#, python-format
+msgid "Sous-total : %(amount)s"
+msgstr "小计：%(amount)s"
+
+#, python-format
+msgid "Livraison : %(amount)s"
+msgstr "运费：%(amount)s"
+
+#, python-format
+msgid "Total : %(amount)s"
+msgstr "总计：%(amount)s"
+
+msgid "Votre paiement a bien été reçu."
+msgstr "我们已收到您的付款。"
+
+#, python-format
+msgid "Vous réglerez %(amount)s à la livraison ou au retrait."
+msgstr "您将在收货或取货时支付 %(amount)s。"
+
+msgid "Conservez cette référence pour tout échange avec nous."
+msgstr "请保留此订单号，以便与我们联系。"
+
+#, python-format
+msgid "Votre commande %(reference)s"
+msgstr "您的订单 %(reference)s"
+
+msgid "Les frais de port ne peuvent changer que pour un paiement à la livraison."
+msgstr "只有货到付款的订单才能修改运费。"
+
+msgid "Une commande liée à un paiement en ligne ne peut pas être supprimée."
+msgstr "已关联在线付款的订单不能删除。"
+
+msgid "Seuls un administrateur ou un responsable peuvent enregistrer un virement."
+msgstr "只有管理员或店长可以登记银行转账。"
+
+msgid "Référence invalide."
+msgstr "参考号无效。"
+
+msgid "Ce virement est déjà enregistré."
+msgstr "此转账已登记。"
+
+msgid "Cette commande n'attend pas de virement."
+msgstr "此订单不在等待银行转账。"
+
+#, python-format
+msgid "Merci de virer %(amount)s avant le %(date)s, en indiquant la référence %(reference)s :"
+msgstr "请在 %(date)s 之前转账 %(amount)s，并注明参考号 %(reference)s："
+
+#, python-format
+msgid "Titulaire : %(value)s"
+msgstr "收款人：%(value)s"
+
+#, python-format
+msgid "Banque : %(value)s"
+msgstr "银行：%(value)s"
+
+#, python-format
+msgid "IBAN / n° de compte : %(value)s"
+msgstr "IBAN / 账号：%(value)s"
+
+#, python-format
+msgid "BIC / SWIFT : %(value)s"
+msgstr "BIC / SWIFT：%(value)s"
+
+#, python-format
+msgid "Adresse de la banque : %(value)s"
+msgstr "银行地址：%(value)s"
+
+msgid "Les articles vous sont réservés jusqu'à cette date."
+msgstr "商品将为您保留至该日期。"
+
+msgid "Ce devis ne peut plus être modifié."
+msgstr "此报价已无法修改。"
+
+msgid "Ce devis ne contient aucun article à chiffrer."
+msgstr "此报价没有需要定价的商品。"
+
+msgid "Indiquez un prix pour chaque article."
+msgstr "请为每件商品填写价格。"
+
+msgid "Ce devis n'est pas ou plus disponible."
+msgstr "此报价不可用或已失效。"
+
+msgid "Ce devis a expiré. Demandez-nous une mise à jour."
+msgstr "此报价已过期，请联系我们更新。"
+
+msgid "Devis introuvable."
+msgstr "找不到该报价。"
+
+msgid "Adresse de livraison incomplète."
+msgstr "收货地址不完整。"
+
+msgid "Date invalide."
+msgstr "日期无效。"
+
+#, python-format
+msgid "Voici notre devis %(reference)s :"
+msgstr "这是我们的报价 %(reference)s："
+
+#, python-format
+msgid "Valable jusqu'au %(date)s."
+msgstr "有效期至 %(date)s。"
+
+msgid "Pour l'accepter et le régler :"
+msgstr "接受并付款："
+
+#, python-format
+msgid "Votre devis %(reference)s"
+msgstr "您的报价 %(reference)s"

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import ProductCard from '../components/ProductCard.jsx';
@@ -19,13 +20,15 @@ const MOQ_OPTIONS = [
 ];
 
 const SORTS = [
-  { value: '-created_at', label: 'Trier par : Nouveautés' },
-  { value: 'name', label: 'Nom (A → Z)' },
-  { value: 'min_price', label: 'Prix croissant' },
-  { value: '-min_price', label: 'Prix décroissant' },
+  { value: '-created_at', label: 'shop.sort.newest' },
+  { value: 'name', label: 'shop.sort.name' },
+  { value: 'min_price', label: 'shop.sort.priceAsc' },
+  { value: '-min_price', label: 'shop.sort.priceDesc' },
 ];
 
-export default function Category({ title = 'Boutique' }) {
+export default function Category({ titleKey = 'common.shop' }) {
+  const { t, i18n } = useTranslation();
+  const title = t(titleKey);
   // Les filtres vivent dans l'URL : un lien « /boutique?category=epingles »
   // depuis l'accueil arrive donc déjà filtré, et la page reste partageable.
   const [params, setParams] = useSearchParams();
@@ -36,7 +39,7 @@ export default function Category({ title = 'Boutique' }) {
   const maxPrice = params.get('max_price') || '';
   const maxMoq = params.get('max_moq') || '';
 
-  const [products, setProducts] = useState(catalogProducts);
+  const [products, setProducts] = useState([]);
   const [cats, setCats] = useState([]);
   const [colors, setColors] = useState([]);
   const [count, setCount] = useState(null);
@@ -57,7 +60,7 @@ export default function Category({ title = 'Boutique' }) {
   useEffect(() => {
     api.categories().then((d) => setCats(d.results || d)).catch(() => {});
     api.colors().then((d) => setColors(d.results || d)).catch(() => {});
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   // Au maximum, le filtre n'a plus de sens : on le retire de l'URL.
   const commitPrice = (value) => setFilter('max_price', value >= PRICE_MAX ? '' : String(value));
@@ -76,29 +79,20 @@ export default function Category({ title = 'Boutique' }) {
     })
       .then((data) => {
         if (!alive) return;
-        let items = productsFromApi(data);
-        if (search) {
-          const q = search.toLowerCase();
-          items = items.filter((p) => (p.name && p.name.toLowerCase().includes(q)) || (p.cat && p.cat.toLowerCase().includes(q)));
-        }
+        const items = productsFromApi(data).filter((p) => Number(p.stock) > 0);
         setProducts(items);
         setCount(data.count ?? items.length);
       })
       .catch(() => {
         if (!alive) return;
-        let items = catalogProducts;
-        if (search) {
-          const q = search.toLowerCase();
-          items = items.filter((p) => (p.name && p.name.toLowerCase().includes(q)) || (p.cat && p.cat.toLowerCase().includes(q)));
-        }
-        setProducts(items);
-        setCount(items.length);
+        setProducts([]);
+        setCount(0);
       })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [category, search, color, maxPrice, maxMoq, ordering]);
+  }, [category, search, color, maxPrice, maxMoq, ordering, i18n.resolvedLanguage]);
 
-  const heading = search ? `Résultats pour "${search}"` : (cats.find((c) => c.slug === category)?.name || title);
+  const heading = search ? t('shop.resultsFor', { search }) : (cats.find((c) => c.slug === category)?.name || title);
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -106,7 +100,7 @@ export default function Category({ title = 'Boutique' }) {
     <>
       <div className="uee-breadcrumb">
         <div className="container">
-          <Link to="/">Accueil</Link><span className="sep">/</span>
+          <Link to="/">{t('common.home')}</Link><span className="sep">/</span>
           {category ? (
             <>
               <Link to="/boutique">{title}</Link><span className="sep">/</span>
@@ -121,11 +115,11 @@ export default function Category({ title = 'Boutique' }) {
           {/* SIDEBAR */}
           <aside className={`uee-sidebar ${showMobileFilters ? 'mobile-open' : ''}`}>
             <div className="uee-filter-block">
-              <h4>Catégories</h4>
+              <h4>{t('shop.categories')}</h4>
               <label className="uee-checkline">
                 <span>
                   <input type="radio" name="cat" checked={category === ''}
-                    onChange={() => setFilter('category', '')} /> Toutes
+                    onChange={() => setFilter('category', '')} /> {t('shop.all')}
                 </span>
               </label>
               {cats.map((c) => (
@@ -136,11 +130,11 @@ export default function Category({ title = 'Boutique' }) {
                   </span>
                 </label>
               ))}
-              {cats.length === 0 && <p className="filter-note">Aucune catégorie enregistrée.</p>}
+              {cats.length === 0 && <p className="filter-note">{t('shop.noCategory')}</p>}
             </div>
 
             <div className="uee-filter-block">
-              <h4>Couleur</h4>
+              <h4>{t('shop.color')}</h4>
               <div className="uee-swatches">
                 {colors.map((c) => (
                   <button
@@ -155,10 +149,10 @@ export default function Category({ title = 'Boutique' }) {
                   />
                 ))}
               </div>
-              {colors.length === 0 && <p className="filter-note">Aucun coloris enregistré.</p>}
+              {colors.length === 0 && <p className="filter-note">{t('shop.noColor')}</p>}
               {color && (
                 <button type="button" className="filter-clear" onClick={() => setFilter('color', '')}>
-                  Retirer le filtre couleur
+                  {t('shop.clearColor')}
                 </button>
               )}
             </div>
@@ -181,15 +175,15 @@ export default function Category({ title = 'Boutique' }) {
                 className="mobile-filter-toggle-btn"
                 onClick={() => setShowMobileFilters(!showMobileFilters)}
               >
-                ⚙️ {showMobileFilters ? 'Masquer les filtres' : 'Filtrer & Trier'}
+                ⚙️ {showMobileFilters ? t('shop.hideFilters') : t('shop.filterSort')}
               </button>
 
               <span className="count-label">
-                {count ?? products.length} produit(s) — <strong>{heading}</strong>
+                {t('shop.productCount', { n: count ?? products.length })} — <strong>{heading}</strong>
               </span>
               <div className="uee-sort">
                 <select value={ordering} onChange={(e) => setFilter('sort', e.target.value)}>
-                  {SORTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {SORTS.map((o) => <option key={o.value} value={o.value}>{t(o.label)}</option>)}
                 </select>
               </div>
             </div>
@@ -200,9 +194,9 @@ export default function Category({ title = 'Boutique' }) {
               ))}
             </div>
 
-            {loading && products.length === 0 && <p className="uee-grid-note">Chargement…</p>}
+            {loading && products.length === 0 && <p className="uee-grid-note">{t('common.loading')}</p>}
             {!loading && products.length === 0 && (
-              <p className="uee-grid-note">Aucun produit ne correspond à ces filtres.</p>
+              <p className="uee-grid-note">{t('shop.noMatch')}</p>
             )}
           </div>
         </div>

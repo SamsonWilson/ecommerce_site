@@ -7,6 +7,8 @@ import Product from './pages/Product.jsx';
 import Cart from './pages/Cart.jsx';
 import Checkout from './pages/Checkout.jsx';
 import OrderConfirmation from './pages/OrderConfirmation.jsx';
+import PaymentReturn from './pages/PaymentReturn.jsx';
+import QuotePage from './pages/QuotePage.jsx';
 import Contact from './pages/Contact.jsx';
 import Faq from './pages/Faq.jsx';
 import Shipping from './pages/Shipping.jsx';
@@ -40,14 +42,18 @@ export default function App() {
         <Route element={<SiteLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/boutique" element={<Category />} />
-          <Route path="/nouveautes" element={<Category title="Nouveautés" count={36} />} />
-          <Route path="/promotions" element={<Category title="Promotions" count={24} />} />
+          <Route path="/nouveautes" element={<Category titleKey="shop.titleNew" count={36} />} />
+          <Route path="/promotions" element={<Category titleKey="shop.titlePromotions" count={24} />} />
           <Route path="/produit/:slug" element={<Product />} />
 
           {/* Tunnel d'achat */}
           <Route path="/panier" element={<Cart />} />
           <Route path="/checkout" element={<Navigate to="/compte/checkout" replace />} />
           <Route path="/commande/confirmee" element={<OrderConfirmation />} />
+          {/* Retour du paiement en ligne : public, le jeton secret de la commande suffit */}
+          <Route path="/commande/paiement" element={<PaymentReturn />} />
+          {/* Devis chiffré : lien secret envoyé par e-mail */}
+          <Route path="/devis/:reference" element={<QuotePage />} />
 
           {/* Contenu / aide */}
           <Route path="/contact" element={<Contact />} />

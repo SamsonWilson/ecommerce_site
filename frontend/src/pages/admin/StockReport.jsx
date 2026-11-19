@@ -53,8 +53,8 @@ export default function StockReport() {
 
           return {
             id: product.id,
-            name: product.name || 'Produit sans nom',
-            category: product.category_name || 'Sans catégorie',
+            name: product.display_name || product.name || t('admin.stockReport.noName'),
+            category: product.category_name || t('admin.stockReport.noCategory'),
             totalStock,
             variantCount: variants.length,
             skus,
@@ -113,14 +113,14 @@ export default function StockReport() {
   const selectedProductRenewal = selectedProductHistory.find((movement) => Number(movement.quantity_delta || 0) > 0) || null;
 
   const exportCsv = () => {
-    const headers = ['Produit', 'Catégorie', 'Variantes', 'SKU', 'Stock total', 'Statut', 'Prix min', 'Prix max'];
+    const headers = [t('admin.stockReport.colProduct'), t('admin.stockReport.colCategory'), t('admin.stockReport.colVariations'), 'SKU', t('admin.stockReport.colStock'), t('admin.stockReport.colStatus'), t('admin.stockReport.priceMin'), t('admin.stockReport.priceMax')];
     const csvRows = filteredRows.map((row) => [
       row.name,
       row.category,
       row.variantCount,
       row.skus.join(' / '),
       row.totalStock,
-      row.status === 'OUT' ? 'Rupture' : row.status === 'LOW' ? 'Faible' : 'OK',
+      row.status === 'OUT' ? t('admin.stockReport.statusOut') : row.status === 'LOW' ? t('admin.stockReport.statusLow') : t('admin.stockReport.statusOk'),
       numberFmt(row.minPrice),
       numberFmt(row.maxPrice),
     ]);
@@ -150,7 +150,7 @@ export default function StockReport() {
           {I.check} {t('admin.stockReport.refresh', 'Actualiser')}
         </button>
         <button type="button" className="btn-admin ghost no-print" onClick={() => window.print()} style={{ borderRadius: 20, padding: '9px 18px' }}>
-          🖨️ Imprimer
+          🖨️ {t('admin.stockReport.print')}
         </button>
         <button type="button" className="btn-admin primary no-print" onClick={exportCsv} style={{ borderRadius: 20, padding: '9px 20px' }}>
           {I.pdf} {t('admin.stockReport.export', 'Exporter CSV')}
@@ -158,73 +158,73 @@ export default function StockReport() {
       </PageHead>
 
       <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 26 }}>
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid #E6E9EF', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}>
           <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
             {t('admin.stockReport.totalProducts', 'Produits suivis')}
           </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--navy)', marginTop: 8 }}>{totalProducts}</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--text-head)', marginTop: 8 }}>{totalProducts}</div>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(39,174,96,0.25)', boxShadow: '0 4px 16px rgba(39,174,96,0.06)' }}>
-          <div style={{ fontSize: 12, color: '#27AE60', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(31,169,113,0.3)', boxShadow: 'var(--shadow)' }}>
+          <div style={{ fontSize: 12, color: '#1FA971', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
             {t('admin.stockReport.totalUnits', 'Unités en stock')}
           </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#27AE60', marginTop: 8 }}>{totalUnits}</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#1FA971', marginTop: 8 }}>{totalUnits}</div>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(192,57,43,0.25)', boxShadow: '0 4px 16px rgba(192,57,43,0.06)' }}>
-          <div style={{ fontSize: 12, color: '#C0392B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(225,37,27,0.3)', boxShadow: 'var(--shadow)' }}>
+          <div style={{ fontSize: 12, color: '#E1251B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
             {t('admin.stockReport.outOfStock', 'Ruptures')}
           </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#C0392B', marginTop: 8 }}>{outOfStockProducts}</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#E1251B', marginTop: 8 }}>{outOfStockProducts}</div>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(212,175,55,0.35)', boxShadow: '0 4px 16px rgba(212,175,55,0.06)' }}>
-          <div style={{ fontSize: 12, color: '#B8972A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: '20px 22px', border: '1px solid rgba(232,164,25,0.35)', boxShadow: 'var(--shadow)' }}>
+          <div style={{ fontSize: 12, color: '#E8A419', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
             {t('admin.stockReport.lowStock', 'Stock faible')}
           </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#B8972A', marginTop: 8 }}>{lowStockProducts}</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#E8A419', marginTop: 8 }}>{lowStockProducts}</div>
         </div>
       </div>
 
       <Panel>
         {selectedProduct && (
-          <div className="stock-report-detail" style={{ marginBottom: 18, background: '#F8F7F4', border: '1px solid #EDEAE2', borderRadius: 14, padding: 18 }}>
+          <div className="stock-report-detail" style={{ marginBottom: 18, background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 14, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
                   Produit sélectionné
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', marginTop: 4 }}>{selectedProduct.name}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-head)', marginTop: 4 }}>{selectedProduct.name}</div>
               </div>
               <button type="button" className="btn-admin ghost" onClick={() => setSelectedProductId(null)} style={{ borderRadius: 20 }}>
-                Réinitialiser
+                {t('admin.stockReport.reset')}
               </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginTop: 16 }}>
-              <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Stock actuel</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--navy)', marginTop: 6 }}>{selectedProduct.totalStock}</div>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 10, padding: 12, border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.stockActuel')}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-head)', marginTop: 6 }}>{selectedProduct.totalStock}</div>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Dernier renouvellement</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#27AE60', marginTop: 6 }}>
-                  {selectedProductRenewal ? new Date(selectedProductRenewal.created_at).toLocaleString('fr-FR') : 'Aucun renouvellement connu'}
+              <div style={{ background: 'var(--card-bg)', borderRadius: 10, padding: 12, border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.dernierRenouvellement')}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#1FA971', marginTop: 6 }}>
+                  {selectedProductRenewal ? new Date(selectedProductRenewal.created_at).toLocaleString(document.documentElement.lang) : t('admin.stockReport.noRenewal')}
                 </div>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Quantité ajoutée</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', marginTop: 6 }}>
-                  {selectedProductRenewal ? `+${selectedProductRenewal.quantity_delta} unités` : '—'}
+              <div style={{ background: 'var(--card-bg)', borderRadius: 10, padding: 12, border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.quantiteAjoutee')}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-head)', marginTop: 6 }}>
+                  {selectedProductRenewal ? t('admin.stockReport.unitsAdded', { n: selectedProductRenewal.quantity_delta }) : '—'}
                 </div>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #ECEBE7' }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Référence</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--navy)', marginTop: 6 }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: 10, padding: 12, border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('admin.stockReport.reference')}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-head)', marginTop: 6 }}>
                   {selectedProductRenewal?.reference || '—'}
                 </div>
               </div>
@@ -235,30 +235,30 @@ export default function StockReport() {
                 Historique complet du produit
               </div>
               {selectedProductHistory.length === 0 ? (
-                <div style={{ background: '#fff', border: '1px solid #ECEBE7', borderRadius: 10, padding: 14, color: 'var(--muted)' }}>
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--line)', borderRadius: 10, padding: 14, color: 'var(--muted)' }}>
                   Aucun mouvement enregistré pour ce produit.
                 </div>
               ) : (
-                <div className="admin-table-scroll" style={{ border: '1px solid #ECEBE7', borderRadius: 12, background: '#fff' }}>
+                <div className="admin-table-scroll" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card-bg)' }}>
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Quantité</th>
-                        <th>Raison</th>
-                        <th>Référence</th>
+                        <th>{t('admin.stockReport.date')}</th>
+                        <th>{t('admin.stockReport.type')}</th>
+                        <th>{t('admin.stockReport.quantite')}</th>
+                        <th>{t('admin.stockReport.raison')}</th>
+                        <th>{t('admin.stockReport.reference')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedProductHistory.map((movement) => {
                         const delta = Number(movement.quantity_delta || 0);
                         const isPositive = delta > 0;
-                        const type = isPositive ? 'Ajout' : 'Retrait';
+                        const type = isPositive ? t('admin.stockReport.typeAdd') : t('admin.stockReport.typeRemove');
                         const reason = movement.reason || 'CORRECTION';
                         return (
                           <tr key={movement.id}>
-                            <td>{new Date(movement.created_at).toLocaleString('fr-FR')}</td>
+                            <td>{new Date(movement.created_at).toLocaleString(document.documentElement.lang)}</td>
                             <td>
                               <span style={{
                                 display: 'inline-flex',
@@ -337,31 +337,21 @@ export default function StockReport() {
                   <tr
                     key={row.id}
                     onClick={() => setSelectedProductId((prev) => prev === row.id ? null : row.id)}
-                    style={{ cursor: 'pointer', background: selectedProductId === row.id ? '#F6F8FF' : undefined }}
+                    style={{ cursor: 'pointer', background: selectedProductId === row.id ? 'var(--table-hover)' : undefined }}
                   >
                     <td>
-                      <strong>{row.name}</strong>
+                      <strong className="cell-main">{row.name}</strong>
                     </td>
                     <td>{row.category}</td>
                     <td>{row.variantCount}</td>
                     <td>{row.skus.length ? row.skus.join(' / ') : '—'}</td>
                     <td>
-                      <strong style={{ color: row.totalStock === 0 ? '#C0392B' : row.totalStock <= 5 ? '#B8972A' : '#27AE60' }}>
+                      <strong style={{ color: row.totalStock === 0 ? '#E1251B' : row.totalStock <= 5 ? '#E8A419' : '#1FA971' }}>
                         {row.totalStock}
                       </strong>
                     </td>
                     <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          padding: '6px 10px',
-                          borderRadius: 999,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: row.status === 'OUT' ? '#C0392B' : row.status === 'LOW' ? '#B8972A' : '#27AE60',
-                          background: row.status === 'OUT' ? '#FDE9E8' : row.status === 'LOW' ? '#FFF5D6' : '#E6F7EF',
-                        }}
-                      >
+                      <span className={`status ${row.status === 'OUT' ? 'rejected' : row.status === 'LOW' ? 'pending' : 'paid'}`}>
                         {row.status === 'OUT' ? t('admin.stockReport.statusOut', 'Rupture') : row.status === 'LOW' ? t('admin.stockReport.statusLow', 'Faible') : t('admin.stockReport.statusOk', 'OK')}
                       </span>
                     </td>

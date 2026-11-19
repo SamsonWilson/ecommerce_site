@@ -35,7 +35,7 @@ function TopBar() {
 }
 
 function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearchOpen }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const count = useCartCount();
   const wishCount = useWishlistCount();
@@ -48,7 +48,7 @@ function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearch
     api.categories()
       .then((d) => setCategories(d.results || d))
       .catch(() => {});
-  }, []);
+  }, [i18n.resolvedLanguage]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -66,7 +66,7 @@ function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearch
         <button
           className="mobile-burger-btn"
           onClick={onToggleMenu}
-          aria-label="Toggle navigation menu"
+          aria-label={t('layout.toggleMenu')}
         >
           <IconMenu />
         </button>
@@ -93,7 +93,7 @@ function SiteHeader({ onToggleMenu, mobileMenuOpen, onToggleSearch, mobileSearch
         </form>
 
         <div className="uee-actions">
-          <button className="mobile-search-btn" onClick={onToggleSearch} aria-label="Search">
+          <button className="mobile-search-btn" onClick={onToggleSearch} aria-label={t('layout.search')}>
             <IconSearch />
           </button>
           <Link className="uee-action" to="/compte">
@@ -168,7 +168,7 @@ function MobileDrawer({ isOpen, onClose }) {
             <span className="mark">ML</span>
             <span className="word">MAISON <span>LIÁN</span></span>
           </div>
-          <button className="mobile-drawer-close" onClick={onClose} aria-label="Close menu">✕</button>
+          <button className="mobile-drawer-close" onClick={onClose} aria-label={t('layout.closeMenu')}>✕</button>
         </div>
 
         <div className="mobile-drawer-body">

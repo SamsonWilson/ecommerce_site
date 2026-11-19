@@ -1,0 +1,314 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "Requête invalide."
+msgstr "Invalid request."
+
+msgid "Seule la caisse peut enregistrer une vente payée."
+msgstr "Only the till can record a paid sale."
+
+msgid "Adresse email obligatoire."
+msgstr "Email address required."
+
+msgid "Adresse email invalide."
+msgstr "Invalid email address."
+
+msgid "Le panier est vide."
+msgstr "The cart is empty."
+
+msgid "Liste d'articles invalide."
+msgstr "Invalid item list."
+
+msgid "Adresse de livraison invalide."
+msgstr "Invalid delivery address."
+
+msgid "Moyen de paiement invalide."
+msgstr "Invalid payment method."
+
+msgid "Article invalide."
+msgstr "Invalid item."
+
+msgid "Quantité invalide."
+msgstr "Invalid quantity."
+
+msgid "Un article de votre panier n'existe plus."
+msgstr "An item in your cart no longer exists."
+
+msgid "Un article de votre panier n'est plus disponible."
+msgstr "An item in your cart is no longer available."
+
+msgid "Quantité minimale de %(moq)s pour %(name)s."
+msgstr "Minimum quantity of %(moq)s for %(name)s."
+
+msgid "Quantité maximale de %(max)s pour %(name)s."
+msgstr "Maximum quantity of %(max)s for %(name)s."
+
+msgid "Stock insuffisant pour %(name)s (Disponible : %(stock)s)."
+msgstr "Not enough stock for %(name)s (available: %(stock)s)."
+
+msgid "Un compte existe déjà avec cette adresse e-mail."
+msgstr "An account already exists with this email address."
+
+msgid "Réinitialisation de votre mot de passe"
+msgstr "Reset your password"
+
+msgid "Bonjour,"
+msgstr "Hello,"
+
+msgid "Bonjour %(name)s,"
+msgstr "Hello %(name)s,"
+
+msgid "Vous avez demandé la réinitialisation du mot de passe de votre compte Maison Lián."
+msgstr "You asked to reset the password of your Maison Lián account."
+
+msgid "Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :"
+msgstr "Click the link below to choose a new password:"
+
+msgid "Ce lien n'est valable qu'une seule fois."
+msgstr "This link can only be used once."
+
+msgid "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe actuel reste inchangé."
+msgstr "If you did not make this request, ignore this message: your current password stays the same."
+
+msgid "— L'équipe Maison Lián"
+msgstr "— The Maison Lián team"
+
+msgid "Administrateur"
+msgstr "Administrator"
+
+msgid "Responsable boutique"
+msgstr "Store manager"
+
+msgid "Gestionnaire catalogue"
+msgstr "Catalogue manager"
+
+msgid "Commercial B2B"
+msgstr "B2B sales"
+
+msgid "Service client"
+msgstr "Customer service"
+
+msgid "Livreur"
+msgstr "Delivery driver"
+
+msgid "Particulier"
+msgstr "Individual"
+
+msgid "Professionnel"
+msgstr "Professional"
+
+msgid "En attente"
+msgstr "Pending"
+
+msgid "Validé"
+msgstr "Approved"
+
+msgid "Refusé"
+msgstr "Rejected"
+
+msgid "Tableau de bord"
+msgstr "Dashboard"
+
+msgid "Vue d'ensemble et statistiques"
+msgstr "Overview and statistics"
+
+msgid "Commandes ET Ventes (Caisse)"
+msgstr "Orders & sales (till)"
+
+msgid "Gestion des commandes et poste d'encaissement"
+msgstr "Order management and till"
+
+msgid "Clients"
+msgstr "Customers"
+
+msgid "Fichier des clients B2C et B2B"
+msgstr "B2C and B2B customer records"
+
+msgid "Promotions"
+msgstr "Promotions"
+
+msgid "Codes promo et offres commerciales"
+msgstr "Promo codes and offers"
+
+msgid "Comptes Pro ET Paliers"
+msgstr "Pro accounts & tiers"
+
+msgid "Espace grossistes et remises B2B"
+msgstr "Wholesale area and B2B discounts"
+
+msgid "Catalogue ET Stocks"
+msgstr "Catalogue & stock"
+
+msgid "Produits, stocks, inventaire, catégories et langues"
+msgstr "Products, stock, inventory, categories and languages"
+
+msgid "Courses ET Livraisons"
+msgstr "Runs & deliveries"
+
+msgid "Tournées et statut des expéditions"
+msgstr "Routes and shipment status"
+
+msgid "Équipe interne"
+msgstr "Internal team"
+
+msgid "Gestion des comptes employés et droits d'accès"
+msgstr "Employee accounts and access rights"
+
+msgid "Pays de livraison invalide."
+msgstr "Invalid delivery country."
+
+msgid "Ce mode de livraison n'est pas disponible pour cette adresse."
+msgstr "This delivery method is not available for this address."
+
+msgid "Le paiement à la livraison n'est pas proposé avec ce mode de livraison."
+msgstr "Payment on delivery is not offered with this delivery method."
+
+msgid "Commande introuvable."
+msgstr "Order not found."
+
+msgid "Cette commande n'est plus en attente de paiement."
+msgstr "This order is no longer awaiting payment."
+
+msgid "Le paiement en ligne n'est pas disponible pour le moment."
+msgstr "Online payment is not available at the moment."
+
+msgid "Le service de paiement ne répond pas. Veuillez réessayer dans quelques instants."
+msgstr "The payment service is not responding. Please try again in a few moments."
+
+msgid "Seuls un administrateur ou un responsable peuvent rembourser."
+msgstr "Only an administrator or a manager can issue refunds."
+
+msgid "Aucun paiement en ligne à rembourser."
+msgstr "There is no online payment to refund."
+
+msgid "Montant invalide."
+msgstr "Invalid amount."
+
+msgid "Motif invalide."
+msgstr "Invalid reason."
+
+msgid "Le prestataire a refusé le remboursement. Rien n'a été remboursé."
+msgstr "The payment provider refused the refund. Nothing has been refunded."
+
+msgid "Le prestataire de ce paiement n'est plus configuré."
+msgstr "The provider for this payment is no longer configured."
+
+#, python-format
+msgid "Montant remboursable : %(amount)s %(currency)s."
+msgstr "Refundable amount: %(amount)s %(currency)s."
+
+#, python-format
+msgid "Merci pour votre commande %(reference)s."
+msgstr "Thank you for your order %(reference)s."
+
+#, python-format
+msgid "Sous-total : %(amount)s"
+msgstr "Subtotal: %(amount)s"
+
+#, python-format
+msgid "Livraison : %(amount)s"
+msgstr "Delivery: %(amount)s"
+
+#, python-format
+msgid "Total : %(amount)s"
+msgstr "Total: %(amount)s"
+
+msgid "Votre paiement a bien été reçu."
+msgstr "Your payment has been received."
+
+#, python-format
+msgid "Vous réglerez %(amount)s à la livraison ou au retrait."
+msgstr "You will pay %(amount)s on delivery or at pickup."
+
+msgid "Conservez cette référence pour tout échange avec nous."
+msgstr "Keep this reference for any contact with us."
+
+#, python-format
+msgid "Votre commande %(reference)s"
+msgstr "Your order %(reference)s"
+
+msgid "Les frais de port ne peuvent changer que pour un paiement à la livraison."
+msgstr "Delivery costs can only be changed for payment on delivery."
+
+msgid "Une commande liée à un paiement en ligne ne peut pas être supprimée."
+msgstr "An order linked to an online payment cannot be deleted."
+
+msgid "Seuls un administrateur ou un responsable peuvent enregistrer un virement."
+msgstr "Only an administrator or a manager can record a bank transfer."
+
+msgid "Référence invalide."
+msgstr "Invalid reference."
+
+msgid "Ce virement est déjà enregistré."
+msgstr "This transfer has already been recorded."
+
+msgid "Cette commande n'attend pas de virement."
+msgstr "This order is not awaiting a bank transfer."
+
+#, python-format
+msgid "Merci de virer %(amount)s avant le %(date)s, en indiquant la référence %(reference)s :"
+msgstr "Please transfer %(amount)s before %(date)s, quoting the reference %(reference)s:"
+
+#, python-format
+msgid "Titulaire : %(value)s"
+msgstr "Account holder: %(value)s"
+
+#, python-format
+msgid "Banque : %(value)s"
+msgstr "Bank: %(value)s"
+
+#, python-format
+msgid "IBAN / n° de compte : %(value)s"
+msgstr "IBAN / account number: %(value)s"
+
+#, python-format
+msgid "BIC / SWIFT : %(value)s"
+msgstr "BIC / SWIFT: %(value)s"
+
+#, python-format
+msgid "Adresse de la banque : %(value)s"
+msgstr "Bank address: %(value)s"
+
+msgid "Les articles vous sont réservés jusqu'à cette date."
+msgstr "The items are reserved for you until that date."
+
+msgid "Ce devis ne peut plus être modifié."
+msgstr "This quote can no longer be changed."
+
+msgid "Ce devis ne contient aucun article à chiffrer."
+msgstr "This quote has no items to price."
+
+msgid "Indiquez un prix pour chaque article."
+msgstr "Enter a price for each item."
+
+msgid "Ce devis n'est pas ou plus disponible."
+msgstr "This quote is not or no longer available."
+
+msgid "Ce devis a expiré. Demandez-nous une mise à jour."
+msgstr "This quote has expired. Ask us for an update."
+
+msgid "Devis introuvable."
+msgstr "Quote not found."
+
+msgid "Adresse de livraison incomplète."
+msgstr "Incomplete delivery address."
+
+msgid "Date invalide."
+msgstr "Invalid date."
+
+#, python-format
+msgid "Voici notre devis %(reference)s :"
+msgstr "Here is our quote %(reference)s:"
+
+#, python-format
+msgid "Valable jusqu'au %(date)s."
+msgstr "Valid until %(date)s."
+
+msgid "Pour l'accepter et le régler :"
+msgstr "To accept and pay it:"
+
+#, python-format
+msgid "Votre devis %(reference)s"
+msgstr "Your quote %(reference)s"

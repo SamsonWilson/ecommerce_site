@@ -14,6 +14,6 @@ SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=False)
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=False)
 SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
 
-# CSRF & CORS de confiance (domaines du serveur distant)
+# CSRF ET CORS de confiance (domaines du serveur distant)
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://ecommerce.ginolux.com", "http://ecommerce.ginolux.com"])
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["https://ecommerce.ginolux.com", "http://ecommerce.ginolux.com"])

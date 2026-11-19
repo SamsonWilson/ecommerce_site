@@ -1,6 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.crypto import get_random_string
+from django.utils.translation import gettext as _
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -183,14 +184,14 @@ class AdminStaffViewSet(viewsets.ModelViewSet):
     def sections(self, request):
         """Liste de toutes les pages / sections configurables de l'administration."""
         return Response([
-            {"key": "dashboard", "label": "Tableau de bord", "route": "/gestion", "desc": "Vue d'ensemble et statistiques"},
-            {"key": "orders", "label": "Commandes & Ventes (Caisse)", "route": "/gestion/commandes", "desc": "Gestion des commandes et poste d'encaissement"},
-            {"key": "customers", "label": "Clients", "route": "/gestion/clients", "desc": "Fichier des clients B2C et B2B"},
-            {"key": "promotions", "label": "Promotions", "route": "/gestion/promotions", "desc": "Codes promo et offres commerciales"},
-            {"key": "b2b", "label": "Comptes Pro & Paliers", "route": "/gestion/comptes-pro", "desc": "Espace grossistes et remises B2B"},
-            {"key": "catalog", "label": "Catalogue & Stocks", "route": "/gestion/produits", "desc": "Produits, stocks, inventaire, catégories et langues"},
-            {"key": "deliveries", "label": "Courses & Livraisons", "route": "/gestion/livraisons", "desc": "Tournées et statut des expéditions"},
-            {"key": "staff", "label": "Équipe interne", "route": "/gestion/equipe", "desc": "Gestion des comptes employés et droits d'accès"},
+            {"key": "dashboard", "label": _("Tableau de bord"), "route": "/gestion", "desc": _("Vue d'ensemble et statistiques")},
+            {"key": "orders", "label": _("Commandes ET Ventes (Caisse)"), "route": "/gestion/commandes", "desc": _("Gestion des commandes et poste d'encaissement")},
+            {"key": "customers", "label": _("Clients"), "route": "/gestion/clients", "desc": _("Fichier des clients B2C et B2B")},
+            {"key": "promotions", "label": _("Promotions"), "route": "/gestion/promotions", "desc": _("Codes promo et offres commerciales")},
+            {"key": "b2b", "label": _("Comptes Pro ET Paliers"), "route": "/gestion/comptes-pro", "desc": _("Espace grossistes et remises B2B")},
+            {"key": "catalog", "label": _("Catalogue ET Stocks"), "route": "/gestion/produits", "desc": _("Produits, stocks, inventaire, catégories et langues")},
+            {"key": "deliveries", "label": _("Courses ET Livraisons"), "route": "/gestion/livraisons", "desc": _("Tournées et statut des expéditions")},
+            {"key": "staff", "label": _("Équipe interne"), "route": "/gestion/equipe", "desc": _("Gestion des comptes employés et droits d'accès")},
         ])
 
     @action(detail=False, methods=["get"])

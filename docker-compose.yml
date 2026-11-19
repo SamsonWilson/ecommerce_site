@@ -4,6 +4,7 @@
 #
 #   docker compose up --build                 # démarrage
 #   docker compose up --scale backend=3        # 3 réplicas backend load-balancés
+#   docker compose run --rm backend python manage.py seed_catalog   # catalogue de démo : une seule fois
 
 services:
   db:
@@ -45,6 +46,17 @@ services:
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AIRWALLEX_CLIENT_ID: ${AIRWALLEX_CLIENT_ID:-}
+      AIRWALLEX_API_KEY: ${AIRWALLEX_API_KEY:-}
+      AIRWALLEX_WEBHOOK_SECRET: ${AIRWALLEX_WEBHOOK_SECRET:-}
+      AIRWALLEX_ENV: ${AIRWALLEX_ENV:-sandbox}
+      BANK_TRANSFER_HOLDER: ${BANK_TRANSFER_HOLDER:-}
+      BANK_TRANSFER_BANK: ${BANK_TRANSFER_BANK:-}
+      BANK_TRANSFER_ACCOUNT: ${BANK_TRANSFER_ACCOUNT:-}
+      BANK_TRANSFER_BIC: ${BANK_TRANSFER_BIC:-}
+      BANK_TRANSFER_BANK_ADDRESS: ${BANK_TRANSFER_BANK_ADDRESS:-}
+      BANK_TRANSFER_DAYS: ${BANK_TRANSFER_DAYS:-7}
       REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE:-False}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
       # Photos produits : disque partagé par défaut, bucket S3/R2 si USE_S3=True

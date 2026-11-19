@@ -2,8 +2,8 @@
 # DOCKERFILE UNIFIÉ : Pure Python / Django + SPA React (SANS NGINX)
 # ==============================================================================
 
-# --- Étape 1 : Build du Frontend React ---
-FROM node:20-alpine AS frontend-builder
+# --- Étape 1 : Build du Frontend React (compilé nativement pour la rapidité) ---
+FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copie & installation des dépendances Python
+# Copie ET installation des dépendances Python
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r ./backend/requirements.txt
 
@@ -48,11 +48,8 @@ EXPOSE 5000
 
 WORKDIR /app/backend
 
-# Script d'exécution (Collectstatic + Migrate + Gunicorn direct sur port 5000)
-RUN echo '#!/bin/sh\n\
-python manage.py collectstatic --noinput\n\
-python manage.py migrate --noinput\n\
-exec gunicorn backend.wsgi:application --bind 0.0.0.0:5000 --workers 3 --timeout 60\n\
-' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Script d'exécution (Attente DB + Migrate + Seed + Collectstatic + Gunicorn)
+COPY backend/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]

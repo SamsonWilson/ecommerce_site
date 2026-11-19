@@ -16,7 +16,7 @@ export default function AdminLayout() {
   const currentLang = (i18n.resolvedLanguage || 'fr').toUpperCase();
   const { toggleTheme, isDark } = useTheme();
 
-  // GESTION DES NOTIFICATIONS DE COMMANDES & DEVIS
+  // GESTION DES NOTIFICATIONS DE COMMANDES ET DEVIS
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [readNotifIds, setReadNotifIds] = useState(() => {
@@ -57,7 +57,7 @@ export default function AdminLayout() {
           notifs.push({
             id: `ord-${o.id || o.reference}`,
             type: 'order',
-            title: `Commande #${o.reference}`,
+            title: t('admin.layout.orderTitle', { ref: o.reference }),
             sub: `${o.customer_name || o.email} • ${eur(o.total_amount || 0)}`,
             date: new Date(o.created_at || Date.now()),
             link: '/gestion/commandes',
@@ -100,10 +100,10 @@ export default function AdminLayout() {
 
   const formatTimeAgo = (date) => {
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60) return 'À l\'instant';
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-    return date.toLocaleDateString('fr-FR');
+    if (diff < 60) return t('admin.layout.justNow');
+    if (diff < 3600) return t('admin.layout.minutesAgo', { n: Math.floor(diff / 60) });
+    if (diff < 86400) return t('admin.layout.hoursAgo', { n: Math.floor(diff / 3600) });
+    return date.toLocaleDateString(document.documentElement.lang);
   };
 
   const NAV = [
@@ -127,12 +127,13 @@ export default function AdminLayout() {
       defaultLabel: 'Gros — B2B',
       items: [
         { to: '/gestion/comptes-pro', icon: I.store, nameKey: 'admin.nav.proAccounts', defaultName: 'Comptes pro', section: 'b2b' },
+        { to: '/gestion/devis', icon: I.quote, nameKey: 'admin.nav.quotes', defaultName: 'Devis', section: 'b2b' },
         { to: '/gestion/paliers', icon: I.moq, nameKey: 'admin.nav.tiers', defaultName: 'Paliers tarifaires', section: 'b2b' },
       ],
     },
     {
       labelKey: 'admin.nav.logistics',
-      defaultLabel: 'Logistique & équipe',
+      defaultLabel: 'Logistique ET équipe',
       items: [
         { to: '/gestion/livraisons', icon: I.truck, nameKey: 'admin.nav.deliveries', defaultName: 'Livraisons', section: 'deliveries' },
         { to: '/gestion/equipe', icon: I.users, nameKey: 'admin.nav.team', defaultName: 'Équipe', section: 'staff' },
@@ -143,6 +144,7 @@ export default function AdminLayout() {
       defaultLabel: 'Commun',
       items: [
         { to: '/gestion/produits', icon: I.tag, nameKey: 'admin.nav.catalog', defaultName: 'Catalogue', section: 'catalog' },
+        { to: '/gestion/mediatheque', icon: I.image, nameKey: 'admin.nav.media', defaultName: 'Médiathèque Esthétique', section: 'catalog' },
         { to: '/gestion/stocks', icon: I.moq, nameKey: 'admin.nav.stock', defaultName: 'Stocks', section: 'catalog' },
         { to: '/gestion/stocks-rapport', icon: I.pdf, nameKey: 'admin.nav.stockReport', defaultName: 'Rapport de stock', section: 'catalog' },
         { to: '/gestion/inventaire', icon: I.check, nameKey: 'admin.nav.inventory', defaultName: 'Inventaire Physique', section: 'catalog' },
@@ -189,7 +191,7 @@ export default function AdminLayout() {
             type="button"
             className="admin-sidebar-close"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Close menu"
+            aria-label={t('layout.closeMenu')}
           >
             ✕
           </button>
@@ -228,7 +230,7 @@ export default function AdminLayout() {
             <div className="name">{displayName}</div>
             <div className="role">{user?.role_display || t('admin.nav.administration', 'Administration')}</div>
           </div>
-          <button type="button" className="admin-logout" onClick={signOut} title="Se déconnecter">
+          <button type="button" className="admin-logout" onClick={signOut} title={t('layout.signOut')}>
             {I.logout}
           </button>
         </div>
@@ -240,7 +242,7 @@ export default function AdminLayout() {
             type="button"
             className="admin-mobile-burger"
             onClick={() => setSidebarOpen(true)}
-            aria-label="Open sidebar menu"
+            aria-label={t('layout.toggleMenu')}
           >
             ☰
           </button>
@@ -257,7 +259,7 @@ export default function AdminLayout() {
             <span
               className="admin-lang"
               style={{ cursor: 'pointer' }}
-              title="Cliquer pour changer de langue"
+              title={t('admin.layout.cliquerPourChangerDeLangue')}
               onClick={() => {
                 const next = currentLang === 'FR' ? 'en' : currentLang === 'EN' ? 'zh' : 'fr';
                 i18n.changeLanguage(next);
@@ -271,18 +273,18 @@ export default function AdminLayout() {
               type="button"
               className="admin-theme-btn"
               onClick={toggleTheme}
-              title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              title={isDark ? t('admin.theme.light') : t('admin.theme.dark')}
+              aria-label={isDark ? t('admin.theme.light') : t('admin.theme.dark')}
             >
               <span className="admin-theme-icon">{isDark ? I.sun : I.moon}</span>
-              <span className="admin-theme-label">{isDark ? 'Clair' : 'Sombre'}</span>
+              <span className="admin-theme-label">{isDark ? t('admin.layout.lightShort') : t('admin.layout.darkShort')}</span>
             </button>
 
             {/* BOUTON DE NOTIFICATION CLIQUEABLE */}
             <div
               className="admin-bell-wrap"
               onClick={() => setNotifOpen((prev) => !prev)}
-              title="Notifications des commandes et devis"
+              title={t('admin.layout.notificationsDesCommandesEtDevis')}
             >
               {I.bell}
               {unreadCount > 0 && <span className="count-badge">{unreadCount}</span>}
@@ -302,7 +304,7 @@ export default function AdminLayout() {
 
                 <div className="admin-notif-body">
                   {notifications.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
+                    <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
                       Aucune nouvelle notification pour le moment.
                     </div>
                   ) : (
@@ -324,7 +326,7 @@ export default function AdminLayout() {
                           <div className="admin-notif-content">
                             <div className="admin-notif-title">
                               <span>{n.title}</span>
-                              {isUnread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E1251B' }}></span>}
+                              {isUnread && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--red)' }}></span>}
                             </div>
                             <div className="admin-notif-sub">{n.sub}</div>
                             <div className="admin-notif-time">{formatTimeAgo(n.date)}</div>

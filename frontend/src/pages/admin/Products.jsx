@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from '../../lib/api.js';
+import { api, translatePending } from '../../lib/api.js';
 import { I } from './icons.jsx';
 import { PageHead, Panel, Toolbar } from './ui.jsx';
 
@@ -157,12 +157,15 @@ export default function Products() {
         const fresh = await api.adminProducts({ search: saved.slug });
         const row = (fresh.results || fresh).find((r) => r.id === saved.id);
         setForm({ ...toForm(row || saved), newImages: [] });
-        setError(`Produit enregistré, mais ${failed.length} photo(s) refusée(s) — ${failed.join(' ; ')}`);
+        setError(t('admin.products.savedPhotosRefused', { n: failed.length, list: failed.join(' ; ') }));
         load();
         return;
       }
 
-      setSuccessMsg(form.id ? 'Produit mis à jour avec succès.' : 'Nouveau produit créé avec succès.');
+      // Sans clé API, le produit reste simplement en français : rien à signaler ici.
+      translatePending().catch(() => {});
+
+      setSuccessMsg(form.id ? t('admin.products.updated') : t('admin.products.created'));
       setTimeout(() => setSuccessMsg(''), 4000);
       setForm({ ...EMPTY });
       load();
@@ -180,7 +183,7 @@ export default function Products() {
     if (!window.confirm(t('admin.products.confirmDelete', `Supprimer « ${p.name} » ? Cette action est définitive.`))) return;
     try {
       await api.adminDeleteProduct(p.id);
-      setSuccessMsg(`Produit « ${p.name} » supprimé.`);
+      setSuccessMsg(t('admin.products.deleted', { name: p.display_name || p.name }));
       setTimeout(() => setSuccessMsg(''), 3000);
       load();
     } catch {
@@ -210,7 +213,7 @@ export default function Products() {
         )}
         {form?.id && (
           <button className="btn-admin primary" onClick={() => openForm({ ...EMPTY })}>
-            {I.plus} Nouveau produit
+            {I.plus} {t('admin.products.newProduct')}
           </button>
         )}
       </PageHead>
@@ -230,12 +233,12 @@ export default function Products() {
         </p>
       )}
 
-      {/* LAYOUT CÔTE À CÔTE : Formulaire (gauche) & Catalogue (droite) */}
+      {/* LAYOUT CÔTE À CÔTE : Formulaire (gauche) ET Catalogue (droite) */}
       <div className={`admin-products-layout ${!form ? 'full-width' : ''}`}>
         {form && (
           <div className="prod-form-column" ref={formRef}>
             <Panel
-              title={form.id ? `Modifier : ${form.name}` : t('admin.products.newProduct', 'Nouveau produit')}
+              title={form.id ? t('admin.products.editing', { name: form.name }) : t('admin.products.newProduct', 'Nouveau produit')}
               action={
                 form.id ? (
                   <button
@@ -243,9 +246,9 @@ export default function Products() {
                     className="btn-admin ghost"
                     onClick={() => openForm({ ...EMPTY })}
                     style={{ padding: '5px 10px', fontSize: 12 }}
-                    title="Nouveau produit"
+                    title={t('admin.products.newProduct')}
                   >
-                    + Nouveau
+                    + {t('admin.products.newShort')}
                   </button>
                 ) : (
                   <button
@@ -253,9 +256,9 @@ export default function Products() {
                     className="btn-admin ghost"
                     onClick={closeForm}
                     style={{ padding: '5px 10px', fontSize: 12 }}
-                    title="Masquer le formulaire"
+                    title={t('admin.products.masquerLeFormulaire')}
                   >
-                    ✕ Masquer
+                    ✕ {t('admin.products.hide')}
                   </button>
                 )
               }
@@ -266,7 +269,7 @@ export default function Products() {
                 {/* 1. INFORMATIONS GÉNÉRALES */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <span>📦</span> Informations Générales
+                    <span>📦</span> {t('admin.products.sectionInfo')}
                   </div>
                   <div className="prod-grid">
                     <div className="full">
@@ -276,7 +279,7 @@ export default function Products() {
                         required
                         value={form.name}
                         onChange={(e) => set('name', e.target.value)}
-                        placeholder="Ex : Épingle Phénix Dorée"
+                        placeholder={t('admin.products.exEpinglePhenixDoree')}
                       />
                     </div>
 
@@ -304,19 +307,19 @@ export default function Products() {
                           onChange={(e) => set('is_active', e.target.checked)}
                           style={{ width: 16, height: 16, accentColor: 'var(--red)', cursor: 'pointer' }}
                         />
-                        <span>Visible sur la boutique</span>
+                        <span>{t('admin.products.visibleSurLaBoutique')}</span>
                       </label>
                       <span className={`status ${form.is_active ? 'paid' : 'rejected'}`} style={{ fontSize: 10, padding: '2px 8px' }}>
-                        {form.is_active ? 'Actif' : 'Inactif'}
+                        {form.is_active ? t('admin.products.active') : t('admin.products.inactiveLabel')}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. TARIFICATION & INVENTAIRE */}
+                {/* 2. TARIFICATION ET INVENTAIRE */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <span>💶</span> Tarification & Inventaire
+                    <span>💶</span> {t('admin.products.sectionPricing')}
                   </div>
                   <div className="prod-grid">
                     <div className={form.sales_channel === 'WHOLESALE' ? 'field-disabled' : undefined}>
@@ -337,7 +340,7 @@ export default function Products() {
                         disabled={form.sales_channel === 'WHOLESALE'}
                         value={form.sales_channel === 'WHOLESALE' ? '' : form.retail_price}
                         onChange={(e) => set('retail_price', e.target.value)}
-                        placeholder={form.sales_channel === 'WHOLESALE' ? 'Gros uniq.' : '0.00'}
+                        placeholder={form.sales_channel === 'WHOLESALE' ? t('admin.products.wholesaleOnlyShort') : '0.00'}
                       />
                     </div>
 
@@ -359,7 +362,7 @@ export default function Products() {
                         disabled={form.sales_channel === 'RETAIL'}
                         value={form.sales_channel === 'RETAIL' ? '' : form.wholesale_price}
                         onChange={(e) => set('wholesale_price', e.target.value)}
-                        placeholder={form.sales_channel === 'RETAIL' ? 'Détail uniq.' : '0.00'}
+                        placeholder={form.sales_channel === 'RETAIL' ? t('admin.products.retailOnlyShort') : '0.00'}
                       />
                     </div>
 
@@ -375,10 +378,10 @@ export default function Products() {
                   </div>
                 </div>
 
-                {/* 3. VISUELS & GALERIE (MODERNE & ÉLÉGANTE) */}
+                {/* 3. VISUELS ET GALERIE (MODERNE ET ÉLÉGANTE) */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <span>📸</span> Visuels & Galerie
+                    <span>📸</span> {t('admin.products.sectionVisuals')}
                   </div>
 
                   <div className="prod-dropzone-box">
@@ -392,9 +395,9 @@ export default function Products() {
                       </div>
                       <div className="dropzone-text">
                         <span className="dropzone-title">
-                          Glisser des visuels ou <span className="dropzone-action">parcourir</span>
+                          {t('admin.products.dropVisuals')} <span className="dropzone-action">{t('admin.products.browse')}</span>
                         </span>
-                        <span className="dropzone-hint">PNG, JPG, WebP ou MP4</span>
+                        <span className="dropzone-hint">{t('admin.products.pngJpgWebpOuMp4')}</span>
                       </div>
                       <input
                         type="file"
@@ -413,8 +416,8 @@ export default function Products() {
                             ) : (
                               <img src={m.file} alt={m.alt_text || form.name} />
                             )}
-                            {m.media_type === 'VIDEO' && <span className="prod-media-badge video">Vidéo</span>}
-                            {m.id === firstPhotoId && <span className="prod-media-badge primary">Vignette</span>}
+                            {m.media_type === 'VIDEO' && <span className="prod-media-badge video">{t('admin.products.video')}</span>}
+                            {m.id === firstPhotoId && <span className="prod-media-badge primary">{t('admin.products.vignette')}</span>}
                             <button
                               type="button"
                               className="prod-media-delete"
@@ -432,7 +435,7 @@ export default function Products() {
                             ) : (
                               <img src={p.url} alt={`À envoyer ${i + 1}`} />
                             )}
-                            <span className="prod-media-badge pending">À envoyer</span>
+                            <span className="prod-media-badge pending">{t('admin.products.aEnvoyer')}</span>
                             <button
                               type="button"
                               className="prod-media-delete"
@@ -451,7 +454,7 @@ export default function Products() {
                 {/* 4. DESCRIPTION */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <span>📝</span> Description du produit
+                    <span>📝</span> {t('admin.products.sectionDescription')}
                   </div>
                   <label htmlFor="p-desc" style={{ display: 'none' }}>Description</label>
                   <textarea
@@ -459,7 +462,7 @@ export default function Products() {
                     rows="2"
                     value={form.description}
                     onChange={(e) => set('description', e.target.value)}
-                    placeholder="Caractéristiques, matériaux, style..."
+                    placeholder={t('admin.products.caracteristiquesMateriauxStyle')}
                   />
                 </div>
 
@@ -478,7 +481,7 @@ export default function Products() {
                     </button>
                   ) : (
                     <button className="btn-admin ghost" type="button" onClick={closeForm}>
-                      Masquer
+                      {t('admin.products.hide')}
                     </button>
                   )}
                 </div>
@@ -489,7 +492,7 @@ export default function Products() {
 
         {/* TABLEAU DES PRODUITS (CATALOGUE) */}
         <div className="prod-list-column">
-          <Panel title="Catalogue des produits">
+          <Panel title={t('admin.products.catalogueDesProduits')}>
             <Toolbar>
               <div className="admin-field">
                 {I.search}
@@ -504,7 +507,7 @@ export default function Products() {
                 {CHANNELS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
               <select className="admin-select" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
-                <option value="">Toutes les catégories</option>
+                <option value="">{t('admin.products.toutesLesCategories')}</option>
                 {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               <span className="admin-count">{filteredRows.length} {t('admin.products.results', 'résultat(s)')}</span>
@@ -536,12 +539,12 @@ export default function Products() {
                                 : I.tag}
                             </span>
                             <div>
-                              <div className="cell-main">{p.name}</div>
+                              <div className="cell-main">{p.display_name || p.name}</div>
                               <div className="cell-sub">{p.category_name || '—'}{!p.is_active && ` · ${t('admin.products.inactive', 'inactif')}`}</div>
                             </div>
                           </div>
                         </td>
-                        <td><span className={CHANNEL_PILL[p.sales_channel]}>{p.sales_channel_display}</span></td>
+                        <td><span className={CHANNEL_PILL[p.sales_channel]}>{t(`admin.products.channel${{ BOTH: 'Both', RETAIL: 'Retail', WHOLESALE: 'Wholesale' }[p.sales_channel]}`)}</span></td>
                         <td>{p.sales_channel === 'WHOLESALE' ? <span style={{ color: 'var(--muted)' }}>—</span> : v.retail_price ? `${parseFloat(v.retail_price)} €` : '—'}</td>
                         <td style={{ color: p.sales_channel === 'RETAIL' ? 'var(--muted)' : 'var(--red)', fontWeight: 600 }}>
                           {p.sales_channel === 'RETAIL' ? <span style={{ color: 'var(--muted)', fontWeight: 400 }}>—</span> : v.wholesale_price ? `${parseFloat(v.wholesale_price)} €` : '—'}

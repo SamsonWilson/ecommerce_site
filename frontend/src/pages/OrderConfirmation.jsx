@@ -1,46 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { cartTotals, eur } from '../data/cart.jsx';
-import { useCart } from '../store/cart.js';
-import { IconCheck, IconPackage } from '../components/icons.jsx';
+import { eur } from '../data/cart.jsx';
+import { useAuth } from '../store/auth.js';
+import { IconCheck } from '../components/icons.jsx';
+import OrderSummary from '../components/OrderSummary.jsx';
+import BankTransferDetails from '../components/BankTransferDetails.jsx';
 
+// Affiche la commande que le serveur vient d'enregistrer (transmise par le
+// checkout), jamais le panier : les montants sont ceux qui seront facturés.
 export default function OrderConfirmation() {
+  const { t } = useTranslation();
   const location = useLocation();
+  const user = useAuth((s) => s.user);
   const isAccount = location.pathname.startsWith('/compte');
   const shopPath = isAccount ? '/compte/boutique' : '/boutique';
+  const order = location.state?.order;
 
-  // On fige le contenu du panier au montage, puis on le vide (commande passée).
-  const [cartItems] = useState(() => useCart.getState().items);
-  const clear = useCart((s) => s.clear);
-  useEffect(() => { clear(); }, [clear]);
+  if (!order?.reference) {
+    // Page rechargée ou ouverte directement : rien à montrer.
+    return (
+      <div className="confirm-wrap">
+        <h1>{t('confirmation.missingTitle')}</h1>
+        <p>{t('confirmation.missing')}</p>
+        <div className="confirm-actions">
+          {user && <Link to="/compte/commandes" className="btn-outline">{t('confirmation.track')}</Link>}
+          <Link to={shopPath} className="btn-primary">{t('confirmation.continue')}</Link>
+        </div>
+      </div>
+    );
+  }
 
-  const { total } = cartTotals(cartItems);
-  const reference = 'CMD-2026-00042';
+  const amount = (value) => eur(Number(value));
+  const isPickup = order.shipping_address?.method === 'pickup';
 
   return (
     <div className="confirm-wrap">
       <div className="confirm-check"><IconCheck /></div>
-      <h1>Merci pour votre commande !</h1>
-      <p>Un e-mail de confirmation vient de vous être envoyé.</p>
-      <div className="confirm-ref">Référence : {reference}</div>
+      <h1>{t('confirmation.title')}</h1>
+      <p>{t('confirmation.recorded')}</p>
+      <div className="confirm-ref">{t('confirmation.reference')} : {order.reference}</div>
 
-      <div className="confirm-box">
-        <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <IconPackage />Récapitulatif
-        </div>
-        {cartItems.map((it) => (
-          <div className="srow" key={it.slug} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', fontSize: 13.5 }}>
-            <span>{it.name} × {it.qty}</span><span>{eur(it.unit * it.qty)}</span>
-          </div>
-        ))}
-        <div className="stotal" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--line)', marginTop: 8, paddingTop: 12 }}>
-          <strong>Total payé</strong><span className="amt" style={{ fontWeight: 800, color: 'var(--brand-red)' }}>{eur(total)}</span>
-        </div>
-      </div>
+      <OrderSummary order={order} />
+
+      {order.bank_transfer && <BankTransferDetails transfer={order.bank_transfer} />}
+
+      {order.payment_method === 'cod' && (
+        <p style={{ background: '#F0FDF4', padding: 16, borderRadius: 10, border: '1px solid #BBF7D0', color: '#166534', fontSize: 13 }}>
+          💵 {t(isPickup ? 'confirmation.payAtPickup' : 'confirmation.payOnDelivery', { amount: amount(order.total_amount) })}
+        </p>
+      )}
 
       <div className="confirm-actions">
-        <Link to="/compte/commandes" className="btn-outline">Suivre ma commande</Link>
-        <Link to={shopPath} className="btn-primary">Continuer mes achats</Link>
+        {user && <Link to="/compte/commandes" className="btn-outline">{t('confirmation.track')}</Link>}
+        <Link to={shopPath} className="btn-primary">{t('confirmation.continue')}</Link>
       </div>
     </div>
   );

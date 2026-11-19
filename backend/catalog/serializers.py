@@ -13,19 +13,30 @@ from .models import (
 )
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class TranslatedFieldsMixin:
+    """Remplace les champs traduisibles par leur version dans la langue de la requête."""
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        for field in instance.TRANSLATABLE_FIELDS:
+            if field in data:
+                data[field] = instance.translated(field)
+        return data
+
+
+class CategorySerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ("id", "name", "slug")
 
 
-class ColorThemeSerializer(serializers.ModelSerializer):
+class ColorThemeSerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = ColorTheme
         fields = ("id", "name", "slug", "hex_code")
 
 
-class WeddingMomentSerializer(serializers.ModelSerializer):
+class WeddingMomentSerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = WeddingMoment
         fields = ("id", "name", "slug")
@@ -67,8 +78,8 @@ class VariantSerializer(serializers.ModelSerializer):
         return self._resolved(variant).is_wholesale
 
 
-class ProductListSerializer(serializers.ModelSerializer):
-    category = serializers.CharField(source="category.name", default=None)
+class ProductListSerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
+    category = serializers.SerializerMethodField()
     colors = ColorThemeSerializer(many=True, read_only=True)
     price = serializers.SerializerMethodField()
     original_price = serializers.SerializerMethodField()
@@ -80,6 +91,9 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = ("id", "name", "slug", "category", "colors", "price",
                   "original_price", "sku", "stock", "image", "is_active")
+
+    def get_category(self, product):
+        return product.category.translated("name") if product.category else None
 
     def get_image(self, product):
         """
@@ -101,11 +115,15 @@ class ProductListSerializer(serializers.ModelSerializer):
         return v.sku if v else None
 
     def get_stock(self, product):
-        v = self._default_variant(product)
-        return v.stock if v else 0
+        variants = product.variants.all()
+        return sum(v.stock for v in variants) if variants else 0
 
     def _default_variant(self, product):
-        return product.variants.all()[0] if product.variants.all() else None
+        variants = product.variants.all()
+        in_stock = [v for v in variants if v.stock > 0]
+        if in_stock:
+            return in_stock[0]
+        return variants[0] if variants else None
 
     def get_price(self, product):
         v = self._default_variant(product)
@@ -123,7 +141,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         return str(rp.original_price) if rp.original_price is not None else None
 
 
-class ProductDetailSerializer(serializers.ModelSerializer):
+class ProductDetailSerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     collection = serializers.SlugRelatedField(slug_field="slug", read_only=True)
     colors = ColorThemeSerializer(many=True, read_only=True)
@@ -138,9 +156,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                   "media", "variants", "seo_title", "seo_description")
 
 
-class CollectionSerializer(serializers.ModelSerializer):
-    products = ProductListSerializer(many=True, read_only=True)
+class CollectionSerializer(TranslatedFieldsMixin, serializers.ModelSerializer):
+    products = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
         fields = ("id", "name", "slug", "story", "products")
+
+    def get_products(self, collection):
+        products = collection.products.filter(is_active=True, variants__stock__gt=0).distinct()
+        return ProductListSerializer(products, many=True, context=self.context).data

@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api.js';
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const { uid, token } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -14,7 +16,7 @@ export default function ResetPassword() {
     setError(''); setBusy(true);
     const f = e.target;
     if (f.p1.value !== f.p2.value) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('auth.passwordMismatch'));
       setBusy(false);
       return;
     }
@@ -29,8 +31,8 @@ export default function ResetPassword() {
       // uid/token invalides = lien expiré ou déjà utilisé
       setError(
         d.new_password2?.[0] || d.new_password1?.[0] ||
-        (d.uid || d.token ? "Ce lien n'est plus valable. Demandez-en un nouveau." : null) ||
-        'La réinitialisation a échoué.'
+        (d.uid || d.token ? t('auth.linkExpired') : null) ||
+        t('auth.resetFailed')
       );
     } finally { setBusy(false); }
   };
@@ -40,7 +42,7 @@ export default function ResetPassword() {
       <div className="auth-card">
         <div className="auth-body">
           <h2 style={{ fontSize: 19, color: 'var(--navy)', marginBottom: 14 }}>
-            Choisir un nouveau mot de passe
+            {t('auth.newPasswordTitle')}
           </h2>
 
           {done ? (
@@ -53,22 +55,22 @@ export default function ResetPassword() {
           ) : (
             <form onSubmit={submit}>
               <div className="field">
-                <label htmlFor="p1">Nouveau mot de passe</label>
+                <label htmlFor="p1">{t('auth.newPassword')}</label>
                 <input id="p1" name="p1" type="password" required autoFocus autoComplete="new-password" />
               </div>
               <div className="field">
-                <label htmlFor="p2">Confirmer le mot de passe</label>
+                <label htmlFor="p2">{t('auth.confirmPassword')}</label>
                 <input id="p2" name="p2" type="password" required autoComplete="new-password" />
               </div>
               {error && <p className="social-error">{error}</p>}
               <button type="submit" className="btn-primary" disabled={busy}>
-                {busy ? 'Enregistrement…' : 'Enregistrer'}
+                {busy ? t('common.saving') : t('common.save')}
               </button>
             </form>
           )}
 
           <p className="auth-alt">
-            <Link to="/compte/mot-de-passe-oublie">Demander un nouveau lien</Link>
+            <Link to="/compte/mot-de-passe-oublie">{t('auth.newLink')}</Link>
           </p>
         </div>
       </div>

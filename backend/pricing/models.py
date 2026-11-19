@@ -1,8 +1,12 @@
 from django.db import models
 
+from core.models import TranslatableModel
 
-class PriceTier(models.Model):
+
+class PriceTier(TranslatableModel):
     """Niveau tarifaire professionnel (cf. ARCHITECTURE.md §5.2)."""
+
+    TRANSLATABLE_FIELDS = ("name",)
 
     name = models.CharField(max_length=50)  # "Revendeur", "Distributeur", "VIP"
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)

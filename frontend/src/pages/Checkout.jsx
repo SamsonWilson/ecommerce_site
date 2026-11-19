@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { cartTotals, eur } from '../data/cart.jsx';
 import { figureBySlug, defaultFigure } from '../data/products.jsx';
@@ -6,8 +7,10 @@ import { useCart } from '../store/cart.js';
 import { useAuth } from '../store/auth.js';
 import { IconCheck, IconCard, IconLock, IconBag } from '../components/icons.jsx';
 import { api } from '../lib/api.js';
+import { paymentReturnPath, startOnlinePayment } from '../lib/payment.js';
 
 export default function Checkout() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuth((s) => s.user);
@@ -18,7 +21,16 @@ export default function Checkout() {
   const confirmPath = isAccount ? '/compte/commande/confirmee' : '/commande/confirmee';
 
   const [shipMethod, setShipMethod] = useState('standard');
+  // Paiement à la remise, plus le paiement en ligne si un prestataire est configuré.
   const [payMethod, setPayMethod] = useState('cod');
+  const [onlineMethod, setOnlineMethod] = useState(null);
+  const [transferDays, setTransferDays] = useState(null); // virement : grossistes validés seulement
+  const [redirecting, setRedirecting] = useState(false);
+
+  // Pays desservis et frais de port : le serveur décide, la page affiche.
+  const [countries, setCountries] = useState([]);
+  const [quote, setQuote] = useState(null); // { options, subtotal } ou null pendant le calcul
+  const [quoteError, setQuoteError] = useState(false);
 
   const [formData, setFormData] = useState({
     prenom: user?.first_name || '',
@@ -26,7 +38,7 @@ export default function Checkout() {
     adr: '',
     cp: '',
     ville: '',
-    pays: 'France',
+    pays: 'FR',
     tel: '',
     mail: user?.email || '',
   });
@@ -34,9 +46,86 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const { subtotal } = cartTotals(cartItems);
-  const actualShipping = shipMethod === 'pickup' ? 0 : (shipMethod === 'express' ? 12.9 : (subtotal >= 150 ? 0 : 6.9));
-  const total = subtotal + actualShipping;
+  const regionName = useMemo(() => {
+    try {
+      const names = new Intl.DisplayNames([i18n.resolvedLanguage || 'fr'], { type: 'region' });
+      return (code) => names.of(code) || code;
+    } catch {
+      return (code) => code;
+    }
+  }, [i18n.resolvedLanguage]);
+
+  // Le serveur compte en prix réels (prix pro compris) : on affiche son sous-total.
+  const cartSubtotal = cartTotals(cartItems).subtotal;
+  const options = quote?.options || [];
+  const selected = options.find((o) => o.code === shipMethod) || null;
+  const subtotal = quote ? Number(quote.subtotal) : cartSubtotal;
+  const shippingCost = selected ? Number(selected.cost) : 0;
+  const total = subtotal + shippingCost;
+  const isPickup = Boolean(selected?.is_pickup);
+  const canCod = Boolean(selected?.cash_on_delivery);
+  const isTransfer = payMethod === 'transfer';
+  const isOnline = !['cod', 'transfer'].includes(payMethod);
+  const canPay = Boolean(selected) && (
+    isOnline ? Boolean(onlineMethod) : isTransfer ? Boolean(transferDays) : canCod
+  );
+  const itemsKey = cartItems.map((it) => `${it.slug}:${it.qty}`).join(',');
+
+  useEffect(() => {
+    let active = true;
+    api.paymentConfig()
+      .then(({ methods, transfer_days: days }) => {
+        if (!active) return;
+        const online = methods.find((m) => !['cod', 'transfer'].includes(m)) || null;
+        if (methods.includes('transfer')) setTransferDays(days);
+        if (online) {
+          setOnlineMethod(online);
+          setPayMethod(online);
+        }
+      })
+      .catch(() => { /* paiement à la remise seulement */ });
+    return () => { active = false; };
+  }, []);
+
+  // Le mode de livraison choisi peut refuser le paiement à la remise.
+  useEffect(() => {
+    const fallback = onlineMethod || (transferDays ? 'transfer' : null);
+    if (payMethod === 'cod' && selected && !canCod && fallback) setPayMethod(fallback);
+  }, [payMethod, selected, canCod, onlineMethod, transferDays]);
+
+  useEffect(() => {
+    let active = true;
+    api.shippingCountries()
+      .then(({ countries: list }) => {
+        if (!active) return;
+        setCountries(list);
+        setFormData((prev) => (list.includes(prev.pays) ? prev : { ...prev, pays: list[0] || '' }));
+      })
+      .catch(() => active && setQuoteError(true));
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!formData.pays || !itemsKey) return undefined;
+    let active = true;
+    setQuote(null);
+    setQuoteError(false);
+    api.shippingOptions({
+      country: formData.pays,
+      items: cartItems.map((item) => ({ slug: item.slug, quantity: item.qty })),
+    })
+      .then((data) => {
+        if (!active) return;
+        setQuote(data);
+        // Le mode choisi n'existe pas forcément dans le nouveau pays.
+        setShipMethod((current) => (
+          data.options.some((o) => o.code === current) ? current : (data.options[0]?.code || '')
+        ));
+      })
+      .catch(() => active && setQuoteError(true));
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.pays, itemsKey, i18n.resolvedLanguage]);
 
   useEffect(() => {
     if (user) {
@@ -48,12 +137,6 @@ export default function Checkout() {
       }));
     }
   }, [user]);
-
-  useEffect(() => {
-    if (shipMethod === 'pickup' && payMethod === 'cod') {
-      setPayMethod('card');
-    }
-  }, [shipMethod, payMethod]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -73,54 +156,70 @@ export default function Checkout() {
         city: formData.ville,
         country: formData.pays,
         phone: formData.tel,
-        method: shipMethod,
       },
+      shipping_method: shipMethod,
       payment_method: payMethod,
-      items: cartItems.map((item, index) => ({
-        variant_id: index + 1,
-        sku: item.slug || `SKU-${index + 1}`,
-        product_name: item.name,
-        quantity: item.qty,
-        unit_price: item.unit,
-      })),
+      // Le serveur retrouve l'article par son slug et fixe lui-même le prix.
+      items: cartItems.map((item) => ({ slug: item.slug, quantity: item.qty })),
     };
 
+    let res;
     try {
-      const res = await api.checkout(payload);
-      clearCart();
-      navigate(confirmPath, { state: { order: res.order || res } });
+      res = await api.checkout(payload);
     } catch (err) {
-      console.warn('Erreur checkout backend, basculement mode démo local:', err);
-      clearCart();
-      navigate(confirmPath, {
-        state: {
-          order: {
-            reference: `CMD-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-            total_amount: total.toFixed(2),
-            currency: 'EUR',
-          },
-        },
-      });
-    } finally {
+      // Rien n'a été enregistré : le client doit le savoir, et garde son panier.
+      console.warn('Erreur checkout backend :', err);
+      setError(err.data?.detail || t('checkout.failed'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setSubmitting(false);
+      return;
+    }
+
+    // La commande est enregistrée : le panier peut être vidé.
+    const order = res.order || res;
+    if (!isOnline) {
+      clearCart();
+      navigate(confirmPath, { state: { order } });
+      return;
+    }
+    setRedirecting(true);
+    clearCart();
+    try {
+      await startOnlinePayment(order.reference, res.payment_token);
+    } catch (err) {
+      console.warn('Paiement en ligne non démarré :', err);
+      // La page de retour propose de reprendre le paiement.
+      navigate(paymentReturnPath(order.reference, res.payment_token, { cancelled: '1' }));
     }
   };
+
+  if (redirecting) {
+    return (
+      <div className="acc-overview">
+        <div className="acc-empty">
+          <div style={{ marginBottom: 16 }}><IconLock /></div>
+          <h2>{t('checkout.redirecting')}</h2>
+          <p>{t('checkout.onlineText')}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
       <div className="acc-overview">
         <div className="acc-head">
           <div className="acc-head-content">
-            <h1>Finaliser la <span>Commande</span></h1>
-            <p>Votre panier est actuellement vide.</p>
+            <h1>{t('checkout.titleStart')} <span>{t('checkout.titleOrder')}</span></h1>
+            <p>{t('checkout.cartEmpty')}</p>
           </div>
         </div>
         <div className="acc-empty">
           <div style={{ marginBottom: 16 }}><IconBag /></div>
-          <h2>Aucun article dans votre panier</h2>
-          <p>Explorez la boutique pour sélectionner vos pièces préférées avant de commander.</p>
+          <h2>{t('checkout.noItems')}</h2>
+          <p>{t('checkout.noItemsHint')}</p>
           <Link to="/compte/boutique" className="btn-premium" style={{ marginTop: 24, display: 'inline-flex' }}>
-            Découvrir la boutique
+            {t('common.discoverShop')}
           </Link>
         </div>
       </div>
@@ -131,8 +230,8 @@ export default function Checkout() {
     <div className="acc-overview">
       <div className="acc-head">
         <div className="acc-head-content">
-          <h1>Finaliser ma <span>Commande</span></h1>
-          <p>Vérifiez vos informations de livraison et réglez votre commande en toute sécurité.</p>
+          <h1>{t('checkout.titleMine')} <span>{t('checkout.titleOrder')}</span></h1>
+          <p>{t('checkout.intro')}</p>
         </div>
       </div>
 
@@ -150,12 +249,12 @@ export default function Checkout() {
             <div className="acc-info-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 12 }}>
                 <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--brand-red,#E1251B)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>1</span>
-                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>Adresse de livraison</h3>
+                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>{t('checkout.address')}</h3>
               </div>
 
               <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div className="field">
-                  <label htmlFor="prenom" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Prénom *</label>
+                  <label htmlFor="prenom" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.firstName')}</label>
                   <input
                     id="prenom"
                     required
@@ -166,7 +265,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor="nom" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Nom *</label>
+                  <label htmlFor="nom" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.lastName')}</label>
                   <input
                     id="nom"
                     required
@@ -177,11 +276,11 @@ export default function Checkout() {
                 </div>
 
                 <div className="field full" style={{ gridColumn: 'span 2' }}>
-                  <label htmlFor="adr" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Adresse postale *</label>
+                  <label htmlFor="adr" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.street')}</label>
                   <input
                     id="adr"
                     required
-                    placeholder="Numéro et nom de rue, bâtiment, appartement…"
+                    placeholder={t('checkout.streetHint')}
                     value={formData.adr}
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }}
@@ -189,7 +288,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor="cp" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Code postal *</label>
+                  <label htmlFor="cp" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.postalCode')}</label>
                   <input
                     id="cp"
                     required
@@ -200,7 +299,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor="ville" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Ville *</label>
+                  <label htmlFor="ville" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.city')}</label>
                   <input
                     id="ville"
                     required
@@ -211,22 +310,22 @@ export default function Checkout() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor="pays" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Pays *</label>
+                  <label htmlFor="pays" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.country')}</label>
                   <select
                     id="pays"
                     value={formData.pays}
                     onChange={handleChange}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14, background: '#fff' }}
                   >
-                    <option value="France">France</option>
-                    <option value="Belgique">Belgique</option>
-                    <option value="Suisse">Suisse</option>
-                    <option value="Canada">Canada</option>
+                    {countries
+                      .map((code) => [code, regionName(code)])
+                      .sort((a, b) => a[1].localeCompare(b[1], i18n.resolvedLanguage))
+                      .map(([code, name]) => <option key={code} value={code}>{name}</option>)}
                   </select>
                 </div>
 
                 <div className="field">
-                  <label htmlFor="tel" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Téléphone</label>
+                  <label htmlFor="tel" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('common.phone')}</label>
                   <input
                     id="tel"
                     type="tel"
@@ -238,7 +337,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="field full" style={{ gridColumn: 'span 2' }}>
-                  <label htmlFor="mail" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>E-mail de confirmation *</label>
+                  <label htmlFor="mail" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>{t('checkout.confirmEmail')}</label>
                   <input
                     id="mail"
                     type="email"
@@ -255,19 +354,28 @@ export default function Checkout() {
             <div className="acc-info-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 12 }}>
                 <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--brand-red,#E1251B)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>2</span>
-                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>Mode de livraison / Retrait</h3>
+                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>{t('checkout.deliveryMode')}</h3>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-                {[
-                  { id: 'standard', title: 'Livraison Standard', desc: '48h à 72h ouvrés', cost: subtotal >= 150 ? 'Offerte' : eur(6.9) },
-                  { id: 'express', title: 'Livraison Express', desc: '24h chrono sécurisé', cost: eur(12.9) },
-                  { id: 'pickup', title: 'Retrait Boutique', desc: 'Prêt sous 2h à l\'Atelier', cost: 'Offert' },
-                ].map((option) => {
+              {quoteError && <p style={{ margin: 0, fontSize: 13, color: '#991B1B' }}>{t('checkout.optionsFailed')}</p>}
+              {!quoteError && !quote && <p style={{ margin: 0, fontSize: 13, color: '#64748B' }}>{t('checkout.loadingOptions')}</p>}
+              {quote && options.length === 0 && <p style={{ margin: 0, fontSize: 13, color: '#991B1B' }}>{t('checkout.noOption')}</p>}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+                {options.map((o) => ({
+                  id: o.code,
+                  title: o.name,
+                  desc: o.delay,
+                  cost: Number(o.cost) === 0 ? (o.is_pickup ? t('checkout.pickupFree') : t('common.free')) : eur(Number(o.cost)),
+                })).map((option) => {
                   const isSelected = shipMethod === option.id;
                   return (
                     <div
                       key={option.id}
+                      role="radio"
+                      aria-checked={isSelected}
+                      tabIndex={0}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setShipMethod(option.id))}
                       onClick={() => setShipMethod(option.id)}
                       style={{
                         padding: 16,
@@ -288,10 +396,10 @@ export default function Checkout() {
                 })}
               </div>
 
-              {shipMethod === 'pickup' && (
+              {isPickup && (
                 <div style={{ marginTop: 16, padding: '12px 16px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, color: '#1E40AF', fontSize: 13 }}>
-                  📍 <strong>Retrait à l'Atelier Boutique :</strong> Maison Lián, 12 Rue de la Paix, 75002 Paris.<br />
-                  <span style={{ fontSize: 12 }}>Heures d'ouverture : Du Lundi au Samedi, 10h - 19h. Un e-mail / SMS vous sera envoyé dès la préparation terminée.</span>
+                  📍 <strong>{t('checkout.pickupAt')}</strong> Maison Lián, 12 Rue de la Paix, 75002 Paris.<br />
+                  <span style={{ fontSize: 12 }}>{t('checkout.pickupHours')}</span>
                 </div>
               )}
             </div>
@@ -300,77 +408,76 @@ export default function Checkout() {
             <div className="acc-info-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 12 }}>
                 <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--brand-red,#E1251B)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>3</span>
-                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>Mode de règlement</h3>
+                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700 }}>{t('checkout.paymentMode')}</h3>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
-                {[
-                  { id: 'card', title: 'Carte Bancaire', desc: 'Visa, Mastercard, AMEX' },
-                  { id: 'paypal', title: 'PayPal', desc: 'Compte PayPal' },
-                  { id: 'cod', title: 'À la livraison', desc: shipMethod === 'pickup' ? 'Indisponible en retrait' : 'Espèces / CB à la remise' },
-                ].map((p) => {
-                  const isDisabled = p.id === 'cod' && shipMethod === 'pickup';
-                  const isSelected = payMethod === p.id && !isDisabled;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => !isDisabled && setPayMethod(p.id)}
-                      style={{
-                        padding: 16,
-                        borderRadius: 10,
-                        border: isSelected
-                          ? '2px solid var(--brand-red,#E1251B)'
-                          : isDisabled
-                          ? '1px solid #E2E8F0'
-                          : '1px solid #E2E8F0',
-                        background: isSelected ? '#FFF5F5' : isDisabled ? '#F1F5F9' : '#FAFAFA',
-                        opacity: isDisabled ? 0.5 : 1,
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                      title={isDisabled ? 'Le paiement à la livraison n\'est pas disponible lors d\'un retrait en boutique.' : undefined}
-                    >
-                      <div style={{ fontWeight: 700, fontSize: 14, color: isDisabled ? '#94A3B8' : 'var(--navy,#0F172A)', marginBottom: 4 }}>{p.title}</div>
-                      <div style={{ fontSize: 12, color: isDisabled ? '#94A3B8' : '#64748B' }}>{p.desc}</div>
+              {selected && !canCod && !onlineMethod && !transferDays ? (
+                <div style={{ background: '#FEF2F2', padding: 16, borderRadius: 10, border: '1px solid #FCA5A5', color: '#991B1B', fontSize: 13 }}>
+                  {t('checkout.noPaymentForMethod')}
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 16 }}>
+                    {[
+                      onlineMethod && { id: onlineMethod, title: t('checkout.online'), desc: t('checkout.onlineHint') },
+                      transferDays && { id: 'transfer', title: t('checkout.transfer'), desc: t('checkout.transferHint') },
+                      canCod && {
+                        id: 'cod',
+                        title: isPickup ? t('checkout.payAtPickup') : t('checkout.cod'),
+                        desc: isPickup ? t('checkout.payAtPickupHint') : t('checkout.codHint'),
+                      },
+                    ].filter(Boolean).map((p) => {
+                      const isSelected = payMethod === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          role="radio"
+                          aria-checked={isSelected}
+                          tabIndex={0}
+                          data-payment={p.id}
+                          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setPayMethod(p.id))}
+                          onClick={() => setPayMethod(p.id)}
+                          style={{
+                            padding: 16,
+                            borderRadius: 10,
+                            border: isSelected ? '2px solid var(--brand-red,#E1251B)' : '1px solid #E2E8F0',
+                            background: isSelected ? '#FFF5F5' : '#FAFAFA',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy,#0F172A)', marginBottom: 4 }}>{p.title}</div>
+                          <div style={{ fontSize: 12, color: '#64748B' }}>{p.desc}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {isOnline ? (
+                    <div style={{ background: '#EFF6FF', padding: 16, borderRadius: 10, border: '1px solid #BFDBFE', color: '#1E40AF', fontSize: 13 }}>
+                      🔒 {t('checkout.onlineText')}
                     </div>
-                  );
-                })}
-              </div>
-
-              {payMethod === 'card' && (
-                <div style={{ background: '#F8FAFC', padding: 20, borderRadius: 10, border: '1px solid #E2E8F0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Numéro de carte</label>
-                    <input placeholder="4532 •••• •••• 8910" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Expiration</label>
-                    <input placeholder="MM / AA" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6 }}>CVC</label>
-                    <input placeholder="123" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 14 }} />
-                  </div>
-                </div>
-              )}
-
-              {payMethod === 'cod' && (
-                <div style={{ background: '#F0FDF4', padding: 16, borderRadius: 10, border: '1px solid #BBF7D0', color: '#166534', fontSize: 13 }}>
-                  💵 <strong>Paiement à la livraison / au retrait :</strong><br />
-                  <span style={{ fontSize: 12.5 }}>Aucun débit en ligne immédiat. Vous réglerez le montant exact ({eur(total)}) directement en espèces ou par carte bancaire lors de la remise de votre commande.</span>
-                </div>
+                  ) : isTransfer ? (
+                    <div style={{ background: '#EFF6FF', padding: 16, borderRadius: 10, border: '1px solid #BFDBFE', color: '#1E40AF', fontSize: 13 }}>
+                      🏦 {t('checkout.transferText', { days: transferDays })}
+                    </div>
+                  ) : (
+                    <div style={{ background: '#F0FDF4', padding: 16, borderRadius: 10, border: '1px solid #BBF7D0', color: '#166534', fontSize: 13 }}>
+                      💵 <strong>{t('checkout.codTitle')}</strong><br />
+                      <span style={{ fontSize: 12.5 }}>{t('checkout.codText', { amount: eur(total) })}</span>
+                    </div>
+                  )}
+                </>
               )}
 
               <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#64748B', marginTop: 16 }}>
-                <IconLock /> Cryptage SSL 256-bit — Transactions garanties et sécurisées par Maison Lián.
+                <IconLock /> {t('checkout.secure')}
               </p>
             </div>
           </div>
 
-          {/* RÉCAPITULATIF DU PANIER & VALIDER */}
+          {/* RÉCAPITULATIF DU PANIER ET VALIDER */}
           <div className="acc-info-card" style={{ padding: 24, sticky: 'top', top: 20, height: 'fit-content' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: 17, color: 'var(--navy,#0F172A)', fontWeight: 700, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 12 }}>
-              Résumé de la commande ({cartItems.length})
+              {t('checkout.summaryTitle', { count: cartItems.length })}
             </h3>
 
             {/* LISTE ARTICLES */}
@@ -385,7 +492,7 @@ export default function Checkout() {
                       {it.name}
                     </div>
                     <div style={{ fontSize: 12, color: '#64748B' }}>
-                      Qté: {it.qty} × {eur(it.unit)}
+                      {t('checkout.qty')} {it.qty} × {eur(it.unit)}
                     </div>
                   </div>
                   <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--navy,#0F172A)' }}>
@@ -398,22 +505,22 @@ export default function Checkout() {
             {/* DÉTAILS PRIX */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                <span>Sous-total HT</span>
+                <span>{t('checkout.subtotalHT')}</span>
                 <span>{eur(subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                <span>{shipMethod === 'pickup' ? 'Mode de retrait' : 'Frais de livraison'}</span>
-                <span>{actualShipping === 0 ? (shipMethod === 'pickup' ? 'Retrait Offert' : 'Offerte') : eur(actualShipping)}</span>
+                <span>{isPickup ? t('checkout.pickupMode') : t('checkout.shippingFees')}</span>
+                <span>{!selected ? '—' : shippingCost === 0 ? (isPickup ? t('checkout.pickupOffered') : t('common.free')) : eur(shippingCost)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 800, color: 'var(--navy,#0F172A)', borderTop: '1px solid #E2E8F0', paddingTop: 14, marginTop: 4 }}>
-                <span>Total TTC</span>
+                <span>{t('checkout.totalTTC')}</span>
                 <span style={{ color: 'var(--brand-red,#E1251B)' }}>{eur(total)}</span>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || redirecting || !canPay}
               className="btn-premium"
               style={{
                 width: '100%',
@@ -424,14 +531,18 @@ export default function Checkout() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                cursor: submitting ? 'wait' : 'pointer',
+                cursor: submitting || redirecting ? 'wait' : (!canPay ? 'not-allowed' : 'pointer'),
+                opacity: !canPay ? 0.6 : 1,
               }}
             >
-              <IconCard /> {submitting ? 'Validation en cours…' : (payMethod === 'cod' ? `Valider la commande (${eur(total)})` : `Confirmer et payer ${eur(total)}`)}
+              <IconCard /> {redirecting ? t('checkout.redirecting')
+                : submitting ? t('checkout.submitting')
+                : isOnline ? t('checkout.payOnline', { amount: eur(total) })
+                : t('checkout.placeOrder', { amount: eur(total) })}
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, fontSize: 12, color: '#64748B' }}>
-              <IconCheck /> Garantie satisfait ou remboursé sous 30 jours
+              <IconCheck /> {t('checkout.guarantee')}
             </div>
           </div>
         </div>
